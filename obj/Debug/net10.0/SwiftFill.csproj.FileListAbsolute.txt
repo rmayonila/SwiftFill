@@ -327,3 +327,4 @@ C:\Users\PERSONAL\SwiftFill\obj\Debug\net10.0\compressed\iw9edrv3fw-{0}-ilo7uva0
 C:\Users\PERSONAL\SwiftFill\obj\Debug\net10.0\compressed\kuvuzaif4d-{0}-qlccset4i1-qlccset4i1.gz
 C:\Users\PERSONAL\SwiftFill\obj\Debug\net10.0\compressed\nqky0mald0-{0}-xzw0cte36n-xzw0cte36n.gz
 C:\Users\PERSONAL\SwiftFill\obj\Debug\net10.0\compressed\dpcn2el5ax-{0}-jfsiqqwiad-jfsiqqwiad.gz
+C:\Users\PERSONAL\SwiftFill\obj\Debug\net10.0\SwiftFill.sourcelink.json
