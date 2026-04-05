@@ -1,0 +1,84 @@
+@{
+    ViewData["Title"] = "Global Inventory - SwiftFill";
+    Layout = "_AdminLayout";
+}
+
+<div class="animate-fade-up">
+    <!-- Top Header Area -->
+    <div class="d-flex justify-content-between align-items-center mb-5 border-bottom border-dark pb-3">
+        <div>
+            <h1 class="fw-bold display-5 mt-2 mb-0">Global Inventory</h1>
+            <p class="text-secondary mt-1" style="font-size: 1.1rem;">Monitor and manage product stock across all warehouses.</p>
+        </div>
+        <div>
+            <button class="btn btn-outline-light" style="border-radius: 8px; padding: 10px 20px; font-weight: 600;">
+                <i class="bi bi-cloud-arrow-down-fill me-2"></i> Export Report
+            </button>
+            <button class="btn btn-warning ms-2" style="border-radius: 8px; padding: 10px 20px; font-weight: 600; color: #000;">
+                <i class="bi bi-plus-lg me-2"></i> Add Product
+            </button>
+        </div>
+    </div>
+
+    <!-- Premium Stat Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card premium-card border-0 h-100" style="background: linear-gradient(145deg, #161b22, #0d1117); border-radius: 12px; border: 1px solid #30363d !important;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="text-secondary mb-0 fw-semibold">Total Stock Value</h6>
+                        <div class="icon-box" style="background: rgba(46, 160, 67, 0.1); padding: 10px; border-radius: 8px;">
+                            <i class="bi bi-currency-dollar" style="color: #2ea043; font-size: 1.2rem;"></i>
+                        </div>
+                    </div>
+                    <h2 class="display-6 fw-bold mb-1">$4.2M</h2>
+                    <p class="mb-0 text-secondary" style="font-size: 0.85rem;">Across all warehouses</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card premium-card border-0 h-100" style="background: linear-gradient(145deg, #161b22, #0d1117); border-radius: 12px; border: 1px solid #30363d !important;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="text-secondary mb-0 fw-semibold">Unique SKUs</h6>
+                        <div class="icon-box" style="background: rgba(88, 166, 255, 0.1); padding: 10px; border-radius: 8px;">
+                            <i class="bi bi-box-seam" style="color: #58a6ff; font-size: 1.2rem;"></i>
+                        </div>
+                    </div>
+                    <h2 class="display-6 fw-bold mb-1">1,245</h2>
+                    <p class="mb-0 text-secondary" style="font-size: 0.85rem;">Active products</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card premium-card border-0 h-100" style="background: linear-gradient(145deg, #161b22, #0d1117); border-radius: 12px; border: 1px solid #30363d !important;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="text-secondary mb-0 fw-semibold">Low Stock Alerts</h6>
+                        <div class="icon-box" style="background: rgba(210, 153, 34, 0.1); padding: 10px; border-radius: 8px;">
+                            <i class="bi bi-exclamation-triangle" style="color: #d29922; font-size: 1.2rem;"></i>
+                        </div>
+                    </div>
+                    <h2 class="display-6 fw-bold mb-1" style="color: #d29922;">24</h2>
+                    <p class="mb-0 text-secondary" style="font-size: 0.85rem;">Require reorder</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Placeholder Content -->
+    <div class="card premium-card border-0 shadow-lg text-center py-5" style="background: rgba(22, 27, 34, 0.9); backdrop-filter: blur(14px); border-radius: 12px; border: 1px solid #30363d !important;">
+        <div class="card-body py-5">
+            <i class="bi bi-boxes text-secondary mb-4" style="font-size: 4rem;"></i>
+            <h3 class="fw-bold mb-2">Inventory Sync Operational</h3>
+            <p class="text-secondary mb-4 mx-auto" style="max-width: 500px;">
+                Global inventory is being tracked in real-time across all distributed fulfillment centers. Comprehensive reports will appear here.
+            </p>
+            <button class="btn btn-outline-warning">
+                <i class="bi bi-arrow-clockwise me-2"></i> Force Sync Inventory
+            </button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,318 @@
+@using System
+@using System.Linq
+@model IEnumerable<SwiftFill.Models.Order>
+@{
+    ViewData["Title"] = "Order Management";
+    Layout = "_AdminLayout";
+}
+
+<div class="animate-fade-up">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-geo-alt-fill text-orange me-2"></i> Order Management</h2>
+        <div>
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <span class="badge bg-success me-3 p-2">@TempData["SuccessMessage"]</span>
+            }
+        </div>
+    </div>
+
+    <!-- Integrated Filter Bar (Reference-Matched) -->
+    <div class="d-flex justify-content-between align-items-center mb-4 gap-3 bg-dark-soft p-2 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+        <div class="d-flex align-items-center flex-grow-1 gap-3">
+            <form method="get" class="d-flex align-items-center flex-grow-1">
+                <div class="search-wrapper flex-grow-1" style="max-width: 400px;">
+                    <i class="bi bi-search"></i>
+                    <input type="text" name="search" value="@ViewBag.Search" class="minimal-input w-100" 
+                           placeholder="Search Tracking ID, Sender, or Receiver...">
+                </div>
+            </form>
+        
+        </div>
+
+        <div class="d-flex align-items-center gap-4">
+            <!-- Filter Dropdowns Grouped -->
+            <form method="get" class="d-flex align-items-center gap-3">
+                <select name="status" class="minimal-input" style="width: 150px; background: transparent; border: none;" onchange="this.form.submit()">
+                    <option value="All">Status</option>
+                    <option value="Pending" selected="@(ViewBag.Status == "Pending")">Pending</option>
+                    <option value="Transit" selected="@(ViewBag.Status == "Transit")">In Transit</option>
+                    <option value="Delivered" selected="@(ViewBag.Status == "Delivered")">Delivered</option>
+                </select>
+                <select name="region" class="minimal-input" style="width: 130px; background: transparent; border: none;" onchange="this.form.submit()">
+                    <option value="All">Region</option>
+                    <option value="NCR" selected="@(ViewBag.Region == "NCR")">NCR</option>
+                    <option value="Luzon" selected="@(ViewBag.Region == "Luzon")">Luzon</option>
+                    <option value="Visayas" selected="@(ViewBag.Region == "Visayas")">Visayas</option>
+                    <option value="Mindanao" selected="@(ViewBag.Region == "Mindanao")">Mindanao</option>
+                </select>
+            </form>
+            <button type="button" class="btn btn-primary px-4 py-2 shadow-sm border-0 d-flex align-items-center" 
+                    style="background: #FF8C00; border-radius: 8px; font-weight: 600; font-size: 0.85rem;" 
+                    data-bs-toggle="modal" data-bs-target="#manualOrderModal">
+                <i class="bi bi-plus-lg me-2"></i> Add Order
+            </button>
+
+        </div>
+    </div>
+
+    <div class="glass-card p-0 overflow-hidden" style="background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.05);">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0">
+                <thead style="background: rgba(255,140,0,0.03);">
+                    <tr>
+                        <th class="ps-4 py-3">Tracking ID</th>
+                        <th class="py-3">Customer Details</th>
+                        <th class="py-3">Package Specs</th>
+                        <th class="py-3">Current Hub</th>
+                        <th class="py-3">Status</th>
+                        <th class="py-3 pe-4 text-end">Last Updated</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model)
+                    {
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
+                            <td class="ps-4 py-3">
+                                <code class="text-orange fw-bold">@order.TrackingId</code>
+                                <div class="text-secondary x-small mt-1">Ref: SF-2026-LOG</div>
+                            </td>
+                            <td class="py-3">
+                                <div class="text-white">@order.SenderName</div>
+                                <div class="text-secondary x-small"><i class="bi bi-arrow-right me-1"></i> @order.ReceiverName</div>
+                            </td>
+                            <td class="py-3">
+                                <div class="text-white">@order.DestinationRegion</div>
+                                <div class="text-secondary x-small mb-1">@order.Weight kg | @(order.ItemCategory ?? "General")</div>
+                                @if (order.Payment != null)
+                                {
+                                    <span class="badge border @(order.Payment.IsPaid ? "border-success text-success" : "border-warning text-warning") bg-transparent px-2" style="font-size: 0.6rem;">
+                                        <i class="bi bi-wallet2 me-1"></i> @order.Payment.Method @(order.Payment.IsPaid ? "(Paid)" : "")
+                                    </span>
+                                }
+                            </td>
+                            <td class="py-3">
+                                <span class="badge border border-info text-info bg-transparent x-small px-2">
+                                    <i class="bi bi-geo-alt-fill me-1"></i> @order.CurrentLocation
+                                </span>
+                            </td>
+                            <td class="py-3">
+                                <div class="d-flex flex-column gap-1">
+                                    <span class="badge border bg-transparent px-3 py-1 @(order.Status == "Delivered" ? "border-success text-success" : (order.Status.Contains("Arrived") ? "border-primary text-primary" : (order.Status.Contains("Transit") ? "border-info text-info" : "border-warning text-warning")))" style="font-size: 0.65rem;">
+                                        @order.Status
+                                    </span>
+                                    
+                                    @if (order.Status == "Packed" && order.CurrentLocation != order.DestinationRegion && order.DestinationRegion != "NCR")
+                                    {
+                                        <form asp-action="DispatchToHub" method="post">
+                                            <input type="hidden" name="trackingId" value="@order.TrackingId" />
+                                            <button type="submit" class="btn btn-sm btn-outline-info border-0 p-0 x-small text-uppercase fw-bold">
+                                                Dispatch <i class="bi bi-arrow-right"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    else if (order.Status.Contains("In Transit"))
+                                    {
+                                        <form asp-action="ArriveAtHub" method="post">
+                                            <input type="hidden" name="trackingId" value="@order.TrackingId" />
+                                            <button type="submit" class="btn btn-sm btn-outline-success border-0 p-0 x-small text-uppercase fw-bold">
+                                                Receive <i class="bi bi-check-lg"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </td>
+                            <td class="py-3 pe-4 text-end">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a asp-action="OrderSummary" asp-route-trackingId="@order.TrackingId" class="btn btn-sm btn-outline-secondary border-0 p-1" title="View Summary">
+                                        <i class="bi bi-file-earmark-text"></i>
+                                    </a>
+                                    <a asp-action="EditOrder" asp-route-trackingId="@order.TrackingId" class="btn btn-sm btn-outline-warning border-0 p-1" title="Edit Order">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <form asp-action="ArchiveOrder" method="post" class="d-inline">
+                                        <input type="hidden" name="trackingId" value="@order.TrackingId" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger border-0 p-1" title="Archive Order" onclick="return confirm('Archive this order?')">
+                                            <i class="bi bi-archive"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                                <div class="x-small text-secondary mt-1">@order.UpdatedAt.ToString("MMM dd HH:mm")</div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <nav class="mt-4">
+            <ul class="pagination pagination-sm justify-content-center">
+                <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                    <a class="page-link bg-dark border-0 text-secondary px-3" href="?page=@(ViewBag.CurrentPage - 1)&search=@ViewBag.Search&status=@ViewBag.Status&region=@ViewBag.Region">Previous</a>
+                </li>
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
+                        <a class="page-link @(ViewBag.CurrentPage == i ? "bg-orange border-0" : "bg-dark border-0 text-secondary") mx-1 rounded" href="?page=@i&search=@ViewBag.Search&status=@ViewBag.Status&region=@ViewBag.Region">@i</a>
+                    </li>
+                }
+                <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                    <a class="page-link bg-dark border-0 text-secondary px-3" href="?page=@(ViewBag.CurrentPage + 1)&search=@ViewBag.Search&status=@ViewBag.Status&region=@ViewBag.Region">Next</a>
+                </li>
+            </ul>
+        </nav>
+    }
+</div>
+
+<!-- Manual Order Modal -->
+<div class="modal fade" id="manualOrderModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content glass-modal p-2">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle text-orange me-2"></i> Manual Order Entry</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="step-indicator">
+                    <div class="step-dot active" id="dot1"></div>
+                    <div class="step-dot" id="dot2"></div>
+                    <div class="step-dot" id="dot3"></div>
+                </div>
+
+                <form asp-action="CreateManualOrder" method="post" id="manualOrderForm">
+                    <!-- Step 1: Logistics Entities -->
+                    <div class="step-content" id="step1">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <h6 class="text-white-50 x-small text-uppercase ls-1 mb-3">Sender Details</h6>
+                                <input type="text" name="SenderName" class="minimal-input w-100 mb-3" placeholder="Full Name" required>
+                                <input type="text" name="SenderPhone" class="minimal-input w-100 mb-3" placeholder="09XXXXXXXXX" required pattern="09[0-9]{9}">
+                                <textarea name="SenderAddress" class="minimal-input w-100" placeholder="Pickup Address" rows="2" required></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-white-50 x-small text-uppercase ls-1 mb-3">Receiver Details</h6>
+                                <input type="text" name="ReceiverName" class="minimal-input w-100 mb-3" placeholder="Full Name" required>
+                                <input type="text" name="ReceiverPhone" class="minimal-input w-100 mb-3" placeholder="09XXXXXXXXX" required pattern="09[0-9]{9}">
+                                <textarea name="ReceiverAddress" class="minimal-input w-100" placeholder="delivery Address" rows="2" required></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Item Telemetry -->
+                    <div class="step-content d-none" id="step2">
+                        <div class="row g-4 pt-2">
+                            <div class="col-md-4">
+                                <label class="text-secondary x-small mb-1">Item Category</label>
+                                <select name="ItemCategory" class="minimal-input w-100">
+                                    <option value="Electronics">Electronics</option>
+                                    <option value="Apparel">Apparel</option>
+                                    <option value="Documents">Documents</option>
+                                    <option value="Fragile">Fragile</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="text-secondary x-small mb-1">Weight (kg)</label>
+                                <input type="number" name="Weight" class="minimal-input w-100" placeholder="0.0" step="0.1" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="text-secondary x-small mb-1">Declared Value (PHP)</label>
+                                <input type="number" name="DeclaredValue" class="minimal-input w-100" placeholder="500.00" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="text-secondary x-small mb-1">Destination Region</label>
+                                <select name="DestinationRegion" class="minimal-input w-100" required>
+                                    <option value="NCR">Metro Manila</option>
+                                    <option value="Luzon">Luzon</option>
+                                    <option value="Visayas">Visayas</option>
+                                    <option value="Mindanao">Mindanao</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Transaction Logic -->
+                    <div class="step-content d-none" id="step3">
+                        <div class="text-center py-4">
+                            <i class="bi bi-wallet2 display-5 text-orange mb-3 opacity-50"></i>
+                            <h6 class="text-white">Select Payment Mode</h6>
+                            <div class="d-flex justify-content-center gap-3 mt-4">
+                                <div class="flex-fill">
+                                    <input type="radio" class="btn-check" name="paymentMethod" id="prepaid" value="Prepaid" checked>
+                                    <label class="btn btn-outline-secondary border-secondary p-4 w-100" for="prepaid">
+                                        <div class="h5 mb-1">Prepaid</div>
+                                        <div class="x-small opacity-50">Paid via Hub</div>
+                                    </label>
+                                </div>
+                                <div class="flex-fill">
+                                    <input type="radio" class="btn-check" name="paymentMethod" id="cod" value="COD">
+                                    <label class="btn btn-outline-secondary border-secondary p-4 w-100" for="cod">
+                                        <div class="h5 mb-1">COD</div>
+                                        <div class="x-small opacity-50">Collect on Drop</div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4">
+                <button type="button" class="btn btn-outline-secondary px-4 me-auto border-0" id="prevBtn" style="display:none;">Back</button>
+                <button type="button" class="btn btn-primary px-5 py-2 shadow-sm border-0" id="nextBtn" style="background:#FF8C00;">Next</button>
+                <button type="submit" form="manualOrderForm" class="btn btn-primary px-5 py-2 shadow-sm border-0" id="submitOrderBtn" style="display:none; background:#FF8C00;">Complete Entry</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const nextBtn = document.getElementById('nextBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const submitBtn = document.getElementById('submitOrderBtn');
+        let currentStep = 1;
+
+        nextBtn.addEventListener('click', () => {
+            if (currentStep < 3) {
+                document.getElementById(`step${currentStep}`).classList.add('d-none');
+                document.getElementById(`dot${currentStep}`).classList.remove('active');
+                currentStep++;
+                document.getElementById(`step${currentStep}`).classList.remove('d-none');
+                document.getElementById(`dot${currentStep}`).classList.add('active');
+            }
+
+            if (currentStep === 3) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'block';
+            }
+            prevBtn.style.display = 'block';
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentStep > 1) {
+                document.getElementById(`step${currentStep}`).classList.add('d-none');
+                document.getElementById(`dot${currentStep}`).classList.remove('active');
+                currentStep--;
+                document.getElementById(`step${currentStep}`).classList.remove('d-none');
+                document.getElementById(`dot${currentStep}`).classList.add('active');
+            }
+
+            if (currentStep < 3) {
+                nextBtn.style.display = 'block';
+                submitBtn.style.display = 'none';
+            }
+            if (currentStep === 1) {
+                prevBtn.style.display = 'none';
+            }
+        });
+    });
+</script>
+
+<style>
+    .bg-orange { background-color: #ff8c00 !important; }
+    .ls-1 { letter-spacing: 1px; }
+    .x-small { font-size: 0.75rem; }
+</style>

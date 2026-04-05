@@ -1,0 +1,59 @@
+@model IEnumerable<SwiftFill.Models.Order>
+@{
+    Layout = "_WarehouseLayout";
+    ViewData["Title"] = "Picking Station";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="dashboard-title"><i class="bi bi-truck me-3"></i> Picking Station</h1>
+</div>
+
+<div class="module-toolbar">
+    <div class="search-container">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="Search Picking List..." />
+    </div>
+    <div class="d-flex gap-2">
+        <a href="#" class="filter-btn"><i class="bi bi-funnel"></i> Filter</a>
+    </div>
+</div>
+
+<div class="table-container">
+    <div class="d-flex justify-content-between mb-3">
+        <h5 class="fw-bold">Orders Awaiting Pick</h5>
+        <span class="badge bg-warning text-dark">@Model.Count() Items</span>
+    </div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Tracking ID</th>
+                <th>Current Hub</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var item in Model) {
+                <tr>
+                    <td class="text-warning fw-bold">#@item.TrackingId</td>
+                    <td>@item.CurrentLocation</td>
+                    <td><span class="badge bg-secondary p-2">@item.Status</span></td>
+                    <td>
+                        <form asp-action="MarkPicked" method="post">
+                            <input type="hidden" name="trackingId" value="@item.TrackingId" />
+                            <button type="submit" class="btn btn-sm btn-warning fw-bold px-3">Confirm Pick</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div class="pagination-container">
+        <div class="page-info">Showing 1 to @Model.Count() of @Model.Count() entries</div>
+        <div class="btn-group">
+            <button class="btn btn-sm btn-outline-secondary disabled">Previous</button>
+            <button class="btn btn-sm btn-secondary">1</button>
+            <button class="btn btn-sm btn-outline-secondary disabled">Next</button>
+        </div>
+    </div>
+</div>

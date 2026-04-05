@@ -1,0 +1,93 @@
+@{
+    ViewData["Title"] = "Warehouses - SwiftFill";
+    Layout = "_AdminLayout";
+}
+
+<div class="animate-fade-up">
+    <!-- Top Header Area -->
+    <div class="d-flex justify-content-between align-items-center mb-5 border-bottom border-dark pb-3">
+        <div>
+            <h1 class="fw-bold fs-3 mt-2 mb-0 text-white">Warehouses</h1>
+            <p class="text-secondary mt-1" style="font-size: 1rem;">Manage fulfillment centers and logistics networks.</p>
+        </div>
+        <div>
+            <button class="btn btn-warning" style="border-radius: 8px; padding: 10px 20px; font-weight: 600; color: #000;">
+                <i class="bi bi-building-add me-2"></i> Register Warehouse
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Warehouse Card 1 -->
+        <div class="col-md-6">
+            <div class="card premium-card border-0 h-100" style="background: linear-gradient(145deg, #161b22, #0d1117); border-radius: 12px; border: 1px solid #30363d !important;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-box me-3" style="background: rgba(255, 140, 0, 0.1); padding: 15px; border-radius: 12px;">
+                                <i class="bi bi-building" style="color: #ff8c00; font-size: 1.5rem;"></i>
+                            </div>
+                            <div>
+                                <h4 class="fw-bold mb-1">Manila Hub (NCR)</h4>
+                                <span class="badge" style="background: rgba(46, 160, 67, 0.2); color:#6bff72; border: 1px solid rgba(46, 160, 67, 0.4);">
+                                    <i class="bi bi-circle-fill" style="font-size: 0.5rem; vertical-align: middle;"></i> Operational
+                                </span>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-dark text-secondary border-secondary"><i class="bi bi-three-dots"></i></button>
+                    </div>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <div class="text-secondary mb-1" style="font-size: 0.85rem;">Capacity</div>
+                            <div class="progress" style="height: 6px; background: #30363d; border-radius: 3px;">
+                                <div class="progress-bar" role="progressbar" style="width: 78%; background: #ff8c00;" aria-valuenow="78" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <div class="text-end mt-1 text-white" style="font-size: 0.75rem;">78%</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-secondary mb-1" style="font-size: 0.85rem;">Active Staff</div>
+                            <div class="fw-bold text-white fs-5">24</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Warehouse Card 2 -->
+        <div class="col-md-6">
+            <div class="card premium-card border-0 h-100" style="background: linear-gradient(145deg, #161b22, #0d1117); border-radius: 12px; border: 1px solid #30363d !important;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-box me-3" style="background: rgba(88, 166, 255, 0.1); padding: 15px; border-radius: 12px;">
+                                <i class="bi bi-building" style="color: #58a6ff; font-size: 1.5rem;"></i>
+                            </div>
+                            <div>
+                                <h4 class="fw-bold mb-1">Cebu Distribution Center</h4>
+                                <span class="badge" style="background: rgba(46, 160, 67, 0.2); color:#6bff72; border: 1px solid rgba(46, 160, 67, 0.4);">
+                                    <i class="bi bi-circle-fill" style="font-size: 0.5rem; vertical-align: middle;"></i> Operational
+                                </span>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-dark text-secondary border-secondary"><i class="bi bi-three-dots"></i></button>
+                    </div>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <div class="text-secondary mb-1" style="font-size: 0.85rem;">Capacity</div>
+                            <div class="progress" style="height: 6px; background: #30363d; border-radius: 3px;">
+                                <div class="progress-bar" role="progressbar" style="width: 45%; background: #58a6ff;" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <div class="text-end mt-1 text-white" style="font-size: 0.75rem;">45%</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-secondary mb-1" style="font-size: 0.85rem;">Active Staff</div>
+                            <div class="fw-bold text-white fs-5">12</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

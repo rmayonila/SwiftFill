@@ -1,0 +1,90 @@
+@{
+    ViewData["Title"] = "System Settings - SwiftFill";
+    Layout = "_AdminLayout";
+}
+
+<div class="animate-fade-up">
+    <!-- Top Header Area -->
+    <div class="d-flex justify-content-between align-items-center mb-5 border-bottom border-dark pb-3">
+        <div>
+            <h1 class="fw-bold display-5 mt-2 mb-0">System Settings</h1>
+            <p class="text-secondary mt-1" style="font-size: 1.1rem;">Manage platform behavior, integrations, and global variables.</p>
+        </div>
+    </div>
+
+    <div class="row align-items-start">
+        <div class="col-md-3">
+            <div class="list-group rounded-3 border border-dark" style="background: rgba(22, 27, 34, 0.9); overflow: hidden;">
+                <a href="#" class="list-group-item list-group-item-action active bg-transparent border-bottom border-dark text-white fw-bold py-3" style="border-left: 3px solid #ff8c00;">
+                    <i class="bi bi-gear-fill me-2 text-warning"></i> General
+                </a>
+                <a href="#" class="list-group-item list-group-item-action bg-transparent border-bottom border-dark text-secondary hover-white py-3">
+                    <i class="bi bi-envelope-fill me-2"></i> SMTP / Email
+                </a>
+                <a href="#" class="list-group-item list-group-item-action bg-transparent border-bottom border-dark text-secondary hover-white py-3">
+                    <i class="bi bi-credit-card-fill me-2"></i> Payment Gates
+                </a>
+                <a href="#" class="list-group-item list-group-item-action bg-transparent border-dark text-secondary hover-white py-3">
+                    <i class="bi bi-hdd-network-fill me-2"></i> API Keys
+                </a>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div class="card premium-card border-0 shadow-lg" style="background: rgba(22, 27, 34, 0.9); backdrop-filter: blur(14px); border-radius: 12px; border: 1px solid #30363d !important;">
+                <div class="card-header bg-transparent border-bottom border-dark py-3 px-4">
+                    <h5 class="mb-0 fw-bold">General Settings</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary fw-semibold">Platform Name</label>
+                                <input type="text" class="form-control bg-dark border-secondary text-white shadow-none" value="SwiftFill" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary fw-semibold">Support Email</label>
+                                <input type="email" class="form-control bg-dark border-secondary text-white shadow-none" value="support@swiftfill.com" />
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label text-secondary fw-semibold">Platform Description</label>
+                            <textarea class="form-control bg-dark border-secondary text-white shadow-none" rows="3">SwiftFill is a modern warehouse and fulfillment management system.</textarea>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary fw-semibold">Default Currency</label>
+                                <select class="form-select bg-dark border-secondary text-white shadow-none">
+                                    <option selected>USD ($)</option>
+                                    <option>EUR (€)</option>
+                                    <option>GBP (£)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary fw-semibold">Timezone</label>
+                                <select class="form-select bg-dark border-secondary text-white shadow-none">
+                                    <option>UTC-8 (Pacific Time)</option>
+                                    <option selected>UTC-5 (Eastern Time)</option>
+                                    <option>UTC+0 (GMT)</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="text-end mt-5">
+                            <button type="button" class="btn btn-warning px-4 py-2 fw-bold" style="border-radius: 8px; color: #000;">Update Settings</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-white:hover {
+        color: #ffffff !important;
+        background: rgba(255,255,255,0.05) !important;
+    }
+</style>

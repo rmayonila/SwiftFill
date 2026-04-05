@@ -1,0 +1,99 @@
+@{
+    ViewData["Title"] = "Security Policies - SwiftFill";
+    Layout = "_AdminLayout";
+}
+
+<div class="animate-fade-up">
+    <!-- Top Header Area -->
+    <div class="d-flex justify-content-between align-items-center mb-5 border-bottom border-dark pb-3">
+        <div>
+            <h1 class="fw-bold display-5 mt-2 mb-0">Security Policies</h1>
+            <p class="text-secondary mt-1" style="font-size: 1.1rem;">Configure system-wide security, MFA, and access rules.</p>
+        </div>
+        <div>
+            <button class="btn btn-outline-light" style="border-radius: 8px; padding: 10px 20px; font-weight: 600;">
+                <i class="bi bi-shield-check me-2"></i> Run Security Audit
+            </button>
+        </div>
+    </div>
+
+    <!-- Security Settings List -->
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card premium-card border-0 shadow-lg" style="background: rgba(22, 27, 34, 0.9); backdrop-filter: blur(14px); border-radius: 12px; border: 1px solid #30363d !important;">
+                <div class="card-body p-0">
+                    
+                    <div class="p-4 border-bottom border-dark d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-box me-3" style="background: rgba(46, 160, 67, 0.1); padding: 12px; border-radius: 8px;">
+                                <i class="bi bi-phone-vibrate" style="color: #2ea043; font-size: 1.3rem;"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-1">Multi-Factor Authentication</h5>
+                                <p class="text-secondary mb-0" style="font-size: 0.9rem;">Enforce MFA across all administrative and operator accounts.</p>
+                            </div>
+                        </div>
+                        <div class="form-check form-switch" style="font-size: 1.5rem;">
+                            <input class="form-check-input bg-dark border-secondary" type="checkbox" checked role="switch">
+                        </div>
+                    </div>
+
+                    <div class="p-4 border-bottom border-dark d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-box me-3" style="background: rgba(88, 166, 255, 0.1); padding: 12px; border-radius: 8px;">
+                                <i class="bi bi-clock-history" style="color: #58a6ff; font-size: 1.3rem;"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-1">Session Timeout</h5>
+                                <p class="text-secondary mb-0" style="font-size: 0.9rem;">Automatically log out inactive users after a set period.</p>
+                            </div>
+                        </div>
+                        <div>
+                            <select class="form-select bg-dark border-secondary text-white shadow-none">
+                                <option>15 Minutes</option>
+                                <option selected>30 Minutes</option>
+                                <option>1 Hour</option>
+                                <option>Never (Not Recommended)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="p-4 border-bottom border-dark d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-box me-3" style="background: rgba(255, 140, 0, 0.1); padding: 12px; border-radius: 8px;">
+                                <i class="bi bi-globe" style="color: #ff8c00; font-size: 1.3rem;"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-1">IP Whitelisting</h5>
+                                <p class="text-secondary mb-0" style="font-size: 0.9rem;">Restrict backend access to approved IP addresses only.</p>
+                            </div>
+                        </div>
+                        <div class="form-check form-switch" style="font-size: 1.5rem;">
+                            <input class="form-check-input bg-dark border-secondary" type="checkbox" role="switch">
+                        </div>
+                    </div>
+
+                    <div class="p-4 d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-box me-3" style="background: rgba(210, 153, 34, 0.1); padding: 12px; border-radius: 8px;">
+                                <i class="bi bi-key" style="color: #d29922; font-size: 1.3rem;"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-1">Password Complexity Rules</h5>
+                                <p class="text-secondary mb-0" style="font-size: 0.9rem;">Require uppercase, number, and special characters.</p>
+                            </div>
+                        </div>
+                        <div class="form-check form-switch" style="font-size: 1.5rem;">
+                            <input class="form-check-input bg-dark border-secondary" type="checkbox" checked role="switch">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            
+            <div class="text-end mt-4">
+                <button class="btn btn-warning px-4 py-2 fw-bold" style="border-radius: 8px; color: #000;">Save Security Settings</button>
+            </div>
+        </div>
+    </div>
+</div>

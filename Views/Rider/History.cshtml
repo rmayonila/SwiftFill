@@ -1,0 +1,142 @@
+@model IEnumerable<SwiftFill.Models.Order>
+@{
+    Layout = "_RiderLayout";
+    ViewData["Title"] = "Delivery History";
+}
+
+<div class="animate-fade-up">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-white mb-1"><i class="bi bi-clock-history text-orange me-2"></i> Delivery History</h2>
+        <p class="text-secondary small mb-0">Tracked record of your completed and failed assignments.</p>
+    </div>
+
+    <div class="module-toolbar">
+        <div class="search-container">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="Search delivery history..." />
+        </div>
+        <div class="d-flex gap-2">
+            <a href="#" class="filter-btn"><i class="bi bi-funnel"></i> Filter</a>
+        </div>
+    </div>
+
+    <div class="glass-card p-0 overflow-hidden">
+        <table class="table table-dark table-hover mb-0">
+            <thead class="bg-black text-secondary small text-uppercase">
+                <tr>
+                    <th class="ps-4 py-3">Tracking ID</th>
+                    <th>Status</th>
+                    <th>Attempts</th>
+                    <th>Date</th>
+                    <th class="text-end pe-4">Action</th>
+                </tr>
+            </thead>
+            <tbody class="align-middle">
+                @foreach (var order in Model)
+                {
+                    <tr>
+                        <td class="ps-4 fw-bold text-orange">#@order.TrackingId</td>
+                        <td>
+                            @if (order.Status == "Delivered") {
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success">DELIVERED</span>
+                            } else if (order.Status == "Returned") {
+                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">RETURNED</span>
+                            } else {
+                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning">FAILED</span>
+                            }
+                        </td>
+                        <td>
+                            <span class="small text-secondary">@order.DeliveryAttempts / 3</span>
+                        </td>
+                        <td class="text-secondary small">@order.UpdatedAt.ToString("MMM dd, yyyy")</td>
+                        <td class="text-end pe-4">
+                            <button class="btn btn-sm btn-outline-orange rounded-pill px-3" 
+                                    onclick="viewOrderDetails('@order.TrackingId')">
+                                <i class="bi bi-eye me-1"></i> View Details
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="pagination-container mt-4">
+        <div class="page-info">Showing 1 to @Model.Count() of @Model.Count() entries</div>
+        <div class="btn-group">
+            <button class="btn btn-sm btn-outline-secondary disabled">Previous</button>
+            <button class="btn btn-sm btn-secondary">1</button>
+            <button class="btn btn-sm btn-outline-secondary disabled">Next</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="orderDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border-secondary" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title text-white fw-bold">Order Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="modalContent">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-orange" role="status"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function viewOrderDetails(trackingId) {
+            const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
+            modal.show();
+
+            // Fetch data from Controller
+            $.get(`/Rider/GetOrderDetails?trackingId=${trackingId}`, function(data) {
+                let statusBadge = data.status === "Delivered" ? "text-success" : "text-danger";
+                
+                let html = `
+                    <div class="text-center mb-4">
+                        <div class="text-orange fw-bold h4">#${data.trackingId}</div>
+                        <div class="small ${statusBadge} text-uppercase fw-bold">${data.status}</div>
+                    </div>
+                    
+                    <div class="glass-card p-3 mb-3" style="background: rgba(255,255,255,0.02)">
+                        <label class="text-secondary smaller text-uppercase">Recipient</label>
+                        <div class="text-white fw-bold">${data.receiverName}</div>
+                        <div class="text-secondary small">${data.receiverAddress}</div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <div class="glass-card p-2 text-center">
+                                <label class="text-secondary smaller d-block">Attempts</label>
+                                <span class="text-white fw-bold">${data.attempts} / 3</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="glass-card p-2 text-center">
+                                <label class="text-secondary smaller d-block">COD Amount</label>
+                                <span class="text-orange fw-bold">₱${data.amount}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <label class="text-secondary smaller text-uppercase">Rider Notes / Reason</label>
+                    <p class="text-white small p-2 rounded bg-black border border-secondary">${data.notes || "No notes provided."}</p>
+
+                    <label class="text-secondary smaller text-uppercase mt-2">Proof of Delivery</label>
+                    <div class="rounded overflow-hidden border border-secondary mt-1">
+                        ${data.photo ? `<img src="${data.photo}" class="img-fluid w-100" />` : 
+                        `<div class="p-4 text-center bg-black text-secondary"><i class="bi bi-camera-fill d-block fs-2"></i> No photo attached</div>`}
+                    </div>
+                `;
+                $('#modalContent').html(html);
+            });
+        }
+    </script>
+}

@@ -1,0 +1,210 @@
+@model IEnumerable<SwiftFill.Models.Order>
+@{
+    ViewData["Title"] = "My Dashboard";
+    Layout = "_AdminLayout";
+}
+
+<div class="animate-fade-up">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-white">Welcome back, @(User.Identity?.Name?.Split('@')[0] ?? "Partner")</h2>
+        <div class="d-flex gap-2">
+            <a asp-action="Book" class="btn btn-sm btn-outline-orange border-0 px-3">
+                <i class="bi bi-plus-lg me-1"></i> New Shipment
+            </a>
+        </div>
+    </div>
+
+    @if (Model != null && Model.Any(o => o.Status == "Return Notified"))
+    {
+        <div class="alert alert-warning border border-warning bg-transparent d-flex align-items-center mb-4">
+            <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-warning"></i>
+            <div>
+                <h6 class="mb-1 fw-bold text-warning">Action Required: Return Notification</h6>
+                <span class="x-small text-white-50">One or more of your shipments has been flagged for return by our fulfillment hub. Please check the details.</span>
+            </div>
+        </div>
+    }
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="glass-card p-3 border-0 border-start border-primary border-4" style="background: rgba(255, 255, 255, 0.01);">
+                <div class="stat-label text-primary">Active Packages</div>
+                <div class="stat-value text-white h4 mb-0">@(Model?.Count(o => o.Status != "Delivered" && o.Status != "Returned") ?? 0)</div>
+                <div class="text-secondary x-small">In Transit</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card p-3 border-0 border-start border-success border-4" style="background: rgba(255, 255, 255, 0.01);">
+                <div class="stat-label text-success">Successful Drops</div>
+                <div class="stat-value text-white h4 mb-0">@(Model?.Count(o => o.Status == "Delivered") ?? 0)</div>
+                <div class="text-secondary x-small">Lifetime Cargo</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card p-3 border-0 border-start border-warning border-4" style="background: rgba(255, 255, 255, 0.01);">
+                <div class="stat-label text-warning">Returns / Issues</div>
+                <div class="stat-value text-white h4 mb-0">@(Model?.Count(o => o.Status.Contains("Return")) ?? 0)</div>
+                <div class="text-secondary x-small">Action Needed</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="minimal-filter-bar mb-4">
+        <h6 class="text-white mb-0 x-small text-uppercase ls-1">Recent Shipment Registry</h6>
+    </div>
+
+    <div class="glass-card p-0 overflow-hidden" style="background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.05);">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0">
+                <thead style="background: rgba(255,140,0,0.03);">
+                    <tr>
+                        <th class="ps-4">ID</th>
+                        <th>Consignee</th>
+                        <th>Destination</th>
+                        <th>Volume</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var order in Model)
+                        {
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
+                                <td class="ps-4 py-3"><code class="text-orange">@order.TrackingId</code></td>
+                                <td class="py-3 text-white">@order.ReceiverName</td>
+                                <td class="py-3 text-secondary small">@order.DestinationRegion</td>
+                                <td class="py-3 text-secondary small">@order.Weight kg</td>
+                                <td class="py-3">
+                                    <span class="badge @(order.Status == "Delivered" ? "border-success text-success" : (order.Status.Contains("Return") ? "border-warning text-warning" : "border-primary text-primary")) border bg-transparent px-2">@order.Status</span>
+                                </td>
+                                <td class="py-3 text-end pe-4">
+                                    <button class="btn btn-sm btn-outline-secondary border-0 px-3 fw-bold" onclick="showOrderDetails('@order.TrackingId')">Details</button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-secondary">
+                                No active records found in your registry.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Order Details Modal -->
+<div class="modal fade" id="orderDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-modal p-2" style="background: #111; border: 1px solid rgba(255,140,0,0.2);">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-white"><i class="bi bi-box-seam text-orange me-2"></i> Package Telemetry</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="modalLoading" class="text-center py-4">
+                    <div class="spinner-border text-orange" role="status"></div>
+                </div>
+                <div id="modalContent" class="d-none">
+                    <div class="d-flex justify-content-between mb-3 border-bottom border-secondary border-opacity-25 pb-2">
+                        <span class="text-secondary x-small text-uppercase ls-1">Tracking ID</span>
+                        <code class="text-orange fs-6" id="mTrackingId"></code>
+                    </div>
+                    
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="text-secondary x-small mb-1 d-block">Status</label>
+                            <span class="badge border border-primary text-primary bg-transparent px-2" id="mStatus"></span>
+                        </div>
+                        <div class="col-6 text-end">
+                            <label class="text-secondary x-small mb-1 d-block">Last Update</label>
+                            <span class="text-white-50 x-small" id="mDate"></span>
+                        </div>
+                    </div>
+
+                    <div class="bg-dark-soft p-3 rounded-2 mb-3" style="background: rgba(255,255,255,0.02)">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <small class="text-secondary d-block">Destination</small>
+                                <span class="text-white" id="mDest"></span>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-secondary d-block">Specs</small>
+                                <span class="text-white" id="mSpecs"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Return Reason Block (Dynamically toggled) -->
+                    <div id="returnReasonBlock" class="d-none alert alert-warning border-warning bg-transparent border-opacity-50">
+                        <div class="x-small text-uppercase text-warning fw-bold mb-1"><i class="bi bi-exclamation-circle me-1"></i> Return Origin Notes</div>
+                        <div class="small text-white-50" id="mReturnReason"></div>
+                    </div>
+                    
+                     <!-- Driver Notes Block (Dynamically toggled) -->
+                    <div id="driverNotesBlock" class="d-none">
+                         <div class="text-secondary x-small mb-1">Driver Activity Logs</div>
+                         <div class="small text-white fst-italic border-start border-orange border-3 ps-2" id="mNotes"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary border-0" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const orderModal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
+        
+        function showOrderDetails(trackingId) {
+            document.getElementById('modalLoading').classList.remove('d-none');
+            document.getElementById('modalContent').classList.add('d-none');
+            document.getElementById('returnReasonBlock').classList.add('d-none');
+            document.getElementById('driverNotesBlock').classList.add('d-none');
+            orderModal.show();
+
+            fetch(`/Customer/GetOrderDetails?trackingId=${trackingId}`)
+                .then(r => r.json())
+                .then(data => {
+                    if(data.success) {
+                        document.getElementById('mTrackingId').textContent = data.trackingId;
+                        document.getElementById('mStatus').textContent = data.status;
+                        document.getElementById('mDate').textContent = data.lastUpdate;
+                        document.getElementById('mDest').textContent = data.destination;
+                        document.getElementById('mSpecs').textContent = `${data.weight}kg | ${data.itemCategory}`;
+                        
+                        // Handle Return Reason UI State
+                        if(data.status.includes('Return') && data.returnReason) {
+                            document.getElementById('mReturnReason').textContent = data.returnReason;
+                            document.getElementById('returnReasonBlock').classList.remove('d-none');
+                        }
+                        
+                        // Handle standard tracking notes
+                        if(data.notes && !data.status.includes('Return')) {
+                            document.getElementById('mNotes').textContent = data.notes;
+                            document.getElementById('driverNotesBlock').classList.remove('d-none');
+                        }
+
+                        // Colors
+                        const statBadge = document.getElementById('mStatus');
+                        statBadge.className = 'badge border bg-transparent px-2 ';
+                        if(data.status === 'Delivered') statBadge.classList.add('border-success', 'text-success');
+                        else if(data.status.includes('Return')) statBadge.classList.add('border-warning', 'text-warning');
+                        else statBadge.classList.add('border-primary', 'text-primary');
+
+                        document.getElementById('modalLoading').classList.add('d-none');
+                        document.getElementById('modalContent').classList.remove('d-none');
+                    }
+                });
+        }
+    </script>
+}

@@ -1,0 +1,270 @@
+@model IEnumerable<SwiftFill.Models.ApplicationUser>
+
+@{
+    ViewData["Title"] = "Users & Roles - SwiftFill";
+    Layout = "_AdminLayout";
+}
+
+<div class="animate-fade-up">
+    <!-- Top Header Profile Area -->
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-dark pb-3">
+        <div>
+            <h2 class="fw-bold fs-3 mt-2 mb-0 text-white">Users & Roles</h2>
+            <p class="text-secondary mt-1" style="font-size: 1rem;">Manage system access, identities, and permissions.</p>
+        </div>
+        <div>
+            <button class="btn btn-warning" style="border-radius: 8px; padding: 8px 16px; font-weight: 600; color: #000;" data-bs-toggle="modal" data-bs-target="#registerUserModal">
+                <i class="bi bi-person-plus-fill me-2"></i> Register New User
+            </button>
+        </div>
+    </div>
+
+    <!-- User Management Table -->
+    <div class="card premium-card border-0 shadow-lg" style="background: rgba(22, 27, 34, 0.9); backdrop-filter: blur(14px); border-radius: 12px; border: 1px solid #30363d !important; overflow: hidden;">
+        <div class="card-header bg-transparent border-bottom border-dark py-3 px-4 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold d-flex align-items-center text-white">
+                <i class="bi bi-people-fill text-orange me-3" style="font-size: 1.2rem;"></i> 
+                All System Users
+            </h6>
+            <div class="d-flex gap-3">
+                <select class="form-select form-select-sm bg-transparent border-dark text-secondary shadow-none" style="width: 150px;">
+                    <option value="">All Roles</option>
+                    <option value="SuperAdmin">Super Admin</option>
+                    <option value="Admin">Admin</option>
+                    <option value="WarehouseStaff">Warehouse Staff</option>
+                    <option value="DeliveryRider">Delivery Rider</option>
+                    <option value="Customer">Customer</option>
+                </select>
+                <div class="input-group input-group-sm" style="width: 250px;">
+                    <span class="input-group-text bg-transparent border-dark text-secondary"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control bg-transparent border-dark text-white shadow-none" placeholder="Search accounts...">
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover mb-0 align-middle">
+                    <thead style="background: rgba(0,0,0,0.3);">
+                        <tr>
+                            <th class="ps-4 py-3 text-secondary fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 1px;">User Identity</th>
+                            <th class="py-3 text-secondary fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 1px;">Contact</th>
+                            <th class="py-3 text-secondary fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 1px;">Status</th>
+                            <th class="pe-4 py-3 text-secondary fw-semibold text-uppercase text-end" style="font-size: 0.75rem; letter-spacing: 1px;">Controls</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in Model)
+                        {
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td class="ps-4 py-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle d-flex justify-content-center align-items-center me-3 flex-shrink-0" style="width: 35px; height: 35px; background: rgba(255, 140, 0, 0.15); color: #ff8c00; font-weight:bold;">
+                                            @((!string.IsNullOrEmpty(user.FirstName) ? user.FirstName.Substring(0,1).ToUpper() : "U"))
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-white mb-1" style="font-size: 0.95rem;">@user.FirstName @user.LastName</div>
+                                            <div class="text-secondary" style="font-size: 0.75rem;">ID: @user.Id</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                
+                                <td class="py-3">
+                                    <div class="text-white mb-1" style="font-size: 0.9rem;"><i class="bi bi-envelope-fill text-secondary me-2"></i>@user.Email</div>
+                                    <div class="text-secondary" style="font-size: 0.8rem;"><i class="bi bi-telephone-fill text-secondary me-2"></i>@(string.IsNullOrEmpty(user.PhoneNumber) ? "Not Provided" : user.PhoneNumber)</div>
+                                </td>
+                                
+                                <td class="py-3">
+                                    @if(user.EmailConfirmed) 
+                                    { 
+                                        <span class="badge" style="background: rgba(46, 160, 67, 0.2); color:#6bff72; border: 1px solid rgba(46, 160, 67, 0.4); padding: 5px 10px;">
+                                            <i class="bi bi-check-circle-fill me-1"></i> Verified
+                                        </span> 
+                                    }
+                                    else 
+                                    { 
+                                        <span class="badge" style="background: rgba(210, 153, 34, 0.2); color:#e3b341; border: 1px solid rgba(210, 153, 34, 0.4); padding: 5px 10px;">
+                                            <i class="bi bi-exclamation-circle-fill me-1"></i> Pending
+                                        </span> 
+                                    }
+                                </td>
+                                
+                                <td class="pe-4 py-3 text-end">
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-dark border-secondary text-secondary hover-white" title="Manage Roles" data-bs-toggle="modal" data-bs-target="#manageRolesModal" onclick="setModalUser('@user.FirstName @user.LastName')">
+                                            <i class="bi bi-shield-lock"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-dark border-secondary text-secondary hover-white" title="Edit Profile" data-bs-toggle="modal" data-bs-target="#editProfileModal" onclick="setModalUser('@user.FirstName @user.LastName')">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-dark border-danger text-danger hover-white" title="Suspend User" data-bs-toggle="modal" data-bs-target="#suspendUserModal" onclick="setModalUser('@user.FirstName @user.LastName')">
+                                            <i class="bi bi-person-x-fill"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        
+                        @if(!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-5">
+                                    <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                                    No underlying users found securely in the database.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Register New User Modal -->
+<div class="modal fade" id="registerUserModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-white" style="background: rgba(22, 27, 34, 0.95); backdrop-filter: blur(10px); border: 1px solid #30363d; border-radius: 12px;">
+            <div class="modal-header border-dark">
+                <h5 class="modal-title fw-bold"><i class="bi bi-person-plus-fill text-warning me-2"></i> Register New User</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="registerForm">
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small">Email Address</label>
+                        <input type="email" class="form-control bg-dark border-secondary text-white shadow-none" placeholder="Enter email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small">Password</label>
+                        <input type="password" class="form-control bg-dark border-secondary text-white shadow-none" placeholder="Enter password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small">Assign Primary Role</label>
+                        <select class="form-select bg-dark border-secondary text-white shadow-none">
+                            <option value="Admin">Admin</option>
+                            <option value="WarehouseStaff">Warehouse Staff</option>
+                            <option value="DeliveryRider">Delivery Rider</option>
+                            <option value="Customer">Customer</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label text-secondary small d-block">Module Access Rights</label>
+                        <div class="btn-group gap-2 w-100 flex-wrap" role="group">
+                            <input type="checkbox" class="btn-check" id="btncheck1" autocomplete="off" checked>
+                            <label class="btn btn-outline-secondary border-secondary flex-fill rounded-1 fs-xs" for="btncheck1">Shipments</label>
+
+                            <input type="checkbox" class="btn-check" id="btncheck2" autocomplete="off">
+                            <label class="btn btn-outline-secondary border-secondary flex-fill rounded-1 fs-xs" for="btncheck2">Inventory</label>
+
+                            <input type="checkbox" class="btn-check" id="btncheck3" autocomplete="off">
+                            <label class="btn btn-outline-secondary border-secondary flex-fill rounded-1 fs-xs" for="btncheck3">Reports</label>
+
+                            <input type="checkbox" class="btn-check" id="btncheck4" autocomplete="off">
+                            <label class="btn btn-outline-secondary border-secondary flex-fill rounded-1 fs-xs" for="btncheck4">Billing</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-dark">
+                <button type="button" class="btn btn-dark border-secondary text-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning fw-bold text-dark" onclick="simulateSubmit('registerUserModal', 'User registered successfully!')">Create Account</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Generic Controls Modals -->
+<div class="modal fade" id="manageRolesModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-white" style="background: rgba(22, 27, 34, 0.95); border: 1px solid #30363d; border-radius: 12px;">
+            <div class="modal-header border-dark">
+                <h5 class="modal-title fw-bold"><i class="bi bi-shield-lock text-info me-2"></i> Manage Roles</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <p class="mb-4">Adjusting permissions for <strong class="targetUser text-warning">User</strong></p>
+                <select class="form-select w-75 mx-auto bg-dark border-secondary text-white mb-3">
+                    <option>SuperAdmin</option>
+                    <option selected>Admin</option>
+                    <option>WarehouseStaff</option>
+                </select>
+            </div>
+            <div class="modal-footer border-dark">
+                <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-info text-dark fw-bold" onclick="simulateSubmit('manageRolesModal', 'Roles updated!')">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editProfileModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-white" style="background: rgba(22, 27, 34, 0.95); border: 1px solid #30363d; border-radius: 12px;">
+            <div class="modal-header border-dark">
+                <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square text-success me-2"></i> Edit Profile</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body py-4">
+                <p class="mb-3 text-center">Editing profile for <strong class="targetUser text-warning">User</strong></p>
+                <label class="form-label text-secondary small">Phone Number</label>
+                <input type="text" class="form-control bg-dark border-secondary text-white mb-3" placeholder="+63 9XX XXX XXXX">
+                <label class="form-label text-secondary small">Department</label>
+                <input type="text" class="form-control bg-dark border-secondary text-white" placeholder="Operations, Finance, etc.">
+            </div>
+            <div class="modal-footer border-dark">
+                <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success fw-bold" onclick="simulateSubmit('editProfileModal', 'Profile updated!')">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="suspendUserModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-white" style="background: rgba(22, 27, 34, 0.95); border: 1px solid #30363d; border-radius: 12px;">
+            <div class="modal-header border-dark">
+                <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i> Suspend User</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <h1 class="display-3 text-danger mb-3"><i class="bi bi-person-x-fill"></i></h1>
+                <p>Are you entirely sure you want to suspend <strong class="targetUser text-warning">User</strong>?</p>
+                <p class="text-secondary small">They will instantly lose all system access.</p>
+            </div>
+            <div class="modal-footer border-dark d-flex justify-content-center">
+                <button type="button" class="btn btn-dark border-secondary text-secondary" data-bs-dismiss="modal">Nevermind</button>
+                <button type="button" class="btn btn-danger fw-bold" onclick="simulateSubmit('suspendUserModal', 'User account has been securely suspended.')">Yes, Suspend Account</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-white:hover {
+        color: #ffffff !important;
+        background: #30363d !important;
+    }
+    .fs-xs { font-size: 0.8rem; }
+    
+    /* Make checkmark visible when active on btncheck */
+    .btn-check:checked + .btn-outline-secondary {
+        background-color: #ff8c00;
+        border-color: #ff8c00;
+        color: #000;
+        font-weight: 600;
+    }
+</style>
+
+<script>
+    function setModalUser(name) {
+        document.querySelectorAll('.targetUser').forEach(el => el.textContent = name);
+    }
+    
+    function simulateSubmit(modalId, msg) {
+        let modalEl = document.getElementById(modalId);
+        let bsModal = bootstrap.Modal.getInstance(modalEl);
+        if(bsModal) bsModal.hide();
+        setTimeout(() => alert(msg), 300);
+    }
+</script>

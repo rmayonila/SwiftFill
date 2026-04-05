@@ -1,0 +1,156 @@
+@model SwiftFill.Models.Order
+@{
+    ViewData["Title"] = "Book Shipment";
+    Layout = "_AdminLayout";
+}
+
+<div class="animate-fade-up">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-white"><i class="bi bi-box-seam text-orange me-2"></i> Book New Shipment</h2>
+    </div>
+
+    <div class="glass-card p-4 border-0" style="background: rgba(255, 255, 255, 0.01); backdrop-filter: none;">
+        <form asp-action="Book" method="post">
+            <div class="row g-5">
+                <div class="col-md-6">
+                    <h6 class="text-white-50 x-small text-uppercase ls-1 mb-4">Sender Logistics Info</h6>
+                    <div class="mb-4">
+                        <label class="text-secondary x-small mb-1">Full Name</label>
+                        <input asp-for="SenderName" class="minimal-input w-100" placeholder="e.g. Juan Luna" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="text-secondary x-small mb-1">Sender Address (Drop-off)</label>
+                        <input asp-for="SenderAddress" class="minimal-input w-100 mb-2" placeholder="Street, City, Province" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="text-secondary x-small mb-1">Contact Number</label>
+                        <input asp-for="SenderPhone" class="minimal-input w-100" placeholder="+63 9XX..." required />
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <h6 class="text-white-50 x-small text-uppercase ls-1 mb-4">Receiver Destination</h6>
+                    <div class="mb-4">
+                        <label class="text-secondary x-small mb-1">Full Name</label>
+                        <input asp-for="ReceiverName" class="minimal-input w-100" placeholder="e.g. Maria Clara" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="text-secondary x-small mb-1">Delivery Address</label>
+                        <input asp-for="ReceiverAddress" class="minimal-input w-100 mb-2" placeholder="Bldg, Lot, District" required />
+                        <input type="text" name="ReceiverLandmark" class="minimal-input w-100 text-white-50" placeholder="Nearest Landmark / Instructions" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="text-secondary x-small mb-1">Contact Number</label>
+                        <input asp-for="ReceiverPhone" class="minimal-input w-100" placeholder="+63 9XX..." required />
+                    </div>
+                </div>
+            </div>
+
+            <hr style="border-color: rgba(255,255,255,0.05);" class="my-4" />
+
+            <div class="row g-4 align-items-end mb-4">
+                <div class="col-md-3">
+                    <label class="text-secondary x-small mb-1">Estimated Weight (kg)</label>
+                    <input asp-for="Weight" class="minimal-input w-100 est-trigger" placeholder="0.0" required step="0.1" />
+                </div>
+                <div class="col-md-3">
+                    <label class="text-secondary x-small mb-1">Item Category</label>
+                    <select asp-for="ItemCategory" class="minimal-input w-100 est-trigger" required>
+                        <option value="">Select Type</option>
+                        <option value="Documents">Documents</option>
+                        <option value="General">General Goods</option>
+                        <option value="Fragile">Fragile / Breakable</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Apparel">Apparel / Clothing</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="text-secondary x-small mb-1">Destination Region</label>
+                    <select asp-for="DestinationRegion" class="minimal-input w-100 est-trigger" required>
+                        <option value="">Select Destination</option>
+                        <option value="NCR">Metro Manila</option>
+                        <option value="Luzon">Luzon</option>
+                        <option value="Visayas">Visayas</option>
+                        <option value="Mindanao">Mindanao</option>
+                    </select>
+                </div>
+                 <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100 py-3 shadow-sm border-0" style="background: linear-gradient(45deg, #ff8c00, #ff4500);">
+                        <i class="bi bi-shield-check me-2"></i> Register Shipment
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dynamic Pricing Estimator UI -->
+            <div id="priceEstimatorBlock" class="d-none bg-dark-soft p-4 rounded-3 border border-orange border-opacity-50 mt-4 position-relative overflow-hidden" style="background: rgba(255,140,0,0.03);">
+                <div class="position-absolute" style="right: -20px; top: -20px; opacity: 0.1;"><i class="bi bi-calculator" style="font-size: 8rem;"></i></div>
+                <div class="row align-items-center position-relative z-index-1">
+                     <div class="col-md-8">
+                         <div class="d-flex align-items-center mb-2">
+                             <div class="badge bg-orange text-black px-2 me-2">ESTIMATE</div>
+                             <h6 class="text-white mb-0 ls-1 font-monospace">PRE-ARRIVAL TELEMETRY</h6>
+                         </div>
+                         <p class="text-secondary x-small mb-0">This is an estimated routing and weight quotation. The final balance will be physically verified and stamped at the drop-off branch.</p>
+                     </div>
+                     <div class="col-md-4 text-end">
+                         <div class="text-secondary x-small text-uppercase ls-1 mb-1 border-bottom border-secondary border-opacity-25 pb-1 d-inline-block">Total Due</div>
+                         <h2 class="text-orange fw-bold mb-0">₱<span id="estTotal">0.00</span></h2>
+                         <div class="text-white-50 x-small mt-1"><i class="bi bi-tag-fill me-1"></i> Base (<span id="estBase"></span>) + Wgt (<span id="estWgt"></span>) + Zone (<span id="estZone"></span>)</div>
+                     </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const weightInput = document.getElementById('Weight');
+            const regionSelect = document.getElementById('DestinationRegion');
+            const categorySelect = document.getElementById('ItemCategory');
+            const estimatorBlock = document.getElementById('priceEstimatorBlock');
+
+            const estTotal = document.getElementById('estTotal');
+            const estBase = document.getElementById('estBase');
+            const estWgt = document.getElementById('estWgt');
+            const estZone = document.getElementById('estZone');
+
+            function calculateEstimate() {
+                const wInput = parseFloat(weightInput.value);
+                const region = regionSelect.value;
+                const cat = categorySelect.value;
+
+                if (!isNaN(wInput) && wInput > 0 && region !== "" && cat !== "") {
+                    // Logic Setup
+                    let base = 100;
+                    let wgtFee = wInput * 45;
+                    let zoneFee = 0;
+
+                    if (region === 'NCR') zoneFee = 50;
+                    else if (region === 'Luzon') zoneFee = 100;
+                    else if (region === 'Visayas') zoneFee = 150;
+                    else if (region === 'Mindanao') zoneFee = 200;
+
+                    // Compute
+                    let total = base + wgtFee + zoneFee;
+
+                    estBase.textContent = '₱' + base;
+                    estWgt.textContent = '₱' + wgtFee.toFixed(2);
+                    estZone.textContent = '₱' + zoneFee;
+                    
+                    estTotal.textContent = total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    estimatorBlock.classList.remove('d-none');
+                } else {
+                    estimatorBlock.classList.add('d-none');
+                }
+            }
+
+            // Bind triggers
+            document.querySelectorAll('.est-trigger').forEach(el => {
+                el.addEventListener('input', calculateEstimate);
+                el.addEventListener('change', calculateEstimate);
+            });
+        });
+    </script>
+}

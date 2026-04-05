@@ -1,0 +1,75 @@
+@model SwiftFill.Models.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Analytical Reports";
+    Layout = "_AdminLayout";
+}
+
+<div class="animate-fade-up">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-file-earmark-bar-graph text-orange me-2"></i> Analytical Reports</h2>
+        <form method="get" class="d-flex gap-2">
+            <select name="month" class="minimal-input x-small" onchange="this.form.submit()">
+                @for (int i = 1; i <= 12; i++)
+                {
+                    <option value="@i" selected="@(ViewBag.SelectedMonth == i)">@System.Globalization.DateTimeFormatInfo.CurrentInfo.GetMonthName(i)</option>
+                }
+            </select>
+            <select name="year" class="minimal-input x-small" onchange="this.form.submit()">
+                @for (int i = DateTime.Now.Year - 2; i <= DateTime.Now.Year; i++)
+                {
+                    <option value="@i" selected="@(ViewBag.SelectedYear == i)">@i</option>
+                }
+            </select>
+            <button type="button" onclick="window.print()" class="btn btn-sm btn-outline-orange"><i class="bi bi-download me-2"></i> Export</button>
+        </form>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="glass-card p-4 border-0" style="background: rgba(255, 255, 255, 0.01);">
+                <h6 class="text-white mb-4 x-small text-uppercase ls-1">Regional Distribution</h6>
+                <div class="table-responsive">
+                    <table class="table table-dark table-sm mb-0">
+                        <thead>
+                            <tr class="text-secondary opacity-50">
+                                <th class="border-0 x-small">REGION</th>
+                                <th class="text-end border-0 x-small">VOLUME</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var r in Model.RevenueByRegion)
+                            {
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
+                                    <td class="py-2 border-0">@r.Region</td>
+                                    <td class="text-end fw-bold py-2 border-0">@r.Total.ToString("N0")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="glass-card p-4 d-flex flex-column align-items-center justify-content-center text-center border-0" style="background: rgba(255, 255, 255, 0.01); min-height: 200px;">
+                <div class="h1 text-orange mb-2">@Model.TotalOrders</div>
+                <h6 class="text-white mb-2">Monthly Volume</h6>
+                <p class="text-secondary x-small mb-0">Total shipments processed in @System.Globalization.DateTimeFormatInfo.CurrentInfo.GetMonthName(ViewBag.SelectedMonth) @ViewBag.SelectedYear.</p>
+                
+                <div class="mt-4 w-100">
+                    <div class="d-flex justify-content-between x-small mb-1">
+                        <span class="text-secondary">Delivery Success Rate</span>
+                        <span class="text-success">@(Model.TotalOrders > 0 ? (Model.Delivered * 100 / Model.TotalOrders) : 0)%</span>
+                    </div>
+                    <div class="progress" style="height: 4px; background: rgba(255,255,255,0.05);">
+                        <div class="progress-bar bg-success" style="width: @(Model.TotalOrders > 0 ? (Model.Delivered * 100 / Model.TotalOrders) : 0)%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-outline-orange { border-color: #ff8c00; color: #ff8c00; }
+    .btn-outline-orange:hover { background: #ff8c00; color: #000; }
+</style>

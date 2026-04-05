@@ -1,0 +1,200 @@
+@using System
+@using System.Linq
+@model SwiftFill.Models.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = "_AdminLayout";
+}
+
+<div class="animate-fade-up">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-speedometer2 me-2"></i> System Overview</h1>
+        <div class="text-secondary small">Last Updated: @(DateTime.Now.ToString("HH:mm:ss"))</div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="glass-card p-3 border-0 border-start border-warning border-4" style="background: rgba(255, 255, 255, 0.02);">
+                <div class="stat-label text-orange">Current Volume</div>
+                <div class="stat-value text-white h2 mb-0">@Model.TotalOrders</div>
+                <div class="text-secondary x-small">Active Shipments</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card p-3 border-0 border-start border-info border-4" style="background: rgba(255, 255, 255, 0.02);">
+                <div class="stat-label text-info">In Logistics</div>
+                <div class="stat-value text-white h2 mb-0">@Model.InTransit</div>
+                <div class="text-secondary x-small">In Transit Hubs</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card p-3 border-0 border-start border-success border-4" style="background: rgba(255, 255, 255, 0.02);">
+                <div class="stat-label text-success">Total Revenue</div>
+                <div class="stat-value text-white h2 mb-0">₱@Model.TotalRevenue.ToString("N0")</div>
+                <div class="text-secondary x-small">Settled COD</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card p-3 border-0 border-start border-danger border-4" style="background: rgba(255, 255, 255, 0.02);">
+                <div class="stat-label text-danger">Action Items</div>
+                <div class="stat-value text-white h2 mb-0">@Model.PendingOrders</div>
+                <div class="text-secondary x-small">Pending Pickup</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <h6 class="text-uppercase text-secondary ls-1 mb-3">Quick Logistics Actions</h6>
+    <div class="row g-3 mb-5">
+        <div class="col-md-3">
+            <a asp-action="Shipments" class="glass-card p-3 d-flex align-items-center text-decoration-none hover-scale" style="background: rgba(255,140,0,0.05); border: 1px solid rgba(255,140,0,0.2);">
+                <div class="rounded-circle bg-orange p-2 me-3"><i class="bi bi-box-seam text-dark"></i></div>
+                <div class="text-white fw-bold small">New Shipment</div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a asp-action="Payments" class="glass-card p-3 d-flex align-items-center text-decoration-none hover-scale" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                <div class="rounded-circle bg-dark p-2 me-3"><i class="bi bi-receipt text-orange"></i></div>
+                <div class="text-white fw-bold small">Audit Payments</div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a asp-action="Reports" class="glass-card p-3 d-flex align-items-center text-decoration-none hover-scale" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                <div class="rounded-circle bg-dark p-2 me-3"><i class="bi bi-file-earmark-bar-graph text-orange"></i></div>
+                <div class="text-white fw-bold small">System Intelligence</div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card p-3 d-flex align-items-center text-decoration-none hover-scale" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); cursor: pointer;">
+                <div class="rounded-circle bg-dark p-2 me-3"><i class="bi bi-gear-fill text-orange"></i></div>
+                <div class="text-white fw-bold small">Hub Settings</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <!-- Main Chart -->
+        <div class="col-md-8">
+            <div class="glass-card p-4 border-0 h-100" style="background: rgba(255, 255, 255, 0.01);">
+                <h6 class="text-uppercase text-secondary ls-1 mb-4">Volume Trends</h6>
+                <canvas id="trendChart" style="max-height: 280px;"></canvas>
+            </div>
+        </div>
+        <!-- Side Chart -->
+        <div class="col-md-4">
+            <div class="glass-card p-4 border-0 h-100" style="background: rgba(255, 255, 255, 0.01);">
+                <h6 class="text-uppercase text-secondary ls-1 mb-4">Lifecycle State</h6>
+                <canvas id="statusChart" style="max-height: 280px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shipment Summary -->
+    <div class="glass-card p-4 border-0 mb-5" style="background: rgba(255, 255, 255, 0.01);">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h6 class="text-uppercase text-secondary ls-1 mb-0">Track Shipment Summary</h6>
+            <a asp-action="Shipments" class="text-orange text-decoration-none small">View All <i class="bi bi-arrow-right ms-1"></i></a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0">
+                <thead>
+                    <tr class="text-secondary small text-uppercase">
+                        <th class="border-0 ps-0">Tracking ID</th>
+                        <th class="border-0">Destination</th>
+                        <th class="border-0">Status</th>
+                        <th class="border-0 text-end pe-0">Last Updated</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var shipment in Model.RecentShipments)
+                    {
+                        <tr>
+                            <td class="border-0 ps-0 py-3">
+                                <span class="text-orange fw-bold">@shipment.TrackingId</span>
+                                <div class="x-small text-secondary">@shipment.SenderName</div>
+                            </td>
+                            <td class="border-0 py-3">
+                                <div class="text-white">@shipment.DestinationRegion</div>
+                                <div class="x-small text-secondary">@shipment.ReceiverName</div>
+                            </td>
+                            <td class="border-0 py-3">
+                                <span class="badge border bg-transparent px-3 @(shipment.Status == "Delivered" ? "border-success text-success" : "border-warning text-warning")" style="font-size: 0.7rem;">
+                                    @shipment.Status
+                                </span>
+                            </td>
+                            <td class="border-0 py-3 text-end pe-0">
+                                <div class="text-white small">@shipment.CreatedAt.ToString("MMM dd")</div>
+                                <div class="x-small text-secondary">@shipment.Weight kg</div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .ls-1 { letter-spacing: 1px; }
+    .x-small { font-size: 0.75rem; }
+    .hover-scale { transition: transform 0.2s; }
+    .hover-scale:hover { transform: translateY(-3px); }
+    .cursor-pointer { cursor: pointer; }
+    .hover-white:hover { color: white !important; }
+    .bg-dark-soft { background: rgba(255,255,255,0.02); }
+</style>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Data from ViewModel
+        const trendData = @Html.Raw(Json.Serialize(Model.DailyTrend));
+        const statusData = @Html.Raw(Json.Serialize(Model.StatusCounts));
+
+        // Trend Chart
+        new Chart(document.getElementById('trendChart'), {
+            type: 'line',
+            data: {
+                labels: trendData.map(d => d.date),
+                datasets: [{
+                    label: 'New Orders',
+                    data: trendData.map(d => d.count),
+                    borderColor: '#ff8c00',
+                    backgroundColor: 'rgba(255, 140, 0, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b949e' } },
+                    x: { grid: { display: false }, ticks: { color: '#8b949e' } }
+                }
+            }
+        });
+
+        // Status Chart
+        new Chart(document.getElementById('statusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: statusData.map(d => d.status),
+                datasets: [{
+                    data: statusData.map(d => d.count),
+                    backgroundColor: ['#ffc107', '#0dcaf0', '#198754', '#6c757d', '#dc3545'],
+                    borderWidth: 0,
+                    hoverOffset: 15
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: '#8b949e', usePointStyle: true, padding: 20 } }
+                },
+                cutout: '70%'
+            }
+        });
+    </script>
+}

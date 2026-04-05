@@ -1,0 +1,67 @@
+@{
+    ViewData["Title"] = "Returns & RMA - Customer Portal";
+}
+
+<div class="container py-5">
+    <div class="row animate-fade-up">
+        <div class="col-lg-8 mx-auto">
+            <a href="/Customer" class="text-orange text-decoration-none mb-4 d-inline-block"><i class="bi bi-arrow-left"></i> Back to Orders</a>
+            
+            <h2 class="mb-4">Request a Return (RMA)</h2>
+            <p class="text-secondary mb-5">Select the reason for your return. We process returns quickly to ensure you receive your refund or replacement immediately.</p>
+
+            <div class="glass-card p-5">
+                <form>
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Select Order Item</label>
+                        <select class="form-select border-secondary text-white" style="background:#0b0e14; height: 50px;">
+                            <option value="">-- Choose Item to Return --</option>
+                            <option value="1">Order #ORD-9011 - USB-C Charging Cable</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Reason for Return</label>
+                        <select class="form-select border-secondary text-white" style="background:#0b0e14; height: 50px;">
+                            <option value="">-- Select Reason --</option>
+                            <option value="damaged">Item was damaged during transit</option>
+                            <option value="defective">Item is defective / Does not work</option>
+                            <option value="wrong_item">Received the wrong item</option>
+                            <option value="changed_mind">Changed my mind / No longer needed</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Resolution Preference</label>
+                        <div class="d-flex gap-3 mt-2">
+                            <div class="form-check form-check-inline p-3 border border-secondary rounded flex-fill text-center" style="background:rgba(255,255,255,0.02);">
+                                <input class="form-check-input float-none ms-0 mb-2 d-block mx-auto" type="radio" name="resolution" id="resRefund" value="refund" checked>
+                                <label class="form-check-label w-100" for="resRefund">
+                                    <i class="bi bi-currency-dollar fs-4 d-block text-orange"></i>
+                                    Refund to Original Payment
+                                </label>
+                            </div>
+                            <div class="form-check form-check-inline p-3 border border-secondary rounded flex-fill text-center" style="background:rgba(255,255,255,0.02);">
+                                <input class="form-check-input float-none ms-0 mb-2 d-block mx-auto" type="radio" name="resolution" id="resReplace" value="replace">
+                                <label class="form-check-label w-100" for="resReplace">
+                                    <i class="bi bi-box-arrow-right fs-4 d-block text-orange"></i>
+                                    Send Replacement
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-5">
+                        <label class="form-label fw-bold">Additional Comments (Optional)</label>
+                        <textarea class="form-control border-secondary text-white" style="background:#0b0e14;" rows="4" placeholder="Please provide any details that might help us verify the issue faster..."></textarea>
+                    </div>
+
+                    <button type="button" class="btn-primary-custom w-100 py-3" onclick="alert('RMA Request Submitted Successfully! Your Return Label has been emailed.')">
+                        Submit Return Request
+                    </button>
+                    <p class="text-center text-secondary mt-3" style="font-size:0.8rem;">By submitting this claim, you agree to our 30-Day Return Policy.</p>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

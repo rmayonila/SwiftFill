@@ -1,0 +1,109 @@
+@model SwiftFill.Models.Order
+@{
+    ViewData["Title"] = "Edit Order - " + Model.TrackingId;
+    Layout = "_AdminLayout";
+}
+
+<div class="animate-fade-up">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-pencil-square text-orange me-2"></i> Edit Order @Model.TrackingId</h2>
+        <a asp-action="Shipments" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-2"></i> Back to Shipments</a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success bg-dark border-success text-success mb-4">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    <div class="glass-card p-4" style="background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.05);">
+        <form asp-action="EditOrder" method="post">
+            <input type="hidden" name="TrackingId" value="@Model.TrackingId" />
+            
+            <div class="row g-4">
+                <!-- Sender Section -->
+                <div class="col-md-6 border-end border-white border-opacity-10">
+                    <h6 class="text-uppercase text-secondary ls-1 mb-4">Sender Details</h6>
+                    <div class="mb-3">
+                        <label class="text-secondary x-small mb-1">Full Name</label>
+                        <input type="text" name="SenderName" value="@Model.SenderName" class="minimal-input w-100" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-secondary x-small mb-1">Phone Number</label>
+                        <input type="text" name="SenderPhone" value="@Model.SenderPhone" class="minimal-input w-100" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-secondary x-small mb-1">Pickup Address</label>
+                        <textarea name="SenderAddress" class="minimal-input w-100" rows="3" required>@Model.SenderAddress</textarea>
+                    </div>
+                </div>
+
+                <!-- Receiver Section -->
+                <div class="col-md-6">
+                    <h6 class="text-uppercase text-secondary ls-1 mb-4">Receiver Details</h6>
+                    <div class="mb-3">
+                        <label class="text-secondary x-small mb-1">Full Name</label>
+                        <input type="text" name="ReceiverName" value="@Model.ReceiverName" class="minimal-input w-100" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-secondary x-small mb-1">Phone Number</label>
+                        <input type="text" name="ReceiverPhone" value="@Model.ReceiverPhone" class="minimal-input w-100" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-secondary x-small mb-1">Delivery Address</label>
+                        <textarea name="ReceiverAddress" class="minimal-input w-100" rows="3" required>@Model.ReceiverAddress</textarea>
+                    </div>
+                </div>
+
+                <div class="col-12"><hr class="border-white border-opacity-10"></div>
+
+                <!-- Package Info -->
+                <div class="col-md-3">
+                    <label class="text-secondary x-small mb-1">Weight (kg)</label>
+                    <input type="number" name="Weight" value="@Model.Weight" class="minimal-input w-100" step="0.1" required />
+                </div>
+                <div class="col-md-3">
+                    <label class="text-secondary x-small mb-1">Category</label>
+                    <select name="ItemCategory" class="minimal-input w-100">
+                        <option value="Electronics" selected="@(Model.ItemCategory == "Electronics")">Electronics</option>
+                        <option value="Apparel" selected="@(Model.ItemCategory == "Apparel")">Apparel</option>
+                        <option value="Documents" selected="@(Model.ItemCategory == "Documents")">Documents</option>
+                        <option value="Fragile" selected="@(Model.ItemCategory == "Fragile")">Fragile</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="text-secondary x-small mb-1">Declared Value (PHP)</label>
+                    <input type="number" name="DeclaredValue" value="@Model.DeclaredValue" class="minimal-input w-100" required />
+                </div>
+                <div class="col-md-3">
+                    <label class="text-secondary x-small mb-1">Destination Region</label>
+                    <select name="DestinationRegion" class="minimal-input w-100" required>
+                        <option value="NCR" selected="@(Model.DestinationRegion == "NCR")">Metro Manila</option>
+                        <option value="Luzon" selected="@(Model.DestinationRegion == "Luzon")">Luzon</option>
+                        <option value="Visayas" selected="@(Model.DestinationRegion == "Visayas")">Visayas</option>
+                        <option value="Mindanao" selected="@(Model.DestinationRegion == "Mindanao")">Mindanao</option>
+                    </select>
+                </div>
+                
+                <div class="col-12 mt-4"><hr class="border-white border-opacity-10"></div>
+                <!-- Payment Update Section -->
+                <div class="col-md-6">
+                    <h6 class="text-uppercase text-secondary ls-1 mb-3">Transaction Setup</h6>
+                    <label class="text-secondary x-small mb-1">Payment Method</label>
+                    <select name="PaymentMethod" class="minimal-input w-100 bg-dark text-orange fw-bold">
+                        <option value="Pending Hub Verification" selected="@(Model.Payment?.Method == "Pending Hub Verification")">Pending Hub Verification</option>
+                        <option value="Cash" selected="@(Model.Payment?.Method == "Cash")">Cash (Paid at Hub)</option>
+                        <option value="Bank Transfer" selected="@(Model.Payment?.Method == "Bank Transfer")">Bank Transfer</option>
+                        <option value="COD" selected="@(Model.Payment?.Method == "COD")">Collect on Drop (COD)</option>
+                    </select>
+                    <div class="text-secondary x-small mt-2"><i class="bi bi-info-circle me-1"></i> Selecting Cash or Bank Transfer will automatically mark this Order as PAID.</div>
+                </div>
+
+                <div class="col-12 mt-5 text-end">
+                    <button type="submit" class="btn btn-primary px-5 py-2 shadow-sm border-0 fw-bold" style="background:#FF8C00;">Update Shipment Details</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

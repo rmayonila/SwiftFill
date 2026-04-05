@@ -1,0 +1,161 @@
+@model SwiftFill.Models.AdminDashboardViewModel
+@{
+    Layout = "_WarehouseLayout";
+    ViewData["Title"] = "Warehouse Dispatch";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="dashboard-title"><i class="bi bi-building-gear me-3"></i> Warehouse Dispatch</h1>
+</div>
+
+<div class="row g-4 mb-5">
+    <div class="col-md-3">
+        <div class="stat-card yellow">
+            <div class="stat-label">Pending Pick</div>
+            <div class="stat-value">@Model.PendingPickOrders.Count</div>
+            <div class="stat-subtext">Awaiting Warehouse Staff</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card blue">
+            <div class="stat-label">In Packing</div>
+            <div class="stat-value">@Model.PickedOrders.Count</div>
+            <div class="stat-subtext">Currently at Packing Table</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card green">
+            <div class="stat-label">Ready to Ship</div>
+            <div class="stat-value">@Model.PackedOrders.Count</div>
+            <div class="stat-subtext">Manifested & Sealed</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card red">
+            <div class="stat-label">Alerts</div>
+            <div class="stat-value">0</div>
+            <div class="stat-subtext">Delayed or Returned</div>
+        </div>
+    </div>
+</div>
+
+<h5 class="text-secondary small fw-bold mb-3 text-uppercase">Quick Logistics Actions</h5>
+<div class="row g-3 mb-5">
+    <div class="col-md-3">
+        <div class="action-box">
+            <div class="action-icon"><i class="bi bi-upc-scan"></i></div>
+            <div class="fw-bold">Scan Inbound</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="action-box">
+            <div class="action-icon"><i class="bi bi-boxes"></i></div>
+            <div class="fw-bold">Bulk Picking</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="action-box">
+            <div class="action-icon"><i class="bi bi-scooter"></i></div>
+            <div class="fw-bold">Assign Rider</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="action-box">
+            <div class="action-icon"><i class="bi bi-map"></i></div>
+            <div class="fw-bold">Hub Transfer</div>
+        </div>
+    </div>
+</div>
+
+<div class="module-toolbar">
+    <div class="search-container">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="Search Tracking ID or Rider..." />
+    </div>
+    <div class="d-flex gap-2">
+        <a href="#" class="filter-btn"><i class="bi bi-funnel"></i> Filter</a>
+    </div>
+</div>
+
+<div class="table-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="m-0 fw-bold">Active Warehouse Queue</h5>
+        <span class="badge bg-dark border border-secondary text-secondary">Local Hub: @Model.CurrentHub</span>
+    </div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Tracking ID</th>
+                <th>Destination</th>
+                <th>Status</th>
+                <th>Assign Rider</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.RecentShipments)
+            {
+                <tr>
+                    <td class="text-warning fw-bold">#@item.TrackingId</td>
+                    <td>@item.DestinationRegion</td>
+                    <td><span class="badge bg-secondary p-2">@item.Status</span></td>
+                    <td>
+                        <select class="form-select form-select-sm bg-dark text-white border-secondary" id="rider-@item.TrackingId">
+                            <option>Select Local Rider</option>
+                            @foreach (var rider in Model.AvailableRiders)
+                            {
+                                <option value="@rider.Id">@rider.UserName</option>
+                            }
+                        </select>
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            @if (item.Status == "Pending")
+                            {
+                                <form asp-action="MarkPicked" method="post">
+                                    <input type="hidden" name="trackingId" value="@item.TrackingId" />
+                                    <button type="submit" class="btn btn-sm btn-warning">Pick</button>
+                                </form>
+                            }
+                            else if (item.Status == "Picked")
+                            {
+                                <form asp-action="MarkPacked" method="post">
+                                    <input type="hidden" name="trackingId" value="@item.TrackingId" />
+                                    <button type="submit" class="btn btn-sm btn-info text-white">Pack</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <button class="btn btn-sm btn-success" onclick="assignRider('@item.TrackingId')">Ship</button>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div class="pagination-container">
+        <div class="page-info">Showing 1 to @Model.RecentShipments.Count of @Model.RecentShipments.Count entries</div>
+        <div class="btn-group">
+            <button class="btn btn-sm btn-outline-secondary disabled">Previous</button>
+            <button class="btn btn-sm btn-secondary">1</button>
+            <button class="btn btn-sm btn-outline-secondary disabled">Next</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function assignRider(trackingId) {
+            let riderId = $(`#rider-${trackingId}`).val();
+            if (!riderId || riderId === "Select Local Rider") {
+                alert("Please select a rider first!");
+                return;
+            }
+
+            $.post('/Warehouse/AssignRider', { trackingId: trackingId, riderId: riderId }, function () {
+                location.reload();
+            });
+        }
+    </script>
+}

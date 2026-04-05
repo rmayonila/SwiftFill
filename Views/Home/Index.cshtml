@@ -1,0 +1,256 @@
+@{
+    ViewData["Title"] = "SwiftFill - Smart Fulfillment";
+    Layout = "_Layout";
+}
+
+<style>
+    :root {
+        --swift-orange: #ff8c00;
+        --swift-orange-glow: rgba(255, 140, 0, 0.3);
+        --glass-bg: rgba(255, 255, 255, 0.03);
+        --glass-border: rgba(255, 255, 255, 0.08);
+    }
+
+    .tracking-search-input::placeholder {
+        color: rgba(255, 255, 255, 0.4) !important;
+    }
+
+    /* Hero Section - Centered */
+    .hero-container {
+        padding: 160px 0 100px;
+        text-align: center;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+    
+    .hero-title {
+        font-size: clamp(2.5rem, 8vw, 5rem);
+        font-weight: 800;
+        letter-spacing: -2px;
+        line-height: 1.1;
+        margin-bottom: 8px;
+        color: #fff;
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .text-orange {
+        color: var(--swift-orange);
+    }
+
+    .hero-subtitle {
+        font-size: 1.1rem;
+        color: rgba(255,255,255,0.6);
+        max-width: 650px;
+        margin: 0 auto 40px;
+        line-height: 1.6;
+    }
+
+    /* Stats Banner - Full Width Fix */
+    .stats-banner {
+        width: 100%;
+        border-top: 1px solid var(--glass-border);
+        border-bottom: 1px solid var(--glass-border);
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.02), transparent);
+        padding: 60px 0;
+        margin-top: 40px;
+        display: block;
+    }
+
+    .stat-item h3 {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 8px;
+        color: var(--swift-orange);
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: rgba(255,255,255,0.5);
+    }
+
+    /* Feature Cards - Centered Content */
+    .glass-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        padding: 40px;
+        transition: all 0.4s ease;
+        backdrop-filter: blur(10px);
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .glass-card:hover {
+        transform: translateY(-10px);
+        border-color: var(--swift-orange);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+
+    .icon-wrapper {
+        font-size: 2.5rem;
+        color: var(--swift-orange);
+        margin-bottom: 20px;
+        background: rgba(255, 140, 0, 0.1);
+        width: 70px;
+        height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 15px;
+    }
+
+    /* Button Styles */
+    .btn-primary-custom {
+        background: var(--swift-orange);
+        color: #000 !important;
+        font-weight: 700;
+        padding: 14px 32px;
+        border-radius: 12px;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+
+    .btn-outline-custom {
+        border: 1px solid var(--glass-border);
+        color: #fff !important;
+        padding: 14px 32px;
+        border-radius: 12px;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+
+    .btn-outline-custom:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: #fff;
+    }
+
+    /* Force Reset for Landing Page */
+body {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+}
+
+.content-wrapper, main {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    display: block !important;
+}
+
+/* Ensure all sections are full width and centered */
+section {
+    width: 100vw !important;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.container {
+    max-width: 1200px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+</style>
+
+<section class="hero-container">
+    <div class="container">
+        <div class="animate-fade-up">
+            <h1 class="hero-title">
+                Precision in Every <span class="text-orange">Pack.</span><br>
+                <div style="white-space: nowrap;">Speed in Every <span class="text-orange">Shipment.</span></div>
+            </h1>
+        </div>
+        <div class="animate-fade-up delay-100">
+            <p class="hero-subtitle">
+                The intelligent fulfillment engine for the modern hub. Automate your entire lifecycle from order entry in Davao to final delivery nationwide.
+            </p>
+        </div>
+        
+        <div class="mt-4 mb-5 animate-fade-up delay-150" style="max-width: 550px; margin: 0 auto;">
+            <form action="/Home/Track" method="get" class="d-flex align-items-center" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 50px; padding: 8px;">
+                <i class="bi bi-search ms-3 text-secondary"></i>
+                <input type="text" name="trackingId" class="form-control tracking-search-input bg-transparent border-0 text-white px-3" placeholder="Enter your Tracking ID..." required style="box-shadow: none;">
+                <button type="submit" class="btn btn-warning rounded-pill px-4 py-2 fw-bold" style="background: var(--swift-orange); border: none; color: #000; letter-spacing: 0.5px; white-space: nowrap;">Track Package</button>
+            </form>
+        </div>
+        
+        <div class="mt-4 animate-fade-up delay-200">
+            <a href="/Account/SignUp" class="btn-primary-custom me-2">Get Started Now &rarr;</a>
+            <a href="#features" class="btn-outline-custom">Explore Modules</a>
+        </div>
+    </div>
+</section>
+
+<section class="stats-banner">
+    <div class="container">
+        <div class="row g-4 text-center justify-content-center">
+            <div class="col-md-4">
+                <div class="stat-item">
+                    <h3>99.9%</h3>
+                    <p class="stat-label">Order Accuracy</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-item">
+                    <h3>3x</h3>
+                    <p class="stat-label">Faster Fulfillment</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-item">
+                    <h3>100k+</h3>
+                    <p class="stat-label">Daily Parcels</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="features" class="py-5 mt-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3">Core <span class="text-orange">Modules</span></h2>
+            <p class="hero-subtitle">A centralized ecosystem designed for the complete chain of custody.</p>
+        </div>
+        
+        <div class="row g-4 justify-content-center">
+            <div class="col-lg-4 col-md-6">
+                <div class="glass-card h-100">
+                    <div class="icon-wrapper"><i class="bi bi-shield-check"></i></div>
+                    <h3 class="h4 mb-3">Admin Command</h3>
+                    <p class="text-white-50">Complete oversight of revenue, hub performance, and nationwide logistics audit logs.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="glass-card h-100">
+                    <div class="icon-wrapper"><i class="bi bi-box-seam"></i></div>
+                    <h3 class="h4 mb-3">Fulfillment Staff</h3>
+                    <p class="text-white-50">Streamlined "Pick-Pack-Ship" interfaces optimized for high-speed warehouse sorting.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="glass-card h-100">
+                    <div class="icon-wrapper"><i class="bi bi-truck"></i></div>
+                    <h3 class="h4 mb-3">Rider Dispatch</h3>
+                    <p class="text-white-50">Real-time last-mile delivery management with integrated COD and status tracking.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

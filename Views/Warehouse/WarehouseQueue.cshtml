@@ -1,0 +1,56 @@
+@model IEnumerable<SwiftFill.Models.Order>
+@{
+    Layout = "_WarehouseLayout";
+    ViewData["Title"] = "Warehouse Queue";
+}
+
+<div class="main-content-inner">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="dashboard-title"><i class="bi bi-boxes me-3"></i> Warehouse Queue</h1>
+</div>
+
+<div class="module-toolbar">
+    <div class="search-container">
+        <i class="bi bi-search"></i>
+        <input type="text" id="queueSearch" placeholder="Search Master List..." />
+    </div>
+    <div class="d-flex gap-2">
+        <a href="#" class="filter-btn"><i class="bi bi-funnel"></i> Filter</a>
+    </div>
+</div>
+
+    <div class="table-container">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Tracking ID</th>
+                    <th>Destination</th>
+                    <th>Current Status</th>
+                    <th>Last Updated</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model) {
+                    <tr>
+                        <td class="text-warning fw-bold">#@item.TrackingId</td>
+                        <td>@item.DestinationRegion</td>
+                        <td>
+                            <span class="badge @(item.Status == "Pending" ? "bg-warning text-dark" : "bg-secondary")">
+                                @item.Status
+                            </span>
+                        </td>
+                        <td class="text-white-50 small">@item.UpdatedAt.ToString("MMM dd, HH:mm")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <div class="pagination-container">
+            <div class="page-info">Showing 1 to @Model.Count() of @Model.Count() entries</div>
+            <div class="btn-group">
+                <button class="btn btn-sm btn-outline-secondary disabled">Previous</button>
+                <button class="btn btn-sm btn-secondary">1</button>
+                <button class="btn btn-sm btn-outline-secondary disabled">Next</button>
+            </div>
+        </div>
+    </div>
+</div>

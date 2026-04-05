@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Rider</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        /* ===== GLOBAL SIDEBAR LAYOUT ===== */
+        body { background-color: #000000; color: #ffffff; font-family: 'Inter', sans-serif; }
+
+        .sidebar {
+            width: 260px;
+            position: fixed;
+            top: 0; left: 0;
+            height: 100vh;
+            background: #0a0a0a;
+            border-right: 1px solid rgba(255,140,0,0.15);
+            padding-top: 0;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar .nav-sidebar-wrap {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-bottom: 16px;
+        }
+        .sidebar .nav-sidebar-wrap::-webkit-scrollbar { width: 4px; }
+        .sidebar .nav-sidebar-wrap::-webkit-scrollbar-thumb { background: rgba(255,140,0,0.25); border-radius: 4px; }
+
+        .main-content {
+            margin-left: 260px;
+            padding: 20px 36px;
+            min-height: 100vh;
+            background: #000000;
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            padding: 20px 22px 16px;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255,140,0,0.1);
+            flex-shrink: 0;
+        }
+        .sidebar-brand .brand-text {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-sidebar .nav-link {
+            color: rgba(255,255,255,0.5);
+            padding: 12px 22px;
+            min-height: 50px;
+            font-size: 0.88rem;
+            font-weight: 500;
+            line-height: 1.4;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+            border-left: 3px solid transparent;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .nav-sidebar .nav-link:hover,
+        .nav-sidebar .nav-link.active {
+            color: #ffffff;
+            background: rgba(255, 140, 0, 0.08);
+            border-left: 3px solid #ff8c00;
+        }
+        .nav-sidebar .nav-link.active {
+            color: #FF8C00;
+            background: rgba(255,140,0,0.12);
+            box-shadow: inset 4px 0 10px rgba(255,140,0,0.1);
+        }
+
+        .nav-sidebar .nav-link i {
+            margin-right: 11px;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logout {
+            padding: 16px 22px;
+            border-top: 1px solid rgba(255,140,0,0.1);
+            flex-shrink: 0;
+        }
+
+        /* Standard Module Page Styles for tools */
+        .module-toolbar {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 12px;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .search-container {
+            position: relative;
+            width: 350px;
+        }
+        .search-container i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+        .search-container input {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 10px 15px 10px 40px;
+            color: #fff;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-container input:focus {
+            border-color: #ff8c00;
+        }
+        .filter-btn {
+            background: #111;
+            border: 1px solid #222;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: background 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            cursor: pointer;
+        }
+        .filter-btn:hover {
+            background: #1a1a1a;
+            color: #ff8c00;
+        }
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #1a1a1a;
+        }
+        .page-info { color: #6c757d; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <!-- Left Sidebar -->
+    <div class="sidebar">
+        <a href="/" class="sidebar-brand">
+            <img src="~/images/logo.png" style="height:40px;" alt="SwiftFill" />
+            <span class="brand-text ms-2">SwiftFill</span>
+        </a>
+
+        @{ string action = ViewContext.RouteData.Values["Action"]?.ToString() ?? ""; }
+
+        <div class="nav-sidebar-wrap">
+            <ul class="nav flex-column nav-sidebar">
+                <li class="nav-item">
+                    <div class="px-4 mt-3 mb-2 text-secondary text-uppercase x-small ls-1">Main Menu</div>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link @(action == "Index" ? "active" : "")" asp-controller="Rider" asp-action="Index">
+                        <i class="bi bi-list-task"></i> Dispatch Manifest
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link @(action == "History" ? "active" : "")" asp-controller="Rider" asp-action="History">
+                        <i class="bi bi-clock-history"></i> Delivery History
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link @(action == "Remittance" ? "active" : "")" asp-controller="Rider" asp-action="Remittance">
+                        <i class="bi bi-cash-stack"></i> Cash Remittance
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar-logout">
+            <form method="post" action="/Account/Logout">
+                <button type="submit" class="btn w-100 fw-bold"
+                    style="border:1px solid rgba(220,53,69,0.4);color:rgba(220,53,69,0.8);background:rgba(220,53,69,0.05);border-radius:8px;font-size:0.85rem;padding:10px;">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <!-- Dashboard Top Header -->
+        <div class="d-flex justify-content-end align-items-center mb-4 pb-3">
+            <div class="d-flex align-items-center">
+                <span class="text-secondary me-4" style="font-size: 1.2rem; cursor: pointer;"><i class="bi bi-bell-fill"></i></span>
+                <div class="rounded-circle d-flex justify-content-center align-items-center fw-bold shadow-sm" style="width: 35px; height: 35px; background: #ff8c00; color: #000;">
+                    @((User.Identity?.Name ?? "R").Substring(0,1).ToUpper())
+                </div>
+                <span class="ms-2 fw-semibold text-white">@User.Identity?.Name</span>
+            </div>
+        </div>
+
+        @RenderBody()
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

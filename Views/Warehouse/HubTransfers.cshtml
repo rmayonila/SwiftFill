@@ -1,0 +1,56 @@
+@model IEnumerable<SwiftFill.Models.Order>
+@{
+    Layout = "_WarehouseLayout";
+    ViewData["Title"] = "Hub Transfers";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="dashboard-title text-info"><i class="bi bi-map-fill me-3"></i> Hub Transfers</h1>
+</div>
+
+<div class="module-toolbar">
+    <div class="search-container">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="Search Transfer Records..." />
+    </div>
+    <div class="d-flex gap-2">
+        <a href="#" class="filter-btn"><i class="bi bi-funnel"></i> Filter</a>
+    </div>
+</div>
+
+<div class="table-container border-top border-info border-3">
+    <div class="alert alert-dark border-secondary small">
+        <i class="bi bi-info-circle-fill me-2 text-info"></i> 
+        Showing orders labeled for **Inter-Island** transit (Outbound from Davao).
+    </div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Tracking ID</th>
+                <th>Target Hub</th>
+                <th>Package Weight</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model) {
+                <tr>
+                    <td class="text-info fw-bold">#@item.TrackingId</td>
+                    <td>@item.DestinationRegion</td>
+                    <td>@item.Weight kg</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-info">Generate Manifest</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div class="pagination-container">
+        <div class="page-info">Showing 1 to @Model.Count() of @Model.Count() entries</div>
+        <div class="btn-group">
+            <button class="btn btn-sm btn-outline-secondary disabled">Previous</button>
+            <button class="btn btn-sm btn-secondary">1</button>
+            <button class="btn btn-sm btn-outline-secondary disabled">Next</button>
+        </div>
+    </div>
+</div>
