@@ -1,11 +1,31 @@
 @model SwiftFill.Models.AdminDashboardViewModel
+@using SwiftFill.Models
 @{
     Layout = "_WarehouseLayout";
     ViewData["Title"] = "Warehouse Dispatch";
+    var currentHub = Model.CurrentHub;
+    var hubInfo = HubRegistry.All.FirstOrDefault(h => h.Name == currentHub);
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="dashboard-title"><i class="bi bi-building-gear me-3"></i> Warehouse Dispatch</h1>
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <h1 class="dashboard-title">
+        <i class="bi bi-building-gear me-3"></i> Warehouse Dispatch
+    </h1>
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+        <div style="background: rgba(255,140,0,0.08); border: 1px solid rgba(255,140,0,0.25); border-radius: 10px; padding: 8px 16px;">
+            <div style="font-size: 0.65rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px;">Your Hub</div>
+            <div style="font-size: 0.9rem; font-weight: 700; color: #ff8c00;">
+                <i class="bi bi-geo-alt-fill me-1"></i>@currentHub
+            </div>
+            @if (hubInfo != null)
+            {
+                <div style="font-size: 0.7rem; color: rgba(255,255,255,0.35);">@hubInfo.Region · @hubInfo.Island</div>
+            }
+        </div>
+        <a href="/Account/SelectHub" class="btn btn-sm btn-outline-secondary border-secondary text-secondary">
+            <i class="bi bi-arrow-repeat me-1"></i> Switch Hub
+        </a>
+    </div>
 </div>
 
 <div class="row g-4 mb-5">
@@ -27,42 +47,14 @@
         <div class="stat-card green">
             <div class="stat-label">Ready to Ship</div>
             <div class="stat-value">@Model.PackedOrders.Count</div>
-            <div class="stat-subtext">Manifested & Sealed</div>
+            <div class="stat-subtext">Packed & Sealed</div>
         </div>
     </div>
     <div class="col-md-3">
         <div class="stat-card red">
-            <div class="stat-label">Alerts</div>
-            <div class="stat-value">0</div>
-            <div class="stat-subtext">Delayed or Returned</div>
-        </div>
-    </div>
-</div>
-
-<h5 class="text-secondary small fw-bold mb-3 text-uppercase">Quick Logistics Actions</h5>
-<div class="row g-3 mb-5">
-    <div class="col-md-3">
-        <div class="action-box">
-            <div class="action-icon"><i class="bi bi-upc-scan"></i></div>
-            <div class="fw-bold">Scan Inbound</div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="action-box">
-            <div class="action-icon"><i class="bi bi-boxes"></i></div>
-            <div class="fw-bold">Bulk Picking</div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="action-box">
-            <div class="action-icon"><i class="bi bi-scooter"></i></div>
-            <div class="fw-bold">Assign Rider</div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="action-box">
-            <div class="action-icon"><i class="bi bi-map"></i></div>
-            <div class="fw-bold">Hub Transfer</div>
+            <div class="stat-label">Inbound</div>
+            <div class="stat-value">@Model.RecentShipments.Count(s => s.Status.Contains($"Transit to {currentHub}"))</div>
+            <div class="stat-subtext">Arriving at @currentHub</div>
         </div>
     </div>
 </div>
@@ -70,24 +62,35 @@
 <div class="module-toolbar">
     <div class="search-container">
         <i class="bi bi-search"></i>
-        <input type="text" placeholder="Search Tracking ID or Rider..." />
-    </div>
-    <div class="d-flex gap-2">
-        <a href="#" class="filter-btn"><i class="bi bi-funnel"></i> Filter</a>
+        <input type="text" id="searchInput" placeholder="Search Tracking ID, Receiver..." oninput="filterTable(this.value)" />
     </div>
 </div>
 
 <div class="table-container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h5 class="m-0 fw-bold">Active Warehouse Queue</h5>
-        <span class="badge bg-dark border border-secondary text-secondary">Local Hub: @Model.CurrentHub</span>
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h5 class="m-0 fw-bold">Queue — @currentHub</h5>
+        <span class="badge bg-dark border border-secondary text-secondary">@Model.RecentShipments.Count parcels</span>
     </div>
-    <table class="table">
+
+    @*
+        LEGEND — Action logic per parcel (no fixed "Origin Hub"):
+        • CurrentLocation == currentHub + Status "Pending"  → PICK
+        • CurrentLocation == currentHub + Status "Picked"   → PACK
+        • CurrentLocation == currentHub + Status "Packed"   → SHIP (dispatch to next hub)
+        • Status contains "In Transit to currentHub"        → RECEIVE (staff at destination hub)
+        • Status starts with "Arrived at currentHub"
+             + DeliveryType "DoorToDoor"                    → ASSIGN RIDER
+             + DeliveryType "BranchPickup"                  → READY FOR PICKUP
+    *@
+
+    <table class="table" id="queueTable">
         <thead>
             <tr>
                 <th>Tracking ID</th>
+                <th>Receiver</th>
                 <th>Destination</th>
-                <th>Status</th>
+                <th>Delivery Type</th>
+                <th>Status / Location</th>
                 <th>Assign Rider</th>
                 <th>Action</th>
             </tr>
@@ -95,66 +98,156 @@
         <tbody>
             @foreach (var item in Model.RecentShipments)
             {
+                @* Determine what action this hub can do for this parcel *@
+                var isLocal    = item.CurrentLocation == currentHub;
+                var isInbound  = item.Status.Contains($"Transit to {currentHub}");
+                var isArrived  = item.Status.StartsWith($"Arrived at {currentHub}");
+                var canPick    = isLocal && item.Status == "Pending";
+                var canPack    = isLocal && item.Status == "Picked";
+                var canShip    = isLocal && item.Status == "Packed";
+                var canReceive = isInbound;
+                var canRider   = isArrived && item.DeliveryType == "DoorToDoor";
+                var isPickup   = isArrived && item.DeliveryType == "BranchPickup";
+
                 <tr>
                     <td class="text-warning fw-bold">#@item.TrackingId</td>
-                    <td>@item.DestinationRegion</td>
-                    <td><span class="badge bg-secondary p-2">@item.Status</span></td>
                     <td>
-                        <select class="form-select form-select-sm bg-dark text-white border-secondary" id="rider-@item.TrackingId">
-                            <option>Select Local Rider</option>
-                            @foreach (var rider in Model.AvailableRiders)
-                            {
-                                <option value="@rider.Id">@rider.UserName</option>
-                            }
-                        </select>
+                        <div class="fw-semibold text-white">@item.ReceiverName</div>
+                        <div class="small text-secondary">@item.ReceiverAddress</div>
+                    </td>
+                    <td>@item.DestinationRegion</td>
+                    <td>
+                        @if (item.DeliveryType == "BranchPickup")
+                        {
+                            <span class="badge" style="background:rgba(13,202,240,0.1);color:#0dcaf0;border:1px solid rgba(13,202,240,0.3);">
+                                <i class="bi bi-building me-1"></i>Branch Pickup
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge" style="background:rgba(255,140,0,0.1);color:#ff8c00;border:1px solid rgba(255,140,0,0.3);">
+                                <i class="bi bi-truck me-1"></i>Door-to-Door
+                            </span>
+                        }
+                    </td>
+                    <td>
+                        <div>
+                            <span class="badge bg-secondary p-2" style="font-size:0.7rem;">@item.Status</span>
+                        </div>
+                        <div class="small text-secondary mt-1">
+                            <i class="bi bi-geo-alt me-1"></i>@item.CurrentLocation
+                        </div>
+                    </td>
+                    <td>
+                        @if (canRider)
+                        {
+                            <select class="form-select form-select-sm bg-dark text-white border-secondary" id="rider-@item.TrackingId">
+                                <option value="">Select Rider</option>
+                                @foreach (var rider in Model.AvailableRiders)
+                                {
+                                    <option value="@rider.Id">@rider.FirstName @rider.LastName</option>
+                                }
+                            </select>
+                        }
+                        else if (isPickup)
+                        {
+                            <span class="text-info small">No rider needed</span>
+                        }
+                        else
+                        {
+                            <span class="text-secondary small">—</span>
+                        }
                     </td>
                     <td>
                         <div class="btn-group">
-                            @if (item.Status == "Pending")
+                            @if (canPick)
                             {
                                 <form asp-action="MarkPicked" method="post">
                                     <input type="hidden" name="trackingId" value="@item.TrackingId" />
-                                    <button type="submit" class="btn btn-sm btn-warning">Pick</button>
+                                    <button type="submit" class="btn btn-sm btn-warning">
+                                        <i class="bi bi-box2-heart me-1"></i>Pick
+                                    </button>
                                 </form>
                             }
-                            else if (item.Status == "Picked")
+                            else if (canPack)
                             {
                                 <form asp-action="MarkPacked" method="post">
                                     <input type="hidden" name="trackingId" value="@item.TrackingId" />
-                                    <button type="submit" class="btn btn-sm btn-info text-white">Pack</button>
+                                    <button type="submit" class="btn btn-sm btn-info text-white">
+                                        <i class="bi bi-box-seam me-1"></i>Pack
+                                    </button>
                                 </form>
+                            }
+                            else if (canShip)
+                            {
+                                <form asp-action="MarkShipped" method="post">
+                                    <input type="hidden" name="trackingId" value="@item.TrackingId" />
+                                    <button type="submit" class="btn btn-sm btn-success">
+                                        <i class="bi bi-send me-1"></i>Ship Out
+                                    </button>
+                                </form>
+                            }
+                            else if (canReceive)
+                            {
+                                <form asp-action="MarkReceived" method="post">
+                                    <input type="hidden" name="trackingId" value="@item.TrackingId" />
+                                    <button type="submit" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-check2-circle me-1"></i>Receive
+                                    </button>
+                                </form>
+                            }
+                            else if (canRider)
+                            {
+                                <button class="btn btn-sm btn-success" onclick="assignRider('@item.TrackingId')">
+                                    <i class="bi bi-scooter me-1"></i>Assign Rider
+                                </button>
+                            }
+                            else if (isPickup)
+                            {
+                                <span class="badge py-2 px-3" style="background:rgba(13,202,240,0.1);color:#0dcaf0;border:1px solid rgba(13,202,240,0.3);">
+                                    Ready for Pickup
+                                </span>
                             }
                             else
                             {
-                                <button class="btn btn-sm btn-success" onclick="assignRider('@item.TrackingId')">Ship</button>
+                                <span class="text-secondary small">@item.Status</span>
                             }
                         </div>
                     </td>
                 </tr>
             }
+            @if (!Model.RecentShipments.Any())
+            {
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-secondary">
+                        <i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:8px;"></i>
+                        No parcels found for <strong>@currentHub</strong>.
+                    </td>
+                </tr>
+            }
         </tbody>
     </table>
-    <div class="pagination-container">
-        <div class="page-info">Showing 1 to @Model.RecentShipments.Count of @Model.RecentShipments.Count entries</div>
-        <div class="btn-group">
-            <button class="btn btn-sm btn-outline-secondary disabled">Previous</button>
-            <button class="btn btn-sm btn-secondary">1</button>
-            <button class="btn btn-sm btn-outline-secondary disabled">Next</button>
-        </div>
-    </div>
 </div>
 
 @section Scripts {
     <script>
         function assignRider(trackingId) {
-            let riderId = $(`#rider-${trackingId}`).val();
-            if (!riderId || riderId === "Select Local Rider") {
+            const select = document.getElementById(`rider-${trackingId}`);
+            if (!select || !select.value) {
                 alert("Please select a rider first!");
                 return;
             }
+            fetch('/Warehouse/AssignRider', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `trackingId=${encodeURIComponent(trackingId)}&riderId=${encodeURIComponent(select.value)}`
+            }).then(() => location.reload());
+        }
 
-            $.post('/Warehouse/AssignRider', { trackingId: trackingId, riderId: riderId }, function () {
-                location.reload();
+        function filterTable(query) {
+            const q = query.toLowerCase();
+            document.querySelectorAll('#queueTable tbody tr').forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
             });
         }
     </script>

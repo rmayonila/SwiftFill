@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SwiftFill.Data;
 using SwiftFill.Models;
+using SwiftFill.Services;
 
 namespace SwiftFill.Controllers
 {
@@ -12,11 +13,16 @@ namespace SwiftFill.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
+        private readonly AuditLogService _audit;
 
-        public SuperAdminController(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        public SuperAdminController(
+            UserManager<ApplicationUser> userManager,
+            ApplicationDbContext context,
+            AuditLogService audit)
         {
             _userManager = userManager;
             _context = context;
+            _audit = audit;
         }
 
         public async Task<IActionResult> Index()
@@ -26,17 +32,9 @@ namespace SwiftFill.Controllers
             return View(users);
         }
 
-        public IActionResult AuditLogs()
-        {
-            // Mock audit logs
-            return View();
-        }
+        public IActionResult AuditLogs() => View();
 
-        public IActionResult DatabaseStats()
-        {
-            // Mock DB stats
-            return View();
-        }
+        public IActionResult DatabaseStats() => View();
 
         public async Task<IActionResult> Users()
         {
@@ -44,24 +42,20 @@ namespace SwiftFill.Controllers
             return View(users);
         }
 
-        public IActionResult Warehouses()
-        {
-            return View();
-        }
+        public IActionResult Warehouses() => View();
 
         public IActionResult SystemLogs()
         {
-            return View();
+            var logs = _audit.GetSystemLogs().ToList();
+            return View(logs);
         }
 
         public IActionResult SecurityLogs()
         {
-            return View();
+            var logs = _audit.GetSecurityLogs().ToList();
+            return View(logs);
         }
 
-        public IActionResult Branding()
-        {
-            return View();
-        }
+        public IActionResult Branding() => View();
     }
 }

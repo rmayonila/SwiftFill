@@ -34,6 +34,12 @@ namespace SwiftFill.Models
 
         public string Status { get; set; } = "Pending"; 
         
+        // "DoorToDoor" or "BranchPickup" — controls rider assignment logic
+        public string DeliveryType { get; set; } = "DoorToDoor";
+
+        // Records which hub originally created/received the parcel
+        public string? OriginHub { get; set; } = "Davao Hub";
+        
         [Required]
         public string CurrentLocation { get; set; } = "Davao Hub";
         

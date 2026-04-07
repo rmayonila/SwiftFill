@@ -278,5 +278,34 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
+    <script>
+        // ── Sidebar scroll persistence ──
+        // Saves the sidebar scroll position before nav and restores it on load.
+        // This prevents the sidebar from jumping to the top when clicking a menu item.
+        (function () {
+            var wrap = document.querySelector('.nav-sidebar-wrap');
+            if (!wrap) return;
+
+            // Restore position on page load
+            var saved = sessionStorage.getItem('sidebarScroll');
+            if (saved) wrap.scrollTop = parseInt(saved, 10);
+
+            // Highlight the active link and scroll it into view
+            var activeLink = wrap.querySelector('.nav-link.active');
+            if (activeLink) {
+                var linkTop = activeLink.offsetTop;
+                var wrapHeight = wrap.clientHeight;
+                // Only scroll if the active link is not visible
+                if (linkTop < wrap.scrollTop || linkTop > wrap.scrollTop + wrapHeight - 50) {
+                    wrap.scrollTop = linkTop - wrapHeight / 3;
+                }
+            }
+
+            // Save position before navigating away
+            wrap.addEventListener('scroll', function () {
+                sessionStorage.setItem('sidebarScroll', wrap.scrollTop);
+            });
+        })();
+    </script>
 </body>
 </html>

@@ -1,51 +1,101 @@
+@model IEnumerable<SwiftFill.Services.AuditLogEntry>
 @{
     ViewData["Title"] = "System Logs";
     Layout = "_AdminLayout";
 }
 
 <div class="animate-fade-up">
-    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-dark pb-3">
         <div>
             <h1 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-cpu text-success me-3"></i> System Logs</h1>
-            <p class="text-secondary mt-1" style="font-size: 1rem;">Track application errors, background job executions, and infrastructure events.</p>
+            <p class="text-secondary mt-1" style="font-size: 1rem;">Track order actions, parcel movements, and data changes across the ERP.</p>
         </div>
-        <div>
-            <button class="btn btn-outline-secondary px-4 border-secondary text-white hover-white" title="Export Trace" onclick="alert('Exporting system logs to CSV...')"><i class="bi bi-download me-2"></i>Export Logs</button>
+        <div class="d-flex gap-2 align-items-center">
+            <span class="badge" style="background: rgba(46,160,67,0.15); border: 1px solid rgba(46,160,67,0.3); color: #6bff72; padding: 8px 14px;">
+                @Model.Count() events
+            </span>
+            <button class="btn btn-outline-secondary px-4 border-secondary text-white" onclick="exportLogs()">
+                <i class="bi bi-download me-2"></i>Export CSV
+            </button>
         </div>
     </div>
 
-    <!-- Log Table Mockup -->
     <div class="card premium-card border-0 shadow-sm" style="background: rgba(22, 27, 34, 0.7); border: 1px solid #30363d !important; border-radius: 12px; overflow: hidden;">
-        <div class="card-header bg-transparent border-bottom border-dark py-3 px-4">
-            <h6 class="mb-0 fw-bold text-white d-flex align-items-center"><i class="bi bi-cpu-fill text-success me-2"></i> Active System Trace</h6>
+        <div class="card-header bg-transparent border-bottom border-dark py-3 px-4 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold text-white d-flex align-items-center">
+                <i class="bi bi-cpu-fill text-success me-2"></i> System Activity Trace
+            </h6>
+            <input type="text" id="sysSearch" class="form-control form-control-sm bg-dark border-secondary text-white" 
+                   style="max-width: 240px;" placeholder="Filter logs..." oninput="filterLogs(this.value)">
         </div>
         <div class="table-responsive">
-            <table class="table table-dark table-hover mb-0 align-middle">
+            <table class="table table-dark table-hover mb-0 align-middle" id="sysTable">
                 <thead style="background: rgba(0,0,0,0.3);">
                     <tr>
-                        <th class="ps-4 py-3 text-secondary text-uppercase fw-semibold" style="font-size: 0.75rem; letter-spacing: 1px;">Timestamp</th>
-                        <th class="py-3 text-secondary text-uppercase fw-semibold" style="font-size: 0.75rem; letter-spacing: 1px;">Process ID</th>
-                        <th class="py-3 text-secondary text-uppercase fw-semibold" style="font-size: 0.75rem; letter-spacing: 1px;">Description</th>
-                        <th class="pe-4 py-3 text-secondary text-uppercase fw-semibold text-end" style="font-size: 0.75rem; letter-spacing: 1px;">Status</th>
+                        <th class="ps-4 py-3 text-secondary text-uppercase fw-semibold" style="font-size: 0.75rem; letter-spacing: 1px; width: 170px;">Timestamp</th>
+                        <th class="py-3 text-secondary text-uppercase fw-semibold" style="font-size: 0.75rem; letter-spacing: 1px; width: 160px;">Performed By</th>
+                        <th class="py-3 text-secondary text-uppercase fw-semibold" style="font-size: 0.75rem; letter-spacing: 1px; width: 150px;">Action</th>
+                        <th class="py-3 text-secondary text-uppercase fw-semibold" style="font-size: 0.75rem; letter-spacing: 1px;">Details</th>
+                        <th class="pe-4 py-3 text-secondary text-uppercase fw-semibold text-end" style="font-size: 0.75rem; letter-spacing: 1px; width: 100px;">Status</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                        <td class="ps-4 py-3"><div class="text-white small">@DateTime.Now.ToString("g")</div></td>
-                        <td class="py-3"><div class="fw-bold text-warning small">SRV-01-WORKER</div></td>
-                        <td class="py-3"><div class="text-secondary small">Cache synchronization completed.</div></td>
-                        <td class="py-3 text-end pe-4"><span class="badge" style="background: rgba(46, 160, 67, 0.2); color:#6bff72; border: 1px solid rgba(46, 160, 67, 0.4);">Success</span></td>
-                    </tr>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-secondary">
+                                <i class="bi bi-cpu" style="font-size: 2.5rem; display:block; margin-bottom: 10px; opacity: 0.3;"></i>
+                                No system events recorded yet.<br>
+                                <span style="font-size: 0.8rem;">Events appear here when orders are created, edited, archived, or restored.</span>
+                            </td>
+                        </tr>
+                    }
+                    @foreach (var log in Model)
+                    {
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.04);">
+                            <td class="ps-4 py-3">
+                                <div class="text-white small fw-semibold">@log.Timestamp.ToString("MMM dd, yyyy")</div>
+                                <div class="text-secondary" style="font-size: 0.72rem;">@log.Timestamp.ToString("HH:mm:ss")</div>
+                            </td>
+                            <td class="py-3">
+                                <div class="fw-bold text-warning small">@log.Actor</div>
+                                <div class="text-secondary" style="font-size: 0.7rem;">@log.Role</div>
+                            </td>
+                            <td class="py-3">
+                                <span class="badge" style="background: @log.BadgeColor; color: @log.BadgeTextColor; border: 1px solid @log.BadgeBorder; font-size: 0.7rem;">
+                                    <i class="bi bi-activity me-1"></i>@log.Action
+                                </span>
+                            </td>
+                            <td class="py-3">
+                                <div class="text-secondary small">@log.Detail</div>
+                            </td>
+                            <td class="py-3 text-end pe-4">
+                                <span class="badge" style="background: rgba(46,160,67,0.15); color: #6bff72; border: 1px solid rgba(46,160,67,0.4); font-size: 0.7rem;">Success</span>
+                            </td>
+                        </tr>
+                    }
                 </tbody>
             </table>
         </div>
     </div>
 </div>
 
-<style>
-    .hover-white:hover {
-        color: #ffffff !important;
-        background: #30363d !important;
+<script>
+    function filterLogs(q) {
+        q = q.toLowerCase();
+        document.querySelectorAll('#sysTable tbody tr').forEach(row => {
+            row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+        });
     }
-</style>
+    function exportLogs() {
+        const rows = [...document.querySelectorAll('#sysTable tbody tr')].map(r =>
+            [...r.querySelectorAll('td')].map(c => `"${c.textContent.trim().replace(/\s+/g,' ')}"`).join(',')
+        );
+        const csv = 'Timestamp,Actor,Action,Details,Status\n' + rows.join('\n');
+        const a = document.createElement('a');
+        a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+        a.download = 'system_logs.csv';
+        a.click();
+    }
+</script>
+<style>.hover-white:hover { color: #fff !important; background: #30363d !important; }</style>

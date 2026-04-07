@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SwiftFill.Data;
 using SwiftFill.Models;
+using SwiftFill.Services;
 
 namespace SwiftFill.Controllers
 {
@@ -15,11 +16,13 @@ namespace SwiftFill.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly AuditLogService _audit;
 
-        public AdminController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public AdminController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, AuditLogService audit)
         {
             _context = context;
             _userManager = userManager;
+            _audit = audit;
         }
 
         public IActionResult Index() => RedirectToAction(nameof(Dashboard));
@@ -90,6 +93,9 @@ namespace SwiftFill.Controllers
                 order.UpdatedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = $"Order {trackingId} archived.";
+                _audit.Log(User.Identity?.Name ?? "Admin", "Admin", "Archive Order",
+                    $"Order {trackingId} ({order.ReceiverName} → {order.DestinationRegion}) archived.",
+                    AuditLogType.System);
             }
             return RedirectToAction(nameof(Shipments));
         }
@@ -125,6 +131,9 @@ namespace SwiftFill.Controllers
                 order.UpdatedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = $"Order {trackingId} restored.";
+                _audit.Log(User.Identity?.Name ?? "Admin", "Admin", "Restore Order",
+                    $"Order {trackingId} restored from archive.",
+                    AuditLogType.System);
             }
             return RedirectToAction(nameof(Archive));
         }
@@ -176,6 +185,9 @@ namespace SwiftFill.Controllers
                 }
                 
                 await _context.SaveChangesAsync();
+                _audit.Log(User.Identity?.Name ?? "Admin", "Admin", "Edit Order",
+                    $"Order {model.TrackingId} edited — Receiver: {model.ReceiverName}, Region: {model.DestinationRegion}.",
+                    AuditLogType.System);
                 TempData["SuccessMessage"] = $"Order {model.TrackingId} and Payment verified.";
                 return RedirectToAction(nameof(Shipments));
             }
@@ -222,12 +234,19 @@ namespace SwiftFill.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateManualOrder(Order model, string paymentMethod)
+        public async Task<IActionResult> CreateManualOrder(Order model, string paymentMethod, string deliveryType = "DoorToDoor", string originHub = "Davao Hub")
         {
+            // Guard: originHub must be a real hub
+            if (!SwiftFill.Models.HubRegistry.Names.Contains(originHub))
+                originHub = SwiftFill.Models.HubRegistry.All[0].Name;
+
             // Generate Tracking ID: SF-2026-XXXXX
             string randomSuffix = new Random().Next(10000, 99999).ToString();
             model.TrackingId = $"SF-2026-{randomSuffix}";
             model.Status = "Pending";
+            model.DeliveryType = deliveryType;    // "DoorToDoor" or "BranchPickup"
+            model.OriginHub = originHub;
+            model.CurrentLocation = originHub;    // Parcel starts at chosen origin hub
             model.CreatedAt = DateTime.UtcNow;
             model.UpdatedAt = DateTime.UtcNow;
 
@@ -236,7 +255,7 @@ namespace SwiftFill.Controllers
             var payment = new Payment
             {
                 TrackingId = model.TrackingId,
-                Amount = (decimal)(model.Weight * 45 + 150), // Standard logistics calc
+                Amount = (decimal)(model.Weight * 45 + 150),
                 Method = paymentMethod,
                 IsPaid = paymentMethod == "Prepaid",
                 PaidAt = paymentMethod == "Prepaid" ? DateTime.UtcNow : null
@@ -244,8 +263,13 @@ namespace SwiftFill.Controllers
             _context.Payments.Add(payment);
 
             await _context.SaveChangesAsync();
+            _audit.Log(User.Identity?.Name ?? "Admin", "Admin", "Create Order",
+                $"New order {model.TrackingId} created for {model.ReceiverName} ({deliveryType}) from {originHub} \u2192 {model.DestinationRegion}.",
+                AuditLogType.System);
+            TempData["SuccessMessage"] = $"Order {model.TrackingId} created · {(deliveryType == "BranchPickup" ? "Branch Pickup" : "Door-to-Door")} · Origin: {originHub}";
             return RedirectToAction(nameof(Shipments));
         }
+
 
         public IActionResult Payments(string search, int page = 1)
         {

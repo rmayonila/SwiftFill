@@ -64,6 +64,7 @@
                         <th class="ps-4 py-3">Tracking ID</th>
                         <th class="py-3">Customer Details</th>
                         <th class="py-3">Package Specs</th>
+                        <th class="py-3">Delivery Type</th>
                         <th class="py-3">Current Hub</th>
                         <th class="py-3">Status</th>
                         <th class="py-3 pe-4 text-end">Last Updated</th>
@@ -90,6 +91,13 @@
                                         <i class="bi bi-wallet2 me-1"></i> @order.Payment.Method @(order.Payment.IsPaid ? "(Paid)" : "")
                                     </span>
                                 }
+                            </td>
+                            <td class="py-3">
+                                <span class="badge border bg-transparent x-small px-2
+                                    @(order.DeliveryType == "BranchPickup" ? "border-info text-info" : "border-warning text-warning")">
+                                    <i class="bi @(order.DeliveryType == "BranchPickup" ? "bi-building" : "bi-truck") me-1"></i>
+                                    @(order.DeliveryType == "BranchPickup" ? "Branch Pickup" : "Door-to-Door")
+                                </span>
                             </td>
                             <td class="py-3">
                                 <span class="badge border border-info text-info bg-transparent x-small px-2">
@@ -181,6 +189,7 @@
                     <div class="step-dot active" id="dot1"></div>
                     <div class="step-dot" id="dot2"></div>
                     <div class="step-dot" id="dot3"></div>
+                    <div class="step-dot" id="dot4"></div>
                 </div>
 
                 <form asp-action="CreateManualOrder" method="post" id="manualOrderForm">
@@ -197,10 +206,26 @@
                                 <h6 class="text-white-50 x-small text-uppercase ls-1 mb-3">Receiver Details</h6>
                                 <input type="text" name="ReceiverName" class="minimal-input w-100 mb-3" placeholder="Full Name" required>
                                 <input type="text" name="ReceiverPhone" class="minimal-input w-100 mb-3" placeholder="09XXXXXXXXX" required pattern="09[0-9]{9}">
-                                <textarea name="ReceiverAddress" class="minimal-input w-100" placeholder="delivery Address" rows="2" required></textarea>
+                                <textarea name="ReceiverAddress" class="minimal-input w-100" placeholder="Delivery Address" rows="2" required></textarea>
+                            </div>
+                            <div class="col-12">
+                                <label class="text-secondary x-small mb-1">
+                                    <i class="bi bi-geo-alt-fill text-orange me-1"></i> Origin Hub (Where is the parcel being sent FROM?)
+                                </label>
+                                <select name="originHub" class="minimal-input w-100" required>
+                                    <option value="Davao Hub">Davao Hub — Davao Region · Mindanao</option>
+                                    <option value="Manila Hub">Manila Hub — National Capital Region · Luzon</option>
+                                    <option value="Cebu Hub">Cebu Hub — Central Visayas · Visayas</option>
+                                    <option value="Cagayan de Oro Hub">Cagayan de Oro Hub — Northern Mindanao</option>
+                                    <option value="Iloilo Hub">Iloilo Hub — Western Visayas · Visayas</option>
+                                    <option value="Bacolod Hub">Bacolod Hub — Negros Occidental · Visayas</option>
+                                    <option value="Zamboanga Hub">Zamboanga Hub — Zamboanga Peninsula · Mindanao</option>
+                                    <option value="General Santos Hub">General Santos Hub — Region XII · Mindanao</option>
+                                </select>
                             </div>
                         </div>
                     </div>
+
 
                     <!-- Step 2: Item Telemetry -->
                     <div class="step-content d-none" id="step2">
@@ -234,8 +259,35 @@
                         </div>
                     </div>
 
-                    <!-- Step 3: Transaction Logic -->
+                    <!-- Step 3: Delivery Type -->
                     <div class="step-content d-none" id="step3">
+                        <div class="text-center py-3">
+                            <i class="bi bi-truck display-5 text-orange mb-3 opacity-50"></i>
+                            <h6 class="text-white mb-1">How will the parcel be delivered?</h6>
+                            <p class="text-secondary x-small mb-4">This determines if a rider will be needed at the destination hub.</p>
+                            <div class="d-flex justify-content-center gap-3 mt-2">
+                                <div class="flex-fill" style="max-width: 220px;">
+                                    <input type="radio" class="btn-check" name="deliveryType" id="dtDoor" value="DoorToDoor" checked>
+                                    <label class="btn btn-outline-secondary border-secondary p-4 w-100 text-start delivery-type-card" for="dtDoor">
+                                        <div class="mb-2"><i class="bi bi-truck fs-4 text-orange"></i></div>
+                                        <div class="fw-bold text-white mb-1">Door-to-Door</div>
+                                        <div class="x-small text-secondary">A rider will deliver the parcel directly to the receiver's address.</div>
+                                    </label>
+                                </div>
+                                <div class="flex-fill" style="max-width: 220px;">
+                                    <input type="radio" class="btn-check" name="deliveryType" id="dtPickup" value="BranchPickup">
+                                    <label class="btn btn-outline-secondary border-secondary p-4 w-100 text-start delivery-type-card" for="dtPickup">
+                                        <div class="mb-2"><i class="bi bi-building fs-4 text-info"></i></div>
+                                        <div class="fw-bold text-white mb-1">Branch Pickup</div>
+                                        <div class="x-small text-secondary">Receiver picks up from the nearest SwiftFill branch. No rider needed.</div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Payment -->
+                    <div class="step-content d-none" id="step4">
                         <div class="text-center py-4">
                             <i class="bi bi-wallet2 display-5 text-orange mb-3 opacity-50"></i>
                             <h6 class="text-white">Select Payment Mode</h6>
@@ -273,10 +325,11 @@
         const nextBtn = document.getElementById('nextBtn');
         const prevBtn = document.getElementById('prevBtn');
         const submitBtn = document.getElementById('submitOrderBtn');
+        const totalSteps = 4;
         let currentStep = 1;
 
         nextBtn.addEventListener('click', () => {
-            if (currentStep < 3) {
+            if (currentStep < totalSteps) {
                 document.getElementById(`step${currentStep}`).classList.add('d-none');
                 document.getElementById(`dot${currentStep}`).classList.remove('active');
                 currentStep++;
@@ -284,7 +337,7 @@
                 document.getElementById(`dot${currentStep}`).classList.add('active');
             }
 
-            if (currentStep === 3) {
+            if (currentStep === totalSteps) {
                 nextBtn.style.display = 'none';
                 submitBtn.style.display = 'block';
             }
@@ -300,7 +353,7 @@
                 document.getElementById(`dot${currentStep}`).classList.add('active');
             }
 
-            if (currentStep < 3) {
+            if (currentStep < totalSteps) {
                 nextBtn.style.display = 'block';
                 submitBtn.style.display = 'none';
             }
@@ -315,4 +368,10 @@
     .bg-orange { background-color: #ff8c00 !important; }
     .ls-1 { letter-spacing: 1px; }
     .x-small { font-size: 0.75rem; }
+    .delivery-type-card { transition: all 0.2s; }
+    .btn-check:checked + .delivery-type-card {
+        border-color: #ff8c00 !important;
+        background: rgba(255,140,0,0.06) !important;
+        box-shadow: 0 0 0 2px rgba(255,140,0,0.3);
+    }
 </style>

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SwiftFill.Models;
+using SwiftFill.Services;
 
 namespace SwiftFill.Controllers
 {
@@ -8,40 +9,33 @@ namespace SwiftFill.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly AuditLogService _audit;
 
-        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        public AccountController(
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager,
+            AuditLogService audit)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _audit = audit;
         }
 
         [HttpGet]
-        public IActionResult Login()
-        {
-            return View();
-        }
+        public IActionResult Login() => View();
 
         [HttpGet]
-        public IActionResult SignUp()
-        {
-            return View();
-        }
+        public IActionResult SignUp() => View();
 
         [HttpPost]
         public IActionResult SignUpAs()
         {
             TempData["SuccessMessage"] = "Successfully created account. Welcome to SwiftFill!";
-            
-            // Standard registrations default to Customer view in this mockup.
-            // Admins/Operators are created internally.
             return RedirectToAction("Index", "Customer");
         }
 
         [HttpGet]
-        public IActionResult ForgotPassword()
-        {
-            return View();
-        }
+        public IActionResult ForgotPassword() => View();
 
         [HttpPost]
         public async Task<IActionResult> ForgotPasswordAction(string email)
@@ -52,8 +46,6 @@ namespace SwiftFill.Controllers
                 TempData["ErrorMessage"] = "No account found with this email address.";
                 return RedirectToAction("ForgotPassword");
             }
-
-            // We would integrate the EmailSender here in the real Identity setup.
             TempData["SuccessMessage"] = $"A password reset link has been sent to {email}. Please check your inbox.";
             return RedirectToAction("Login");
         }
@@ -67,19 +59,37 @@ namespace SwiftFill.Controllers
                 var user = await _userManager.FindByEmailAsync(email);
                 if (user == null) return Unauthorized();
 
-                var isSuperAdmin = await _userManager.IsInRoleAsync(user, "SuperAdmin");
-                var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
-                var isStaff = await _userManager.IsInRoleAsync(user, "WarehouseStaff");
-                var isRider = await _userManager.IsInRoleAsync(user, "DeliveryRider");
-                
+                var roles = await _userManager.GetRolesAsync(user);
+                var roleName = roles.FirstOrDefault() ?? "User";
+                var displayName = $"{user.FirstName} {user.LastName}".Trim();
+                if (string.IsNullOrWhiteSpace(displayName)) displayName = user.Email ?? user.UserName ?? "Unknown";
+
+                // ── Security log: successful login ──
+                _audit.Log(
+                    actor: displayName,
+                    role: roleName,
+                    action: "Login",
+                    detail: $"{displayName} ({roleName}) signed in from {HttpContext.Connection.RemoteIpAddress}",
+                    type: AuditLogType.Security
+                );
+
                 TempData["SuccessMessage"] = $"Welcome back, {user.FirstName}!";
-                
-                if (isSuperAdmin) return RedirectToAction("Index", "SuperAdmin");
-                if (isAdmin) return RedirectToAction("Index", "Admin");
-                if (isStaff) return RedirectToAction("Index", "Warehouse");
-                if (isRider) return RedirectToAction("Index", "Rider");
+
+                if (roles.Contains("SuperAdmin")) return RedirectToAction("Index", "SuperAdmin");
+                if (roles.Contains("Admin")) return RedirectToAction("Index", "Admin");
+                if (roles.Contains("WarehouseStaff")) return RedirectToAction("SelectHub", "Account");
+                if (roles.Contains("DeliveryRider")) return RedirectToAction("Index", "Rider");
                 return RedirectToAction("Index", "Customer");
             }
+
+            // ── Security log: failed login ──
+            _audit.Log(
+                actor: email,
+                role: "Unknown",
+                action: "Login Failed",
+                detail: $"Failed login attempt for email: {email} from {HttpContext.Connection.RemoteIpAddress}",
+                type: AuditLogType.Security
+            );
 
             TempData["ErrorMessage"] = "Invalid login attempt. Please check your email and password.";
             return RedirectToAction("Login");
@@ -88,14 +98,45 @@ namespace SwiftFill.Controllers
         [HttpPost]
         public async Task<IActionResult> Logout()
         {
+            var name = User.Identity?.Name ?? "Unknown";
+            _audit.Log(
+                actor: name,
+                role: "User",
+                action: "Logout",
+                detail: $"{name} signed out.",
+                type: AuditLogType.Security
+            );
             await _signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
         }
 
         [HttpGet]
-        public IActionResult AccessDenied()
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "WarehouseStaff")]
+        public IActionResult SelectHub()
         {
+            ViewBag.Hubs = SwiftFill.Models.HubRegistry.Names;
             return View();
         }
+
+        [HttpPost]
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "WarehouseStaff")]
+        public IActionResult SelectHub(string hub)
+        {
+            if (string.IsNullOrEmpty(hub)) return RedirectToAction(nameof(SelectHub));
+            HttpContext.Session.SetString("UserHub", hub);
+
+            _audit.Log(
+                actor: User.Identity?.Name ?? "Staff",
+                role: "WarehouseStaff",
+                action: "Hub Selected",
+                detail: $"Staff checked in at {hub}",
+                type: AuditLogType.Security
+            );
+
+            return RedirectToAction("Index", "Warehouse");
+        }
+
+        [HttpGet]
+        public IActionResult AccessDenied() => View();
     }
 }
