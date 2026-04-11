@@ -26,6 +26,7 @@ namespace SwiftFill.Models
 
         // To populate the Rider Dropdown
         public List<ApplicationUser> AvailableRiders { get; set; } = new();
+        public List<ManualRider> ManualRiders { get; set; } = new();
 
         public List<Order> LocalOrders { get; set; } = new();
         public List<Order> InterIslandOrders { get; set; } = new();

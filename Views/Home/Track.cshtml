@@ -146,106 +146,135 @@
 
             @if (Model != null)
             {
-                <div class="glass-card mb-4 border-top border-orange border-4" style="border-top-color: #ff8c00 !important;">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <div>
-                            <span class="detail-label d-block text-orange" style="color:#ff8c00;">Tracking Number</span>
-                            <h2 class="fw-bold m-0" style="font-family: monospace;">@Model.TrackingId</h2>
-                        </div>
-                        <div class="text-end">
-                            <span class="badge @(Model.Status == "Delivered" ? "bg-success" : (Model.Status == "Returned" ? "bg-danger" : "bg-warning text-dark")) px-3 py-2 rounded-pill fw-bold">
-                                @Model.Status.ToUpper()
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row g-4">
-                    <div class="col-md-5">
-                        <div class="glass-card h-100">
-                            <h5 class="fw-bold mb-4 border-bottom border-secondary pb-3"><i class="bi bi-info-circle me-2"></i> Shipment Details</h5>
-                            
-                            <div class="detail-label">Sender</div>
-                            <div class="detail-value">@Model.SenderName</div>
-                            
-                            <div class="detail-label">Receiver</div>
-                            <div class="detail-value">@Model.ReceiverName</div>
-                            
-                            <div class="detail-label">Destination</div>
-                            <div class="detail-value">@Model.DestinationRegion</div>
-                            
-                            <div class="detail-label">Package Info</div>
-                            <div class="detail-value border-0 mb-0">@(Model.Weight)kg &bull; @(Model.ItemCategory ?? "Standard Parcel")</div>
+                <div class="d-flex flex-column align-items-center">
+                    <div class="glass-card mb-4 border-top border-orange border-4 w-100 mx-auto" style="border-top-color: #ff8c00 !important; max-width: 800px;">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <span class="detail-label d-block text-orange" style="color:#ff8c00;">Tracking Number</span>
+                                <h2 class="fw-bold m-0" style="font-family: monospace;">@Model.TrackingId</h2>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge @(Model.Status == "Delivered" ? "bg-success" : (Model.Status == "Returned" ? "bg-danger" : "bg-warning text-dark")) px-3 py-2 rounded-pill fw-bold">
+                                    @Model.Status.ToUpper()
+                                </span>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="col-md-7">
-                        <div class="glass-card h-100">
-                            <h5 class="fw-bold mb-4 border-bottom border-secondary pb-3"><i class="bi bi-geo-alt me-2"></i> Tracking Timeline</h5>
-                            
-                            <ul class="timeline m-0 p-0">
-                                @{
-                                    bool isPending = Model.Status == "Pending";
-                                    bool isPicked = Model.Status == "Picked";
-                                    bool isPacked = Model.Status == "Packed";
-                                    bool isDispatched = Model.Status == "Dispatched";
-                                    bool isDelivered = Model.Status == "Delivered";
-                                    bool isReturned = Model.Status == "Returned";
-                                }
 
-                                <li class="timeline-item @(true ? "completed" : "")">
-                                    <div class="timeline-content">
-                                        <div class="timeline-title">Order Created</div>
-                                        <p class="timeline-text">Package data received and system generated.</p>
-                                        <div class="timeline-date">@Model.CreatedAt.ToString("MMM dd, yyyy HH:mm")</div>
-                                    </div>
-                                </li>
+                    <div class="row g-4 w-100 mx-auto justify-content-center" style="max-width: 800px;">
+                        <div class="col-md-12 mb-2">
+                            @if (Model.DeliveryType == "BranchPickup" && Model.Status.Contains("Arrived"))
+                            {
+                                <div class="alert alert-warning border-warning bg-warning bg-opacity-10 text-white rounded-3 p-3">
+                                    <h5 class="fw-bold mb-1 text-warning"><i class="bi bi-shop me-2"></i> Ready for Collection</h5>
+                                    <p class="mb-0 small text-white-50">Your shipment is safely held at **@Model.PickupBranchAddress**. Please bring your Tracking ID and a valid ID to claim.</p>
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="col-md-5">
+                            <div class="glass-card h-100">
+                                <h5 class="fw-bold mb-4 border-bottom border-secondary pb-3"><i class="bi bi-info-circle me-2"></i> Shipment Details</h5>
                                 
-                                <li class="timeline-item @(!isPending ? "completed" : "") @(isPending ? "active" : "")">
-                                    <div class="timeline-content">
-                                        <div class="timeline-title">Hub Internal Processing</div>
-                                        <p class="timeline-text">Pick & Pack stage at @Model.CurrentLocation.</p>
-                                    </div>
-                                </li>
+                                <div class="detail-label">Sender</div>
+                                <div class="detail-value">@Model.SenderName</div>
+                                
+                                <div class="detail-label">Receiver</div>
+                                <div class="detail-value">@Model.ReceiverName</div>
+                                
+                                <div class="detail-label">Destination</div>
+                                <div class="detail-value">@Model.DestinationRegion</div>
+                                
+                                <div class="detail-label">Package Info</div>
+                                <div class="detail-value border-0 mb-0">@(Model.Weight)kg &bull; @(Model.ItemCategory ?? "Standard Parcel")</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-7">
+                            <div class="glass-card h-100">
+                                <h5 class="fw-bold mb-4 border-bottom border-secondary pb-3"><i class="bi bi-geo-alt me-2"></i> Tracking Timeline</h5>
+                                
+                                <ul class="timeline m-0 p-0">
+                                    @{
+                                        bool isPending = Model.Status == "Pending";
+                                        bool isPicked = Model.Status == "Picked";
+                                        bool isPacked = Model.Status == "Packed";
+                                        bool isDispatched = Model.Status == "Dispatched";
+                                        bool isDelivered = Model.Status == "Delivered";
+                                        bool isReturned = Model.Status == "Returned";
+                                    }
 
-                                <li class="timeline-item @(isDispatched || isDelivered || isReturned ? "completed" : "") @(isPacked ? "active" : "")">
-                                    <div class="timeline-content">
-                                        <div class="timeline-title">Out for Delivery</div>
-                                        <p class="timeline-text">
-                                            Handed over to local delivery fleet.
-                                            @if (Model.AssignedRider != null)
-                                            {
-                                                <br /><span class="text-white-50"><i class="bi bi-scooter"></i> Rider Assigned</span>
-                                            }
-                                        </p>
-                                    </div>
-                                </li>
+                                    <li class="timeline-item @(true ? "completed" : "")">
+                                        <div class="timeline-content">
+                                            <div class="timeline-title">Order Created</div>
+                                            <p class="timeline-text">Package data received and system generated.</p>
+                                            <div class="timeline-date">@Model.CreatedAt.ToString("MMM dd, yyyy HH:mm")</div>
+                                        </div>
+                                    </li>
+                                    
+                                    <li class="timeline-item @(!isPending ? "completed" : "") @(isPending ? "active" : "")">
+                                        <div class="timeline-content">
+                                            <div class="timeline-title">Hub Internal Processing</div>
+                                            <p class="timeline-text">Pick & Pack stage at @Model.CurrentLocation.</p>
+                                        </div>
+                                    </li>
 
-                                <li class="timeline-item @(isDelivered || isReturned ? "active" : "")" style="margin-bottom: 0;">
-                                    <div class="timeline-content text-white">
-                                        @if (isDelivered)
-                                        {
-                                            <div class="timeline-title text-success"><i class="bi bi-box-seam-fill me-1"></i> Successfully Delivered</div>
-                                            <p class="timeline-text">The package has reached its final destination.</p>
-                                            <div class="timeline-date text-success fw-bold mt-2">@Model.UpdatedAt.ToString("MMM dd, yyyy HH:mm")</div>
-                                        }
-                                        else if (isReturned)
-                                        {
-                                            <div class="timeline-title text-danger"><i class="bi bi-arrow-return-left me-1"></i> Returned to Sender</div>
-                                            <p class="timeline-text">Package delivery failed and was marked for return.</p>
-                                            @if (!string.IsNullOrEmpty(Model.Notes))
+                                    <li class="timeline-item @(isDispatched || isDelivered || isReturned || (Model.DeliveryType == "BranchPickup" && Model.Status.Contains("Arrived")) ? "completed" : "") @(isPacked ? "active" : "")">
+                                        <div class="timeline-content">
+                                            @if (Model.DeliveryType == "BranchPickup")
                                             {
-                                                <div class="alert alert-dark border-secondary p-2 mt-2 small mb-0">Reason: @Model.Notes</div>
+                                                <div class="timeline-title">@(Model.Status.Contains("Arrived") ? "Arrived at Branch" : "Processing for Pickup")</div>
+                                                <p class="timeline-text">
+                                                    @if (Model.Status.Contains("Arrived"))
+                                                    {
+                                                        <span class="text-orange fw-bold"><i class="bi bi-check-circle me-1"></i> Ready for Pickup</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>En route to the selected collection point.</span>
+                                                    }
+                                                </p>
                                             }
-                                        }
-                                        else
-                                        {
-                                            <div class="timeline-title">Final Delivery</div>
-                                            <p class="timeline-text">Awaiting final recipient confirmation.</p>
-                                        }
-                                    </div>
-                                </li>
-                            </ul>
+                                            else
+                                            {
+                                                <div class="timeline-title">Out for Delivery</div>
+                                                <p class="timeline-text">
+                                                    Handed over to local delivery fleet.
+                                                    @if (Model.AssignedRider != null)
+                                                    {
+                                                        <br /><span class="text-white-50"><i class="bi bi-scooter"></i> Rider Assigned</span>
+                                                    }
+                                                </p>
+                                            }
+                                        </div>
+                                    </li>
+
+                                    <li class="timeline-item @(isDelivered || isReturned ? "active" : "")" style="margin-bottom: 0;">
+                                        <div class="timeline-content text-white">
+                                            @if (isDelivered)
+                                            {
+                                                <div class="timeline-title text-success"><i class="bi bi-box-seam-fill me-1"></i> Successfully Delivered</div>
+                                                <p class="timeline-text">The package has reached its final destination.</p>
+                                                <div class="timeline-date text-success fw-bold mt-2">@Model.UpdatedAt.ToString("MMM dd, yyyy HH:mm")</div>
+                                            }
+                                            else if (isReturned)
+                                            {
+                                                <div class="timeline-title text-danger"><i class="bi bi-arrow-return-left me-1"></i> Returned to Sender</div>
+                                                <p class="timeline-text">Package delivery failed and was marked for return.</p>
+                                                @if (!string.IsNullOrEmpty(Model.Notes))
+                                                {
+                                                    <div class="alert alert-dark border-secondary p-2 mt-2 small mb-0">Reason: @Model.Notes</div>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <div class="timeline-title">Final Delivery</div>
+                                                <p class="timeline-text">Awaiting final recipient confirmation.</p>
+                                            }
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>

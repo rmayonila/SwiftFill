@@ -17,6 +17,11 @@ namespace SwiftFill.Data
         public DbSet<Payment> Payments { get; set; }
         public DbSet<ReturnRequest> ReturnRequests { get; set; }
 
+        // ── New tables ──
+        public DbSet<HubAccessCode> HubAccessCodes { get; set; }
+        public DbSet<ShippingRate> ShippingRates { get; set; }
+        public DbSet<ManualRider> ManualRiders { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -52,6 +57,11 @@ namespace SwiftFill.Data
                 .HasOne(o => o.AssignedRider)
                 .WithMany()
                 .HasForeignKey(o => o.AssignedRiderId);
+
+            // One active code per hub — enforce at DB level
+            builder.Entity<HubAccessCode>()
+                .HasIndex(h => new { h.HubName, h.IsActive })
+                .IsUnique(false); // allow history; uniqueness enforced in controller
         }
     }
 }

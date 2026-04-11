@@ -184,12 +184,7 @@
                 <p class="text-secondary" style="font-size:0.95rem;">Sign in to your SwiftFill dashboard</p>
             </div>
 
-            @if (TempData["SuccessMessage"] != null)
-            {
-                <div class="alert alert-success" style="background:#1b2d1e; color:#6bff72; border:1px solid #214a21; text-align:center;">
-                    <i class="bi bi-check-circle"></i> @TempData["SuccessMessage"]
-                </div>
-            }
+            @* Success message removed as per user request to streamline login *@
             @if (TempData["ErrorMessage"] != null)
             {
                 <div class="alert alert-danger" style="background:#2d1b1e; color:#ff6b6b; border:1px solid #4a2121; text-align:center;">

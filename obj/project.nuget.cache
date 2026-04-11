@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "hSe2AqYp7Fk=",
+  "dgSpecHash": "5ZuuKVmhqag=",
   "success": true,
-  "projectFilePath": "C:\\Users\\PERSONAL\\SwiftFill\\SwiftFill.csproj",
+  "projectFilePath": "c:\\Users\\PERSONAL\\SwiftFill\\SwiftFill.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\PERSONAL\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\PERSONAL\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",
@@ -136,9 +136,9 @@
       "code": "NU1903",
       "level": "Warning",
       "message": "Package 'Microsoft.Build' 17.10.4 has a known high severity vulnerability, https://github.com/advisories/GHSA-w3q9-fxm7-j8fq",
-      "projectPath": "C:\\Users\\PERSONAL\\SwiftFill\\SwiftFill.csproj",
+      "projectPath": "c:\\Users\\PERSONAL\\SwiftFill\\SwiftFill.csproj",
       "warningLevel": 1,
-      "filePath": "C:\\Users\\PERSONAL\\SwiftFill\\SwiftFill.csproj",
+      "filePath": "c:\\Users\\PERSONAL\\SwiftFill\\SwiftFill.csproj",
       "libraryId": "Microsoft.Build",
       "targetGraphs": [
         "net10.0"

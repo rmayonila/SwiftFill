@@ -29,20 +29,23 @@
 </div>
 
 <div class="row g-4 mb-5">
-    <div class="col-md-3">
-        <div class="stat-card yellow">
-            <div class="stat-label">Pending Pick</div>
-            <div class="stat-value">@Model.PendingPickOrders.Count</div>
-            <div class="stat-subtext">Awaiting Warehouse Staff</div>
+    @if (currentHub == "Davao Hub")
+    {
+        <div class="col-md-3">
+            <div class="stat-card yellow">
+                <div class="stat-label">Pending Pick</div>
+                <div class="stat-value">@Model.PendingPickOrders.Count</div>
+                <div class="stat-subtext">Awaiting Warehouse Staff</div>
+            </div>
         </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card blue">
-            <div class="stat-label">In Packing</div>
-            <div class="stat-value">@Model.PickedOrders.Count</div>
-            <div class="stat-subtext">Currently at Packing Table</div>
+        <div class="col-md-3">
+            <div class="stat-card blue">
+                <div class="stat-label">In Packing</div>
+                <div class="stat-value">@Model.PickedOrders.Count</div>
+                <div class="stat-subtext">Currently at Packing Table</div>
+            </div>
         </div>
-    </div>
+    }
     <div class="col-md-3">
         <div class="stat-card green">
             <div class="stat-label">Ready to Ship</div>
@@ -112,7 +115,7 @@
                 <tr>
                     <td class="text-warning fw-bold">#@item.TrackingId</td>
                     <td>
-                        <div class="fw-semibold text-white">@item.ReceiverName</div>
+                        <div class="fw-semibold text-black">@item.ReceiverName</div>
                         <div class="small text-secondary">@item.ReceiverAddress</div>
                     </td>
                     <td>@item.DestinationRegion</td>
@@ -141,11 +144,21 @@
                     <td>
                         @if (canRider)
                         {
-                            <select class="form-select form-select-sm bg-dark text-white border-secondary" id="rider-@item.TrackingId">
+                            <select class="form-select form-select-sm bg-dark text-white border-secondary rider-select" id="rider-@item.TrackingId" data-address="@item.ReceiverAddress">
                                 <option value="">Select Rider</option>
-                                @foreach (var rider in Model.AvailableRiders)
+                                @if (currentHub == "Davao Hub")
                                 {
-                                    <option value="@rider.Id">@rider.FirstName @rider.LastName</option>
+                                    @foreach (var rider in Model.AvailableRiders)
+                                    {
+                                        <option value="@rider.Id">@rider.FirstName @rider.LastName</option>
+                                    }
+                                }
+                                else
+                                {
+                                    @foreach (var rider in Model.ManualRiders.Where(r => item.ReceiverAddress.Contains(r.Route, StringComparison.OrdinalIgnoreCase)))
+                                    {
+                                        <option value="@rider.Id">@rider.Name (@rider.Route)</option>
+                                    }
                                 }
                             </select>
                         }

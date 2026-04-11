@@ -8,16 +8,16 @@
     <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-dark pb-3">
         <div>
             <h1 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-palette me-3" style="color:#d63384;"></i> Manage Branding</h1>
-            <p class="text-secondary mt-1">Changes appear instantly in the Live Preview panel on the right.</p>
+            <p class="text-secondary mt-1">Configure your company's visual identity across the SwiftFill ERP.</p>
         </div>
         <button class="btn px-5 py-2 text-white fw-bold" style="background:#d63384; border-radius:10px;" onclick="saveBranding()">
             <i class="bi bi-save me-2"></i>Save Brand Assets
         </button>
     </div>
 
-    <div class="row g-4">
-        <!-- ===== LEFT: Controls ===== -->
-        <div class="col-lg-7">
+    <div class="row g-4 justify-content-center">
+        <!-- ===== CENTERED: Controls ===== -->
+        <div class="col-lg-8">
 
             <!-- Logo Settings -->
             <div class="card mb-4 border-0" style="background:rgba(22,27,34,0.8);border:1px solid #30363d!important;border-radius:14px;">
@@ -120,48 +120,6 @@
                             <div class="form-check form-switch mb-0">
                                 <input class="form-check-input" type="checkbox" id="glassSwitch" checked onchange="updatePreview()">
                                 <label class="form-check-label text-white" for="glassSwitch">Glassmorphic Cards</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ===== RIGHT: Live Preview ===== -->
-        <div class="col-lg-5">
-            <div class="card border-0 sticky-top" style="top:20px;background:rgba(22,27,34,0.8);border:1px solid #30363d!important;border-radius:14px;overflow:hidden;">
-                <div class="card-header bg-transparent border-bottom border-dark py-3 px-4">
-                    <h6 class="mb-0 fw-bold text-white"><i class="bi bi-eye me-2" style="color:#d63384;"></i> Live Preview</h6>
-                </div>
-                <div class="card-body p-0">
-                    <!-- Mini sidebar preview -->
-                    <div id="previewSidebar" style="background:#0a0a0a;border-bottom:1px solid rgba(255,140,0,0.15);padding:16px 18px 12px;display:flex;align-items:center;gap:10px;">
-                        <img id="previewLogoImg" src="~/images/logo.png" style="height:36px;transition:all 0.3s;" />
-                        <span id="previewBrandName" class="fw-bold" style="font-size:1.1rem;color:#ffffff;"></span>
-                    </div>
-                    <!-- Mini nav items preview -->
-                    <div id="previewNav" style="background:#0a0a0a;padding:8px 0;">
-                        <div style="padding:10px 18px;font-size:0.82rem;border-left:3px solid #ff8c00;color:#ff8c00;background:rgba(255,140,0,0.1);" id="previewActiveNav">
-                            <i class="bi bi-grid-1x2-fill me-2" id="previewNavIcon"></i>Dashboard Overview
-                        </div>
-                        <div style="padding:10px 18px;font-size:0.82rem;color:rgba(255,255,255,0.4);">
-                            <i class="bi bi-activity me-2"></i>Orders
-                        </div>
-                        <div style="padding:10px 18px;font-size:0.82rem;color:rgba(255,255,255,0.4);">
-                            <i class="bi bi-cash-stack me-2"></i>Payments
-                        </div>
-                    </div>
-                    <!-- Card preview -->
-                    <div id="previewBody" style="padding:16px;background:#000;">
-                        <div id="previewCard" style="background:rgba(22,27,34,0.9);border:1px solid #30363d;border-radius:10px;padding:16px;transition:all 0.3s;">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="fw-bold text-white" style="font-size:0.9rem;">Sample Order Card</span>
-                                <span id="previewBadge" style="background:rgba(255,140,0,0.15);color:#ff8c00;border:1px solid rgba(255,140,0,0.3);padding:4px 10px;border-radius:6px;font-size:0.7rem;">Pending</span>
-                            </div>
-                            <div style="font-size:0.78rem;color:rgba(255,255,255,0.45);">Receiver: Juan Dela Cruz</div>
-                            <div style="font-size:0.78rem;color:rgba(255,255,255,0.45);">Destination: NCR · 2.5kg</div>
-                            <div class="mt-3">
-                                <button id="previewBtn" class="btn btn-sm" style="background:#ff8c00;color:#000;font-weight:700;border-radius:6px;font-size:0.75rem;">Assign Rider</button>
                             </div>
                         </div>
                     </div>

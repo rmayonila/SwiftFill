@@ -59,7 +59,6 @@
                         <option value="">Select Type</option>
                         <option value="Documents">Documents</option>
                         <option value="General">General Goods</option>
-                        <option value="Fragile">Fragile / Breakable</option>
                         <option value="Electronics">Electronics</option>
                         <option value="Apparel">Apparel / Clothing</option>
                     </select>
@@ -74,7 +73,31 @@
                         <option value="Mindanao">Mindanao</option>
                     </select>
                 </div>
-                 <div class="col-md-3">
+                <div class="col-md-3">
+                    <label class="text-secondary x-small mb-1">Delivery Type</label>
+                    <select asp-for="DeliveryType" class="minimal-input w-100" id="DeliveryType" required>
+                        <option value="DoorToDoor">Door-to-Door</option>
+                        <option value="BranchPickup">Branch Pickup</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row g-4 mb-4 d-none" id="branchPickupSection">
+                <div class="col-md-12">
+                    <label class="text-secondary x-small mb-1">Nearest SwiftFill Branch for Pickup</label>
+                    <select asp-for="PickupBranchAddress" class="minimal-input w-100">
+                        <option value="">— Select Branch Location —</option>
+                        @foreach (var hub in SwiftFill.Models.HubRegistry.Names)
+                        {
+                            <option value="@hub">@hub</option>
+                        }
+                    </select>
+                    <p class="text-secondary x-small mt-2"><i class="bi bi-info-circle me-1"></i> Receiver will be notified once the parcel arrives at this specific branch.</p>
+                </div>
+            </div>
+
+            <div class="row g-4 align-items-end mb-4">
+                <div class="col-md-12">
                     <button type="submit" class="btn btn-primary w-100 py-3 shadow-sm border-0" style="background: linear-gradient(45deg, #ff8c00, #ff4500);">
                         <i class="bi bi-shield-check me-2"></i> Register Shipment
                     </button>
@@ -109,6 +132,8 @@
             const weightInput = document.getElementById('Weight');
             const regionSelect = document.getElementById('DestinationRegion');
             const categorySelect = document.getElementById('ItemCategory');
+            const deliveryTypeSelect = document.getElementById('DeliveryType');
+            const branchSection = document.getElementById('branchPickupSection');
             const estimatorBlock = document.getElementById('priceEstimatorBlock');
 
             const estTotal = document.getElementById('estTotal');
@@ -116,23 +141,41 @@
             const estWgt = document.getElementById('estWgt');
             const estZone = document.getElementById('estZone');
 
+            let ratesData = [];
+
+            async function fetchRates() {
+                try {
+                    const response = await fetch('/Customer/GetRates');
+                    ratesData = await response.json();
+                } catch (e) {
+                    console.error("Failed to load rates", e);
+                }
+            }
+
             function calculateEstimate() {
                 const wInput = parseFloat(weightInput.value);
                 const region = regionSelect.value;
                 const cat = categorySelect.value;
 
                 if (!isNaN(wInput) && wInput > 0 && region !== "" && cat !== "") {
-                    // Logic Setup
                     let base = 100;
                     let wgtFee = wInput * 45;
                     let zoneFee = 0;
 
-                    if (region === 'NCR') zoneFee = 50;
-                    else if (region === 'Luzon') zoneFee = 100;
-                    else if (region === 'Visayas') zoneFee = 150;
-                    else if (region === 'Mindanao') zoneFee = 200;
+                    // Try to find matching rate in server data
+                    const rate = ratesData.find(r => r.destinationRegion === region);
+                    if (rate) {
+                        base = rate.baseRate;
+                        wgtFee = wInput * rate.pricePerKg;
+                        zoneFee = rate.zoneSurcharge;
+                    } else {
+                        // Fallback logic
+                        if (region === 'NCR') zoneFee = 50;
+                        else if (region === 'Luzon') zoneFee = 100;
+                        else if (region === 'Visayas') zoneFee = 150;
+                        else if (region === 'Mindanao') zoneFee = 200;
+                    }
 
-                    // Compute
                     let total = base + wgtFee + zoneFee;
 
                     estBase.textContent = '₱' + base;
@@ -146,10 +189,21 @@
                 }
             }
 
-            // Bind triggers
-            document.querySelectorAll('.est-trigger').forEach(el => {
-                el.addEventListener('input', calculateEstimate);
-                el.addEventListener('change', calculateEstimate);
+            deliveryTypeSelect.addEventListener('change', () => {
+                if (deliveryTypeSelect.value === 'BranchPickup') {
+                    branchSection.classList.remove('d-none');
+                    document.getElementById('PickupBranchAddress').required = true;
+                } else {
+                    branchSection.classList.add('d-none');
+                    document.getElementById('PickupBranchAddress').required = false;
+                }
+            });
+
+            fetchRates().then(() => {
+                document.querySelectorAll('.est-trigger').forEach(el => {
+                    el.addEventListener('input', calculateEstimate);
+                    el.addEventListener('change', calculateEstimate);
+                });
             });
         });
     </script>

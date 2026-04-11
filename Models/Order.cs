@@ -37,6 +37,18 @@ namespace SwiftFill.Models
         // "DoorToDoor" or "BranchPickup" — controls rider assignment logic
         public string DeliveryType { get; set; } = "DoorToDoor";
 
+        /// <summary>
+        /// For BranchPickup orders: the hub branch where the receiver will collect the parcel.
+        /// Must match a valid hub name from HubRegistry.
+        /// </summary>
+        public string? PickupBranchAddress { get; set; }
+
+        /// <summary>
+        /// Final calculated shipping fee (from admin-managed ShippingRates table).
+        /// 0 means fee has not yet been calculated or verified.
+        /// </summary>
+        public decimal ShippingFee { get; set; } = 0m;
+
         // Records which hub originally created/received the parcel
         public string? OriginHub { get; set; } = "Davao Hub";
         

@@ -193,16 +193,27 @@
                 <li class="nav-item">
                     <div class="px-4 mt-4 mb-2 text-secondary text-uppercase x-small ls-1">Logistics Control</div>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link @(action == "PickingStation" ? "active" : "")" asp-controller="Warehouse" asp-action="PickingStation">
-                        <i class="bi bi-truck"></i> Picking Station
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link @(action == "PackingLine" ? "active" : "")" asp-controller="Warehouse" asp-action="PackingLine">
-                        <i class="bi bi-box-seam-fill"></i> Packing Line
-                    </a>
-                </li>
+                @if (Context.Session.GetString("UserHub") == "Davao Hub")
+                {
+                    <li class="nav-item">
+                        <a class="nav-link @(action == "PickingStation" ? "active" : "")" asp-controller="Warehouse" asp-action="PickingStation">
+                            <i class="bi bi-truck"></i> Picking Station
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(action == "PackingLine" ? "active" : "")" asp-controller="Warehouse" asp-action="PackingLine">
+                            <i class="bi bi-box-seam-fill"></i> Packing Line
+                        </a>
+                    </li>
+                }
+                else
+                {
+                    <li class="nav-item">
+                        <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "RiderInfo" ? "active" : "")" asp-controller="RiderInfo" asp-action="Index">
+                            <i class="bi bi-person-badge-fill"></i> Rider Info
+                        </a>
+                    </li>
+                }
             </ul>
         </div>
 

@@ -159,6 +159,11 @@
                             <i class="bi bi-palette mt-1"></i> Manage Branding
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "HubCodes" ? "active" : "")" asp-controller="SuperAdmin" asp-action="HubCodes">
+                            <i class="bi bi-key-fill mt-1"></i> Hub Access Codes
+                        </a>
+                    </li>
                 }
                 
                 @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
@@ -183,6 +188,11 @@
                     <li class="nav-item">
                         <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Returns" ? "active" : "")" asp-controller="Admin" asp-action="Returns">
                             <i class="bi bi-arrow-return-left"></i> Return Requests
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "ShippingRates" ? "active" : "")" asp-controller="Admin" asp-action="ShippingRates">
+                            <i class="bi bi-tags-fill mt-1"></i> Shipping Rates
                         </a>
                     </li>
     

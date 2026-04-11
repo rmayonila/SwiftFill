@@ -1,0 +1,71 @@
+@model IEnumerable<SwiftFill.Models.ShippingRate>
+@{
+    ViewData["Title"] = "Shipping Rate Management — SwiftFill";
+    Layout = "_AdminLayout";
+}
+
+<div class="animate-fade-up">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-dark pb-3">
+        <div>
+            <h1 class="fw-bold fs-3 mt-2 mb-0 text-white">
+                <i class="bi bi-tags-fill me-3 text-warning"></i> Shipping Rate Management
+            </h1>
+            <p class="text-secondary mt-1" style="font-size: 1rem;">
+                Configure the destination-based pricing rules. Changes will immediately affect new bookings and weight edits.
+            </p>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert border-success border-opacity-50 text-success bg-transparent rounded-3 mb-4">
+            <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+        </div>
+    }
+
+    <div class="row g-4">
+        @foreach (var rate in Model.OrderBy(r => r.DestinationRegion))
+        {
+            <div class="col-md-6">
+                <div class="card premium-card border-0 h-100" style="background: rgba(22, 27, 34, 0.7); border: 1px solid #30363d !important; border-radius: 12px;">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="text-white fw-bold m-0"><i class="bi bi-geo-alt-fill text-warning me-2"></i>@rate.DestinationRegion</h5>
+                            <span class="text-secondary x-small">Last updated: @rate.UpdatedAt.ToString("MMM dd, yyyy")</span>
+                        </div>
+                        
+                        <form asp-action="UpdateShippingRate" method="post">
+                            <input type="hidden" name="DestinationRegion" value="@rate.DestinationRegion" />
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="text-secondary small mb-1">Base Rate (₱)</label>
+                                    <input type="number" name="BaseRate" value="@rate.BaseRate" class="form-control bg-dark text-white border-secondary" required step="0.01" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="text-secondary small mb-1">Price / Kg (₱)</label>
+                                    <input type="number" name="PricePerKg" value="@rate.PricePerKg" class="form-control bg-dark text-white border-secondary" required step="0.01" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="text-secondary small mb-1">Zone Surcharge (₱)</label>
+                                    <input type="number" name="ZoneSurcharge" value="@rate.ZoneSurcharge" class="form-control bg-dark text-white border-secondary" required step="0.01" />
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-3 border-top border-secondary border-opacity-10 d-flex justify-content-between align-items-center">
+                                <div class="text-secondary" style="font-size: 0.8rem;">
+                                    <i class="bi bi-info-circle me-1"></i> Calculation: Base + (Weight * Price/Kg) + Surcharge
+                                </div>
+                                <button type="submit" class="btn btn-sm btn-warning fw-bold px-3">
+                                    <i class="bi bi-save me-1"></i> Update Rates
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .premium-card:hover { border-color: #ff8c00 !important; box-shadow: 0 8px 20px rgba(0,0,0,0.4); transform: translateY(-3px); transition: all 0.3s ease; }
+</style>

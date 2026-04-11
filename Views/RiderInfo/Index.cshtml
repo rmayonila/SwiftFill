@@ -1,0 +1,154 @@
+@model IEnumerable<SwiftFill.Models.ManualRider>
+@{
+    ViewData["Title"] = "Rider Information — SwiftFill";
+    Layout = "_WarehouseLayout";
+    var hub = ViewBag.CurrentHub as string;
+}
+
+<div class="animate-fade-up">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <h1 class="dashboard-title">
+            <i class="bi bi-person-badge-fill me-3"></i> Rider Information
+        </h1>
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div style="background: rgba(255,140,0,0.08); border: 1px solid rgba(255,140,0,0.25); border-radius: 10px; padding: 8px 16px;">
+                <div style="font-size: 0.65rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px;">Your Hub</div>
+                <div style="font-size: 0.9rem; font-weight: 700; color: #ff8c00;">
+                    <i class="bi bi-geo-alt-fill me-1"></i>@hub
+                </div>
+            </div>
+            <button class="btn btn-warning fw-bold px-4" data-bs-toggle="modal" data-bs-target="#addRiderModal">
+                <i class="bi bi-plus-circle me-2"></i> Add Rider
+            </button>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert border-success border-opacity-50 text-success bg-transparent rounded-3 mb-4">
+            <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert border-danger border-opacity-50 text-danger bg-transparent rounded-3 mb-4">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="table-container">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <h5 class="m-0 fw-bold">Rider Roster — @hub</h5>
+            <span class="badge bg-dark border border-secondary text-secondary">@Model.Count() riders</span>
+        </div>
+
+        <table class="table" id="riderTable">
+            <thead>
+                <tr>
+                    <th>Rider Name</th>
+                    <th>Contact Number</th>
+                    <th>Assigned Route</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var rider in Model)
+                {
+                    <tr>
+                        <td class="text-white fw-bold">@rider.Name</td>
+                        <td class="text-secondary">@rider.Phone</td>
+                        <td>
+                            <span class="badge" style="background: rgba(255,140,0,0.1); color: #ff8c00; border: 1px solid rgba(255,140,0,0.3);">
+                                <i class="bi bi-map me-1"></i>@rider.Route
+                            </span>
+                        </td>
+                        <td>
+                            @if (rider.IsActive)
+                            {
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 py-2 px-3">
+                                    <i class="bi bi-circle-fill me-1" style="font-size:6px;"></i> Active
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 py-2 px-3">
+                                    Inactive
+                                </span>
+                            }
+                        </td>
+                        <td>
+                            <form asp-action="DeleteRider" method="post" onsubmit="return confirm('Remove this rider?');">
+                                <input type="hidden" name="id" value="@rider.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger border-danger border-opacity-50">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-secondary">
+                            <i class="bi bi-person-slash" style="font-size:2rem; display:block; margin-bottom:8px;"></i>
+                            No riders added yet for <strong>@hub</strong>.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Rider Modal -->
+<div class="modal fade" id="addRiderModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: #0f0f0f; border: 1px solid rgba(255,140,0,0.2); border-radius: 16px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title text-white fw-bold">
+                    <i class="bi bi-person-badge-fill text-warning me-2"></i> Add manual rider info
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <p class="text-secondary small mb-4">
+                    Manually add a rider to the database for this specific hub branch (non-Davao).
+                    These riders are assigned to specific delivery routes.
+                </p>
+                <form asp-action="AddRider" method="post">
+                    <div class="mb-3">
+                        <label class="text-secondary small mb-1 text-uppercase" style="letter-spacing:1px;">Rider Full Name</label>
+                        <input type="text" name="Name" class="form-control bg-dark text-white border-secondary" required placeholder="e.g. Juan De La Cruz" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-secondary small mb-1 text-uppercase" style="letter-spacing:1px;">Contact Number</label>
+                        <input type="text" name="Phone" class="form-control bg-dark text-white border-secondary" required placeholder="0917-XXX-XXXX" />
+                    </div>
+                    <div class="mb-4">
+                        <label class="text-secondary small mb-1 text-uppercase" style="letter-spacing:1px;">Route Area (Filter Keyword)</label>
+                        <input type="text" name="Route" class="form-control bg-dark text-white border-secondary" required placeholder="e.g. Mabolo, Lahug, etc." />
+                        <div class="text-secondary mt-1" style="font-size:0.72rem;">
+                            <i class="bi bi-info-circle me-1"></i> Staff will see this rider if the parcel address contains this keyword.
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-warning fw-bold flex-fill">
+                            <i class="bi bi-person-plus-fill me-2"></i> Register Rider
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary border-secondary" data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table thead th { color: rgba(255,255,255,0.45); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.8px; border-bottom: 1px solid rgba(255,255,255,0.07); padding: 10px 16px; }
+    .table tbody td { color: rgba(255,255,255,0.7); border-bottom: 1px solid rgba(255,255,255,0.04); padding: 14px 16px; vertical-align: middle; }
+    .table tbody tr:hover { background: rgba(255,140,0,0.03); }
+    .table-container { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 15px; padding: 20px; }
+</style>

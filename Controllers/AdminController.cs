@@ -166,10 +166,22 @@ namespace SwiftFill.Controllers
                 // Handle transaction mapping for Drop-offs
                 if (!string.IsNullOrEmpty(PaymentMethod))
                 {
+                    // Automatic pricing based on DB rates
+                    var rates = await _context.ShippingRates.FirstOrDefaultAsync(r => r.DestinationRegion == order.DestinationRegion);
+                    decimal totalAmount = 150 + (decimal)(order.Weight * 45); // Fallback
+                    if (rates != null)
+                    {
+                        totalAmount = rates.Calculate(order.Weight);
+                    }
+
                     if (order.Payment == null) 
                     {
-                        order.Payment = new Payment { TrackingId = order.TrackingId, Amount = (decimal)(order.Weight * 45 + 150) };
+                        order.Payment = new Payment { TrackingId = order.TrackingId, Amount = totalAmount };
                         _context.Payments.Add(order.Payment);
+                    }
+                    else
+                    {
+                        order.Payment.Amount = totalAmount; // Auto-update price on weight/region change
                     }
                     
                     order.Payment.Method = PaymentMethod;
@@ -240,9 +252,9 @@ namespace SwiftFill.Controllers
             if (!SwiftFill.Models.HubRegistry.Names.Contains(originHub))
                 originHub = SwiftFill.Models.HubRegistry.All[0].Name;
 
-            // Generate Tracking ID: SF-2026-XXXXX
-            string randomSuffix = new Random().Next(10000, 99999).ToString();
-            model.TrackingId = $"SF-2026-{randomSuffix}";
+            // Generate Tracking ID: 10 unique digits (as requested)
+            string randomSuffix = Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper();
+            model.TrackingId = randomSuffix;
             model.Status = "Pending";
             model.DeliveryType = deliveryType;    // "DoorToDoor" or "BranchPickup"
             model.OriginHub = originHub;
@@ -252,10 +264,18 @@ namespace SwiftFill.Controllers
 
             _context.Orders.Add(model);
 
+            // Pricing from DB
+            var rates = _context.ShippingRates.FirstOrDefault(r => r.DestinationRegion == model.DestinationRegion);
+            decimal totalAmount = 150 + (decimal)(model.Weight * 45); // Fallback
+            if (rates != null)
+            {
+                totalAmount = rates.Calculate(model.Weight);
+            }
+
             var payment = new Payment
             {
                 TrackingId = model.TrackingId,
-                Amount = (decimal)(model.Weight * 45 + 150),
+                Amount = totalAmount,
                 Method = paymentMethod,
                 IsPaid = paymentMethod == "Prepaid",
                 PaidAt = paymentMethod == "Prepaid" ? DateTime.UtcNow : null
@@ -366,6 +386,42 @@ namespace SwiftFill.Controllers
                 TempData["SuccessMessage"] = $"Return #{requestId} updated: {returnReq.Status}.";
             }
             return RedirectToAction(nameof(Returns));
+        }
+
+        public async Task<IActionResult> ShippingRates()
+        {
+            var rates = await _context.ShippingRates.ToListAsync();
+            // Seed defaults if empty
+            if (!rates.Any())
+            {
+                var defaults = new List<ShippingRate>
+                {
+                    new ShippingRate { DestinationRegion = "NCR",      BaseRate = 100, PricePerKg = 45, ZoneSurcharge = 50 },
+                    new ShippingRate { DestinationRegion = "Luzon",    BaseRate = 100, PricePerKg = 45, ZoneSurcharge = 100 },
+                    new ShippingRate { DestinationRegion = "Visayas",  BaseRate = 100, PricePerKg = 45, ZoneSurcharge = 150 },
+                    new ShippingRate { DestinationRegion = "Mindanao", BaseRate = 100, PricePerKg = 45, ZoneSurcharge = 200 }
+                };
+                _context.ShippingRates.AddRange(defaults);
+                await _context.SaveChangesAsync();
+                rates = defaults;
+            }
+            return View(rates);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateShippingRate(ShippingRate model)
+        {
+            var rate = await _context.ShippingRates.FirstOrDefaultAsync(r => r.DestinationRegion == model.DestinationRegion);
+            if (rate != null)
+            {
+                rate.BaseRate = model.BaseRate;
+                rate.PricePerKg = model.PricePerKg;
+                rate.ZoneSurcharge = model.ZoneSurcharge;
+                rate.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Rates for {model.DestinationRegion} updated successfully.";
+            }
+            return RedirectToAction(nameof(ShippingRates));
         }
 
         public IActionResult RecentActivity()

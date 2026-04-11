@@ -1,27 +1,13 @@
 @{
-    ViewData["Title"] = "Select Your Hub - SwiftFill";
+    ViewData["Title"] = "Hub Verification — SwiftFill";
     Layout = null;
-
-    // Hub registry — defined here so the system knows each hub's location.
-    // In future this can be pulled from the Warehouses table in the DB.
-    var hubRegistry = new[]
-    {
-        new { Name = "Davao Hub",          Region = "Davao Region",       Island = "Mindanao",   Icon = "bi-building-fill",  Color = "#ff8c00" },
-        new { Name = "Manila Hub",         Region = "National Capital Region", Island = "Luzon", Icon = "bi-buildings",      Color = "#58a6ff" },
-        new { Name = "Cebu Hub",           Region = "Central Visayas",    Island = "Visayas",    Icon = "bi-buildings",      Color = "#3fb950" },
-        new { Name = "Cagayan de Oro Hub", Region = "Northern Mindanao",  Island = "Mindanao",   Icon = "bi-geo-alt-fill",   Color = "#f0883e" },
-        new { Name = "Iloilo Hub",         Region = "Western Visayas",    Island = "Visayas",    Icon = "bi-buildings",      Color = "#58a6ff" },
-        new { Name = "Bacolod Hub",        Region = "Negros Occidental",  Island = "Visayas",    Icon = "bi-building",       Color = "#58a6ff" },
-        new { Name = "Zamboanga Hub",      Region = "Zamboanga Peninsula",Island = "Mindanao",   Icon = "bi-geo-alt-fill",   Color = "#f0883e" },
-        new { Name = "General Santos Hub", Region = "Region XII",         Island = "Mindanao",   Icon = "bi-building",       Color = "#f0883e" },
-    };
 }
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Select Hub — SwiftFill</title>
+    <title>Hub Verification — SwiftFill</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -33,205 +19,191 @@
             background: #0d1117;
             font-family: 'Inter', sans-serif;
             color: #fff;
-            background-image: radial-gradient(ellipse at 50% -10%, rgba(255,140,0,0.1) 0%, transparent 60%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image:
+                radial-gradient(ellipse at 50% -10%, rgba(255,140,0,0.12) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 80%, rgba(255,140,0,0.04) 0%, transparent 40%);
         }
-        .page-wrap {
-            max-width: 920px;
-            margin: 0 auto;
-            padding: 48px 24px 64px;
+        .verify-card {
+            background: rgba(18, 22, 30, 0.97);
+            border: 1px solid rgba(255, 140, 0, 0.2);
+            border-radius: 20px;
+            padding: 48px 44px;
+            width: 100%;
+            max-width: 460px;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,140,0,0.08);
+            animation: fadeUp 0.35s ease;
         }
-        .hub-logo {
+        @@keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .logo-row {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 12px;
-            margin-bottom: 40px;
+            margin-bottom: 36px;
         }
-        .hub-logo img { height: 36px; }
-        .hub-logo span { font-size: 1.4rem; font-weight: 800; }
+        .logo-row img { height: 38px; }
+        .logo-row span { font-size: 1.4rem; font-weight: 800; }
 
-        .hub-title { font-size: 1.75rem; font-weight: 700; text-align: center; margin-bottom: 6px; }
-        .hub-subtitle { text-align: center; font-size: 0.9rem; color: rgba(255,255,255,0.4); margin-bottom: 8px; }
+        .verify-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 6px;
+        }
+        .verify-sub {
+            text-align: center;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.38);
+            margin-bottom: 36px;
+            line-height: 1.6;
+        }
 
-        /* Island group tabs */
-        .island-tabs {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin: 20px 0 28px;
-        }
-        .island-tab {
-            padding: 7px 18px;
-            border-radius: 20px;
-            border: 1px solid #30363d;
-            background: transparent;
-            color: rgba(255,255,255,0.45);
-            font-size: 0.82rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.18s;
-        }
-        .island-tab:hover { border-color: #ff8c00; color: #ff8c00; }
-        .island-tab.active { background: rgba(255,140,0,0.12); border-color: #ff8c00; color: #ff8c00; }
-
-        /* Hub grid */
-        .hub-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: 14px;
-            margin-bottom: 28px;
-        }
-        .hub-card {
-            background: rgba(22, 27, 34, 0.85);
-            border: 1px solid #30363d;
-            border-radius: 14px;
-            padding: 20px 18px;
-            cursor: pointer;
-            transition: all 0.22s ease;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-        .hub-card:hover {
-            border-color: rgba(255,140,0,0.5);
-            background: rgba(255,140,0,0.06);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 28px rgba(0,0,0,0.3);
-        }
-        .hub-card.selected {
-            border-color: #ff8c00 !important;
-            background: rgba(255,140,0,0.1) !important;
-            box-shadow: 0 0 0 2px rgba(255,140,0,0.35);
-        }
-        .hub-card.hidden { display: none; }
-
-        .hub-icon {
-            width: 48px; height: 48px;
-            border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.3rem;
-            flex-shrink: 0;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid #30363d;
-            transition: all 0.2s;
-        }
-        .hub-card.selected .hub-icon { border-color: rgba(255,140,0,0.4); background: rgba(255,140,0,0.1); }
-
-        .hub-name { font-size: 0.95rem; font-weight: 700; margin-bottom: 3px; }
-        .hub-region { font-size: 0.75rem; color: rgba(255,255,255,0.38); }
-        .hub-island-badge {
-            margin-left: auto;
-            font-size: 0.6rem;
-            font-weight: 700;
+        .code-label {
+            font-size: 0.72rem;
             text-transform: uppercase;
-            padding: 3px 8px;
-            border-radius: 6px;
-            flex-shrink: 0;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid #30363d;
-            color: rgba(255,255,255,0.35);
+            letter-spacing: 1.2px;
+            color: rgba(255,140,0,0.7);
+            margin-bottom: 8px;
+            display: block;
         }
-        .hub-card.selected .hub-island-badge {
-            background: rgba(255,140,0,0.15);
-            border-color: rgba(255,140,0,0.3);
+        .code-input {
+            width: 100%;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,140,0,0.25);
+            border-radius: 12px;
+            padding: 16px 20px;
             color: #ff8c00;
+            font-family: 'Inter', monospace;
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: 6px;
+            text-align: center;
+            text-transform: uppercase;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            caret-color: #ff8c00;
+        }
+        .code-input:focus {
+            border-color: #ff8c00;
+            box-shadow: 0 0 0 3px rgba(255,140,0,0.12);
+        }
+        .code-input.error {
+            border-color: #dc3545;
+            color: #dc3545;
+            box-shadow: 0 0 0 3px rgba(220,53,69,0.12);
+            animation: shake 0.4s ease;
+        }
+        @@keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%       { transform: translateX(-6px); }
+            60%       { transform: translateX(6px); }
         }
 
-        .confirm-btn {
+        .verify-btn {
             width: 100%;
             padding: 14px;
             border: none;
             border-radius: 10px;
-            background: #ff8c00;
+            background: linear-gradient(135deg, #ff8c00, #e07000);
             color: #000;
             font-size: 1rem;
-            font-weight: 700;
+            font-weight: 800;
             cursor: pointer;
-            opacity: 0.35;
-            pointer-events: none;
+            margin-top: 20px;
             transition: all 0.2s;
         }
-        .confirm-btn.active { opacity: 1; pointer-events: all; }
-        .confirm-btn.active:hover { background: #e07800; transform: translateY(-1px); }
+        .verify-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,140,0,0.35); }
+        .verify-btn:active { transform: translateY(0); }
 
-        .no-hubs-msg { text-align: center; padding: 24px; color: rgba(255,255,255,0.3); font-size: 0.9rem; display: none; }
+        .error-msg {
+            background: rgba(220,53,69,0.08);
+            border: 1px solid rgba(220,53,69,0.3);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 0.85rem;
+            color: #f87171;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .info-footer {
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            text-align: center;
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.22);
+        }
+        .key-icon {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            background: rgba(255,140,0,0.08);
+            border: 1px solid rgba(255,140,0,0.2);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 1.8rem;
+            color: #ff8c00;
+        }
     </style>
 </head>
 <body>
-    <div class="page-wrap">
-        <div class="hub-logo">
+    <div class="verify-card">
+        <div class="logo-row">
             <img src="~/images/logo.png" alt="SwiftFill" />
             <span>SwiftFill</span>
         </div>
 
-        <p class="hub-title">Which hub are you working at today?</p>
-        <p class="hub-subtitle">
-            Select your hub location. The system will show only the parcels and actions relevant to your hub.
+        <div class="key-icon"><i class="bi bi-key-fill"></i></div>
+        <div class="verify-title">Hub Verification</div>
+        <p class="verify-sub">
+            Enter the unique access code assigned to your hub branch by the Super Admin.
+            All staff at the same location share one code.
         </p>
 
-        <!-- Island Group Filter -->
-        <div class="island-tabs">
-            <button class="island-tab active" onclick="filterIsland('All', this)">All Hubs</button>
-            <button class="island-tab" onclick="filterIsland('Luzon', this)">Luzon</button>
-            <button class="island-tab" onclick="filterIsland('Visayas', this)">Visayas</button>
-            <button class="island-tab" onclick="filterIsland('Mindanao', this)">Mindanao</button>
-        </div>
-
-        <form method="post" asp-action="SelectHub" asp-controller="Account" id="hubForm">
-            <input type="hidden" name="hub" id="selectedHub" value="" />
-
-            <div class="hub-grid" id="hubGrid">
-                @foreach (var hub in hubRegistry)
-                {
-                    <div class="hub-card"
-                         data-island="@hub.Island"
-                         onclick="selectHub(this, '@hub.Name')">
-                        <div class="hub-icon">
-                            <i class="bi @hub.Icon" style="color: @hub.Color;"></i>
-                        </div>
-                        <div>
-                            <div class="hub-name">@hub.Name</div>
-                            <div class="hub-region">@hub.Region</div>
-                        </div>
-                        <span class="hub-island-badge">@hub.Island</span>
-                    </div>
-                }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="error-msg">
+                <i class="bi bi-shield-exclamation" style="font-size:1.1rem; flex-shrink:0;"></i>
+                @TempData["ErrorMessage"]
             </div>
+        }
 
-            <div class="no-hubs-msg" id="noHubsMsg">No hubs found for this island group.</div>
-
-            <button type="submit" class="confirm-btn" id="confirmBtn">
-                <i class="bi bi-arrow-right-circle-fill me-2"></i> Enter Hub Dashboard
+        <form method="post" asp-action="SelectHub" asp-controller="Account">
+            <label class="code-label">
+                <i class="bi bi-lock-fill me-1"></i>Hub Access Code
+            </label>
+            <input
+                type="text"
+                name="code"
+                id="codeInput"
+                class="code-input @(TempData["ErrorMessage"] != null ? "error" : "")"
+                placeholder="• • • • • • • •"
+                maxlength="16"
+                autocomplete="off"
+                autofocus
+                required />
+            <button type="submit" class="verify-btn">
+                <i class="bi bi-shield-check me-2"></i>Verify &amp; Enter Hub
             </button>
         </form>
+
+        <div class="info-footer">
+            <i class="bi bi-info-circle me-1"></i>
+            Don't have a code? Contact your Super Admin. &nbsp;·&nbsp;
+            <a href="/Account/Logout" style="color: rgba(255,255,255,0.3); text-decoration:none;">Sign Out</a>
+        </div>
     </div>
-
     <script>
-        let activeIsland = 'All';
-
-        function filterIsland(island, btn) {
-            activeIsland = island;
-            document.querySelectorAll('.island-tab').forEach(t => t.classList.remove('active'));
-            btn.classList.add('active');
-
-            const cards = document.querySelectorAll('.hub-card');
-            let visible = 0;
-            cards.forEach(card => {
-                const match = island === 'All' || card.dataset.island === island;
-                card.classList.toggle('hidden', !match);
-                if (match) visible++;
-            });
-            document.getElementById('noHubsMsg').style.display = visible === 0 ? 'block' : 'none';
-        }
-
-        function selectHub(card, hubName) {
-            document.querySelectorAll('.hub-card').forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected');
-            document.getElementById('selectedHub').value = hubName;
-            const btn = document.getElementById('confirmBtn');
-            btn.classList.add('active');
-            btn.innerHTML = `<i class="bi bi-arrow-right-circle-fill me-2"></i> Enter <strong>${hubName}</strong> Dashboard`;
-        }
+        // Auto-uppercase
+        const inp = document.getElementById('codeInput');
+        inp.addEventListener('input', () => { inp.value = inp.value.toUpperCase(); });
     </script>
 </body>
 </html>

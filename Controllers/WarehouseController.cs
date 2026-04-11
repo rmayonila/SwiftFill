@@ -227,6 +227,7 @@ namespace SwiftFill.Controllers
                 PickedOrders     = localOrders.Where(o => o.Status == "Picked").ToList(),
                 PackedOrders     = localOrders.Where(o => o.Status == "Packed").ToList(),
                 AvailableRiders  = riders,
+                ManualRiders     = await _context.ManualRiders.Where(r => r.Hub == currentHub && r.IsActive).ToListAsync(),
                 Hubs             = HubRegistry.Names
             };
         }

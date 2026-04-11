@@ -48,17 +48,18 @@ namespace SwiftFill.Controllers
                 _context.Orders.Add(order);
                 await _context.SaveChangesAsync();
 
-                // Dynamic Pricing Engine
+                // Dynamic Pricing Engine from DB
+                var rates = await _context.ShippingRates.FirstOrDefaultAsync(r => r.DestinationRegion == order.DestinationRegion);
                 decimal baseFee = 100m;
                 decimal wgtFee = (decimal)order.Weight * 45m;
-                decimal zoneFee = order.DestinationRegion switch
+                decimal zoneFee = 0m;
+                
+                if (rates != null)
                 {
-                    "NCR" => 50m,
-                    "Luzon" => 100m,
-                    "Visayas" => 150m,
-                    "Mindanao" => 200m,
-                    _ => 0m
-                };
+                    baseFee = rates.BaseRate;
+                    wgtFee = (decimal)order.Weight * rates.PricePerKg;
+                    zoneFee = rates.ZoneSurcharge;
+                }
 
                 var expectedPayment = new Payment
                 {
@@ -68,6 +69,7 @@ namespace SwiftFill.Controllers
                     IsPaid = false
                 };
                 
+                order.ShippingFee = expectedPayment.Amount;
                 _context.Payments.Add(expectedPayment);
                 await _context.SaveChangesAsync();
 
@@ -111,8 +113,17 @@ namespace SwiftFill.Controllers
                 weight = order.Weight,
                 lastUpdate = order.UpdatedAt.ToString("MMM dd yyyy, HH:mm"),
                 notes = order.Notes ?? "",
+                deliveryType = order.DeliveryType,
+                pickupBranch = order.PickupBranchAddress ?? "",
                 returnReason = returnReq != null ? returnReq.Description ?? returnReq.Reason : ""
             });
+        }
+
+        [HttpGet]
+        public async Task<JsonResult> GetRates()
+        {
+            var rates = await _context.ShippingRates.ToListAsync();
+            return Json(rates);
         }
     }
 }

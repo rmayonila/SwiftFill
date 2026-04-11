@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using SwiftFill.Data;
 using SwiftFill.Models;
 using SwiftFill.Services;
 
@@ -9,15 +11,18 @@ namespace SwiftFill.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly ApplicationDbContext _context;
         private readonly AuditLogService _audit;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
+            ApplicationDbContext context,
             AuditLogService audit)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _context = context;
             _audit = audit;
         }
 
@@ -120,16 +125,37 @@ namespace SwiftFill.Controllers
 
         [HttpPost]
         [Microsoft.AspNetCore.Authorization.Authorize(Roles = "WarehouseStaff")]
-        public IActionResult SelectHub(string hub)
+        public async Task<IActionResult> SelectHub(string code)
         {
-            if (string.IsNullOrEmpty(hub)) return RedirectToAction(nameof(SelectHub));
-            HttpContext.Session.SetString("UserHub", hub);
+            if (string.IsNullOrEmpty(code))
+            {
+                TempData["ErrorMessage"] = "Please enter a hub access code.";
+                return RedirectToAction(nameof(SelectHub));
+            }
+
+            var hubCode = await _context.HubAccessCodes
+                .FirstOrDefaultAsync(c => c.Code.ToUpper() == code.ToUpper().Trim() && c.IsActive);
+
+            if (hubCode == null)
+            {
+                TempData["ErrorMessage"] = "Invalid or expired access code. Please contact your Super Admin.";
+                _audit.Log(
+                    actor: User.Identity?.Name ?? "Staff",
+                    role: "WarehouseStaff",
+                    action: "Hub Access Denied",
+                    detail: $"Failed hub login attempt with code: {code}",
+                    type: AuditLogType.Security
+                );
+                return RedirectToAction(nameof(SelectHub));
+            }
+
+            HttpContext.Session.SetString("UserHub", hubCode.HubName);
 
             _audit.Log(
                 actor: User.Identity?.Name ?? "Staff",
                 role: "WarehouseStaff",
                 action: "Hub Selected",
-                detail: $"Staff checked in at {hub}",
+                detail: $"Staff checked in at {hubCode.HubName} using code {hubCode.Code}",
                 type: AuditLogType.Security
             );
 

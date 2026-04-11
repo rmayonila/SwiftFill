@@ -135,8 +135,14 @@
                                 <span class="text-white" id="mDest"></span>
                             </div>
                             <div class="col-6">
-                                <small class="text-secondary d-block">Specs</small>
-                                <span class="text-white" id="mSpecs"></span>
+                                <small class="text-secondary d-block">Delivery Type</small>
+                                <span class="text-white" id="mDelivery"></span>
+                            </div>
+                        </div>
+                        <div class="row g-2 mt-2" id="pickupSection" class="d-none">
+                            <div class="col-12">
+                                <small class="text-secondary d-block">Pickup Branch</small>
+                                <span class="text-orange fw-bold" id="mBranch"></span>
                             </div>
                         </div>
                     </div>
@@ -180,7 +186,16 @@
                         document.getElementById('mStatus').textContent = data.status;
                         document.getElementById('mDate').textContent = data.lastUpdate;
                         document.getElementById('mDest').textContent = data.destination;
-                        document.getElementById('mSpecs').textContent = `${data.weight}kg | ${data.itemCategory}`;
+                        document.getElementById('mDelivery').textContent = data.deliveryType === 'BranchPickup' ? 'Branch Pickup' : 'Door-to-Door';
+                        
+                        // Handle Pickup Branch UI
+                        const pSection = document.getElementById('pickupSection');
+                        if (data.deliveryType === 'BranchPickup' && data.pickupBranch) {
+                            document.getElementById('mBranch').textContent = data.pickupBranch;
+                            pSection.classList.remove('d-none');
+                        } else {
+                            pSection.classList.add('d-none');
+                        }
                         
                         // Handle Return Reason UI State
                         if(data.status.includes('Return') && data.returnReason) {
