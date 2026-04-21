@@ -15,10 +15,9 @@
         </button>
     </div>
 
-    <div class="row g-4 justify-content-center">
-        <!-- ===== CENTERED: Controls ===== -->
-        <div class="col-lg-8">
-
+    <div class="row g-4">
+        <!-- Left Column: Logo Settings -->
+        <div class="col-lg-7">
             <!-- Logo Settings -->
             <div class="card mb-4 border-0" style="background:rgba(22,27,34,0.8);border:1px solid #30363d!important;border-radius:14px;">
                 <div class="card-header bg-transparent border-bottom border-dark py-3 px-4">
@@ -67,15 +66,17 @@
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Color Scheme -->
+        <!-- Right Column: Color Scheme -->
+        <div class="col-lg-5">
             <div class="card mb-4 border-0" style="background:rgba(22,27,34,0.8);border:1px solid #30363d!important;border-radius:14px;">
                 <div class="card-header bg-transparent border-bottom border-dark py-3 px-4">
                     <h6 class="mb-0 fw-bold text-white"><i class="bi bi-brush me-2 text-secondary"></i> Color Scheme</h6>
                 </div>
                 <div class="card-body p-4">
                     <div class="row g-3 mb-4">
-                        <div class="col-md-6">
+                        <div class="col-12">
                             <label class="form-label text-secondary small">Primary Accent Color</label>
                             <div class="d-flex align-items-center gap-3">
                                 <input type="color" id="primaryColor" class="form-control form-control-color bg-transparent border-secondary shadow-none" 
@@ -83,7 +84,7 @@
                                 <span id="primaryHex" class="text-white fw-bold">#FF8C00</span>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12">
                             <label class="form-label text-secondary small">Background / Secondary Color</label>
                             <div class="d-flex align-items-center gap-3">
                                 <input type="color" id="bgColor" class="form-control form-control-color bg-transparent border-secondary shadow-none" 
@@ -91,7 +92,7 @@
                                 <span id="bgHex" class="text-white fw-bold">#161B22</span>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12">
                             <label class="form-label text-secondary small">Brand Name Color</label>
                             <div class="d-flex align-items-center gap-3">
                                 <input type="color" id="brandNameColor" class="form-control form-control-color bg-transparent border-secondary shadow-none" 
@@ -99,7 +100,7 @@
                                 <span class="text-white fw-bold">Text Color</span>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12">
                             <label class="form-label text-secondary small">Sidebar Accent Color</label>
                             <div class="d-flex align-items-center gap-3">
                                 <input type="color" id="sidebarColor" class="form-control form-control-color bg-transparent border-secondary shadow-none" 
@@ -112,7 +113,7 @@
                     <!-- Theme toggles -->
                     <div class="border-top border-dark pt-3">
                         <label class="form-label text-secondary small d-block mb-3">Theme Mode</label>
-                        <div class="d-flex gap-3 flex-wrap">
+                        <div class="d-flex flex-column gap-2">
                             <div class="form-check form-switch mb-0">
                                 <input class="form-check-input" type="checkbox" id="darkModeSwitch" checked onchange="updatePreview()">
                                 <label class="form-check-label text-white" for="darkModeSwitch">Dark Mode</label>
@@ -127,6 +128,7 @@
             </div>
         </div>
     </div>
+
 </div>
 
 <style>

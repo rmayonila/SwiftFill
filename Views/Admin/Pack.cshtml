@@ -1,0 +1,230 @@
+@model IEnumerable<SwiftFill.Models.Order>
+@{
+    ViewData["Title"] = "Order Packing";
+    Layout = "_AdminLayout";
+}
+
+<div class="animate-fade-up">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-dark pb-3">
+        <div>
+            <h1 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-box-seam me-3 text-warning"></i> Order Packing</h1>
+            <p class="text-secondary mt-1">Manage picking and packing for items received from customers.</p>
+        </div>
+    </div>
+
+    <div class="card bg-dark border-secondary mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-2">
+                <div class="col-md-7">
+                    <input type="text" name="search" value="@ViewBag.Search" class="form-control bg-transparent text-white border-secondary" placeholder="Search Tracking ID or Receiver Name...">
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-select bg-transparent text-white border-secondary">
+                        <option value="All" selected='@(ViewBag.Status == "All")'>All Pending/Picked</option>
+                        <option value="Pending" selected='@(ViewBag.Status == "Pending")'>Pending Only</option>
+                        <option value="Picked" selected='@(ViewBag.Status == "Picked")'>Picked (Ready to Pack)</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-warning w-100 fw-bold">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success bg-dark text-success border-success mb-4">@TempData["SuccessMessage"]</div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-dark table-hover border-secondary align-middle">
+            <thead class="text-secondary small text-uppercase">
+                <tr>
+                    <th>Tracking ID</th>
+                    <th>Receiver</th>
+                    <th>Destination</th>
+                    <th>Status</th>
+                    <th>Packing Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in Model)
+                {
+                    <tr>
+                        <td class="fw-bold text-warning">#@order.TrackingId</td>
+                        <td>
+                            <div class="fw-bold">@order.ReceiverName</div>
+                            <div class="small text-secondary">@order.ReceiverPhone</div>
+                        </td>
+                        <td>@order.DestinationRegion</td>
+                        <td>
+                            <span class="badge @(order.Status == "Picked" ? "bg-info" : "bg-secondary")">@order.Status</span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#packModal-@order.TrackingId">
+                                Update Packing
+                            </button>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-secondary">No orders pending for packing.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (ViewBag.TotalPages > 1)
+    {
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                        <a class="page-link bg-dark border-secondary text-white" href="?search=@ViewBag.Search&page=@i">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+</div>
+
+@foreach (var order in Model)
+{
+    <!-- Modal -->
+    <div class="modal fade" id="packModal-@order.TrackingId" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-white border-warning">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title">Packing Details - @order.TrackingId</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form asp-action="UpdatePacking" method="post">
+                    <div class="modal-body">
+                        <input type="hidden" name="trackingId" value="@order.TrackingId" />
+
+                        <div class="mb-3">
+                            <label class="form-label">Service Required</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="availPacking" value="true" id="packCheck-@order.TrackingId" @(order.AvailPacking ? "checked" : "")>
+                                <label class="form-check-label" for="packCheck-@order.TrackingId">
+                                    Bubble Wrap / Box / Crating
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Packing Fee (₱)</label>
+                            <input type="number" name="packingFee" class="form-control bg-secondary text-white border-0" value="@order.PackingFee" step="0.01">
+                            <small class="text-secondary">Additional fee based on item size/fragility.</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Packing Location</label>
+                            <select name="packingLocation" class="form-select bg-secondary text-white border-0">
+                                <option value="Store" selected="@(order.PackingLocation == "Store")">In Front of Customer (Store)</option>
+                                <option value="Warehouse" selected="@(order.PackingLocation == "Warehouse")">Warehouse (Large Cargo/Electric)</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Sorting Status</label>
+                            <select name="sortingStatus" class="form-select bg-secondary text-white border-0">
+                                <option value="Pending in Store" selected="@(order.SortingStatus == "Pending in Store")">Pending in Store</option>
+                                <option value="Sorted in Warehouse" selected="@(order.SortingStatus == "Sorted in Warehouse")">Sorted in Warehouse</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-secondary">
+                        <button type="submit" class="btn btn-warning fw-bold px-4">Save & Mark Packed</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const forms = document.querySelectorAll('form[action*="UpdatePacking"]');
+            forms.forEach(form => {
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const btn = form.querySelector('button[type="submit"]');
+                    const originalBtnHtml = btn.innerHTML;
+                    
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Saving...';
+
+                    const formData = new FormData(form);
+                    
+                    // Handle checkbox specifically for FormData if needed, but normally browser does it.
+                    // If unchecked, it won't be in FormData, which is handled as 'false' by binder.
+
+                    try {
+                        const response = await fetch(form.action, {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: formData
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            // 1. Find and close the modal
+                            const modalElement = form.closest('.modal');
+                            const modal = bootstrap.Modal.getInstance(modalElement);
+                            if (modal) modal.hide();
+
+                            // 2. Update the table row
+                            const row = modalElement.closest('tr');
+                            if (row) {
+                                // Update status badge
+                                const statusBadge = row.querySelector('.badge');
+                                statusBadge.className = 'badge bg-success';
+                                statusBadge.textContent = 'Packed';
+                                
+                                // Remove the update button or replace it
+                                const actionCell = cellForAction(row);
+                                if (actionCell) {
+                                    actionCell.innerHTML = '<span class="text-success small fw-bold"><i class="bi bi-check-circle me-1"></i> Completed</span>';
+                                }
+                            }
+                            
+                            // Optional: Small toast or alert
+                            console.log('Update successful for ' + result.trackingId);
+                        } else {
+                            alert('Update Failed: ' + result.message);
+                            btn.disabled = false;
+                            btn.innerHTML = originalBtnHtml;
+                        }
+                    } catch (err) {
+                        console.error('Fetch error:', err);
+                        alert('An error occurred during the update.');
+                        btn.disabled = false;
+                        btn.innerHTML = originalBtnHtml;
+                    }
+                });
+            });
+
+            function cellForAction(row) {
+                // Returns the last <td> in the row
+                const cells = row.querySelectorAll('td');
+                return cells[cells.length - 1];
+            }
+        });
+    </script>
+}
+
+<style>
+    .animate-fade-up { animation: fadeUp 0.3s ease-out forwards; }
+    @@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>

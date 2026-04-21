@@ -1,0 +1,86 @@
+@model IEnumerable<SwiftFill.Models.Order>
+@{
+    ViewData["Title"] = "Truck Tracking";
+    Layout = "_AdminLayout";
+}
+
+<div class="animate-fade-up">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-dark pb-3">
+        <div>
+            <h1 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-truck me-3 text-warning"></i> Truck Tracking</h1>
+            <p class="text-secondary mt-1">Monitor which parcels are loaded onto each truck for dispatch.</p>
+        </div>
+    </div>
+
+    <div class="card bg-dark border-secondary mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-2">
+                <div class="col-md-4">
+                    <select name="truckLabel" class="form-select bg-transparent text-white border-secondary">
+                        <option value="">All Trucks</option>
+                        <option value="Truck A" selected="@(ViewContext.HttpContext.Request.Query["truckLabel"] == "Truck A")">Truck A</option>
+                        <option value="Truck B" selected="@(ViewContext.HttpContext.Request.Query["truckLabel"] == "Truck B")">Truck B</option>
+                        <option value="Truck C" selected="@(ViewContext.HttpContext.Request.Query["truckLabel"] == "Truck C")">Truck C</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <input type="text" name="search" value="@ViewBag.Search" class="form-control bg-transparent text-white border-secondary" placeholder="Search Tracking ID or Receiver...">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-warning w-100 fw-bold">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-dark table-hover border-secondary align-middle">
+            <thead class="text-secondary small text-uppercase">
+                <tr>
+                    <th>Truck</th>
+                    <th>Tracking ID</th>
+                    <th>Receiver</th>
+                    <th>Destination</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in Model)
+                {
+                    <tr>
+                        <td>
+                            <span class="badge @(string.IsNullOrEmpty(order.TruckLabel) ? "bg-secondary" : "bg-warning text-dark")">
+                                @(string.IsNullOrEmpty(order.TruckLabel) ? "Not Assigned" : order.TruckLabel)
+                            </span>
+                        </td>
+                        <td class="fw-bold">#@order.TrackingId</td>
+                        <td>@order.ReceiverName</td>
+                        <td>@order.DestinationRegion Hub</td>
+                        <td>
+                            <form asp-action="AssignToTruck" method="post" class="d-flex gap-2">
+                                <input type="hidden" name="trackingId" value="@order.TrackingId" />
+                                <select name="truckLabel" class="form-select form-select-sm bg-secondary text-white border-0" style="width: 120px;">
+                                    <option value="Truck A">Truck A</option>
+                                    <option value="Truck B">Truck B</option>
+                                    <option value="Truck C">Truck C</option>
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-warning">Assign</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-secondary">No parcels found for the selected filter.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .animate-fade-up { animation: fadeUp 0.3s ease-out forwards; }
+    @@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>

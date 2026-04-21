@@ -93,6 +93,40 @@ namespace SwiftFill.Controllers
             return View(orders);
         }
 
+        // --- TRUCK TRACKING ---
+        public async Task<IActionResult> TruckTracking(string truckLabel, string search)
+        {
+            var currentHub = GetCurrentHub();
+            var query = _context.Orders.Where(o => o.CurrentLocation == currentHub && !o.IsArchived);
+
+            if (!string.IsNullOrEmpty(truckLabel))
+                query = query.Where(o => o.TruckLabel == truckLabel);
+
+            if (!string.IsNullOrEmpty(search))
+                query = query.Where(o => o.TrackingId.Contains(search) || o.ReceiverName.Contains(search));
+
+            var orders = await query.OrderByDescending(o => o.UpdatedAt).ToListAsync();
+            
+            ViewBag.CurrentHub = currentHub;
+            ViewBag.TruckLabel = truckLabel;
+            ViewBag.Search = search;
+            
+            return View(orders);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AssignToTruck(string trackingId, string truckLabel)
+        {
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.TrackingId == trackingId);
+            if (order != null)
+            {
+                order.TruckLabel = truckLabel;
+                order.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+            }
+            return RedirectToAction(nameof(TruckTracking), new { truckLabel });
+        }
+
         // ============================================================
         // POST ACTIONS
         // ============================================================

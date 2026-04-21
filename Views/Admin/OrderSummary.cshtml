@@ -12,41 +12,43 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
-        body { background: white; color: black; font-family: 'Inter', sans-serif; padding: 40px; }
-        .summary-container { max-width: 800px; margin: auto; border: 2px solid #eee; padding: 40px; border-radius: 15px; }
+        body { background: #000; color: #fff; font-family: 'Inter', sans-serif; padding: 40px; }
+        .summary-container { max-width: 800px; margin: auto; border: 2px solid #222; padding: 40px; border-radius: 15px; background: #000; color: #fff; }
         .brand-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ff8c00; padding-bottom: 20px; margin-bottom: 30px; }
         .barcode-wrap { display: flex; flex-direction: column; align-items: center; margin-top: 30px; }
         .barcode-sim { 
             height: 60px; 
             width: 300px; 
-            background: repeating-linear-gradient(90deg, #000, #000 2px, #fff 2px, #fff 4px);
+            background: repeating-linear-gradient(90deg, #fff, #fff 2px, #000 2px, #000 4px);
             margin-bottom: 5px;
         }
-        .section-title { font-size: 0.8rem; text-transform: uppercase; color: #777; letter-spacing: 1px; margin-bottom: 10px; font-weight: bold; }
-        .info-card { background: #f9f9f9; padding: 20px; border-radius: 10px; height: 100%; }
+        .section-title { font-size: 0.8rem; text-transform: uppercase; color: #888; letter-spacing: 1px; margin-bottom: 10px; font-weight: bold; }
+        .info-card { background: #111; padding: 20px; border-radius: 10px; height: 100%; border: 1px solid #222; }
         .print-btn-wrap { margin-bottom: 20px; text-align: right; }
         @@media print {
+            body { background: white !important; color: black !important; padding: 0; }
+            .summary-container { border: none; background: white !important; color: black !important; }
+            .info-card { background: #f9f9f9 !important; border: 1px solid #eee !important; color: black !important; }
+            .barcode-sim { background: repeating-linear-gradient(90deg, #000, #000 2px, #fff 2px, #fff 4px) !important; }
             .print-btn-wrap { display: none; }
-            body { padding: 0; }
-            .summary-container { border: none; }
         }
     </style>
 </head>
 <body>
     <div class="print-btn-wrap">
-        <button onclick="window.print()" class="btn btn-primary"><i class="bi bi-printer me-2"></i> Print Summary</button>
-        <a href="javascript:history.back()" class="btn btn-outline-secondary">Back</a>
+        <button onclick="window.print()" class="btn btn-warning fw-bold"><i class="bi bi-printer me-2"></i> Print Waybill</button>
+        <a href="javascript:history.back()" class="btn btn-outline-light ms-2">Back</a>
     </div>
 
-    <div class="summary-container shadow-sm">
+    <div class="summary-container shadow-lg">
         <div class="brand-header">
             <div>
-                <h2 class="fw-bold mb-0">SwiftFill</h2>
+                <h2 class="fw-bold mb-0 text-warning">SwiftFill</h2>
                 <p class="text-secondary small">Logistics & Supply Chain ERP</p>
             </div>
-            <div class="text-end">
-                <h4 class="fw-bold mb-1">WAYBILL SUMMARY</h4>
-                <p class="mb-0">Davao Hub Operations</p>
+            <div class="text-end text-white">
+                <h4 class="fw-bold mb-1">WAYBILL</h4>
+                <p class="mb-0 small text-secondary">Operational Document</p>
             </div>
         </div>
 
@@ -55,22 +57,22 @@
                 <div class="info-card">
                     <div class="section-title">Sender Information</div>
                     <div class="fw-bold fs-5">@Model.SenderName</div>
-                    <div>@Model.SenderAddress</div>
-                    <div class="text-secondary">@Model.SenderPhone</div>
+                    <div class="text-secondary small">@Model.SenderAddress</div>
+                    <div class="text-warning">@Model.SenderPhone</div>
                 </div>
             </div>
             <div class="col-6">
                 <div class="info-card">
                     <div class="section-title">Receiver Information</div>
                     <div class="fw-bold fs-5">@Model.ReceiverName</div>
-                    <div>@Model.ReceiverAddress</div>
-                    <div class="text-secondary">@Model.ReceiverPhone</div>
+                    <div class="text-secondary small">@Model.ReceiverAddress</div>
+                    <div class="text-warning">@Model.ReceiverPhone</div>
                 </div>
             </div>
         </div>
 
         <div class="info-card mb-5">
-            <div class="section-title">Package Specifications</div>
+            <div class="section-title text-secondary">Package Specifications</div>
             <div class="row">
                 <div class="col-3">
                     <div class="small text-secondary">Weight</div>
@@ -82,11 +84,11 @@
                 </div>
                 <div class="col-3">
                     <div class="small text-secondary">Declared Value</div>
-                    <div class="fw-bold">₱@(Model.DeclaredValue.ToString("N2"))</div>
+                    <div class="fw-bold text-warning">₱@(Model.DeclaredValue.ToString("N2"))</div>
                 </div>
                 <div class="col-3">
-                    <div class="small text-secondary">Service Type</div>
-                    <div class="fw-bold">Door-to-Door</div>
+                    <div class="small text-secondary">Packing Fee</div>
+                    <div class="fw-bold">₱@Model.PackingFee.ToString("N2")</div>
                 </div>
             </div>
         </div>
@@ -95,34 +97,38 @@
             <div class="col-6">
                 <div class="section-title">Transaction Details</div>
                 <div class="d-flex justify-content-between mb-2">
-                    <span>Payment Method:</span>
-                    <span class="fw-bold">@(Model.Payment?.Method ?? "Unspecified") @(Model.Payment?.IsPaid == true ? "(PAID)" : "")</span>
+                    <span class="text-secondary">Payment Method:</span>
+                    <span class="fw-bold">@(Model.Payment?.Method ?? "Unspecified")</span>
                 </div>
                 <div class="d-flex justify-content-between mb-2">
-                    <span>Amount Due:</span>
-                    <span class="fw-bold">₱@(Model.Payment?.Amount.ToString("N2") ?? "0.00")</span>
+                    <span class="text-secondary">Payment Status:</span>
+                    <span class="fw-bold @(Model.Payment?.IsPaid == true ? "text-success" : "text-danger")">
+                        @(Model.Payment?.IsPaid == true ? "PAID" : "UNPAID")
+                    </span>
                 </div>
-                @if (Model.Status != "Pending")
-                {
-                    <div class="d-flex justify-content-between">
-                        <span>Status:</span>
-                        <span class="badge bg-dark">@Model.Status</span>
-                    </div>
-                }
+                <div class="d-flex justify-content-between border-top border-secondary pt-2">
+                    <span class="fw-bold text-white">Total Amount:</span>
+                    <span class="fw-bold text-warning fs-5">₱@(Model.Payment?.Amount.ToString("N2") ?? "0.00")</span>
+                </div>
             </div>
-            <div class="col-6 border-start ps-5">
+            <div class="col-6 border-start border-secondary ps-5">
                 <div class="section-title">Dispatch Metadata</div>
-                <div class="small mb-1">Booked: @Model.CreatedAt.ToString("MMM dd, yyyy HH:mm")</div>
-                <div class="small mb-1">Origin: Davao Hub</div>
-                <div class="small">Destination: @Model.DestinationRegion Hub</div>
+                <div class="small mb-1 text-secondary">Booked: @Model.CreatedAt.ToString("MMM dd, yyyy HH:mm")</div>
+                <div class="small mb-1"><span class="text-secondary">Origin:</span> @Model.OriginHub</div>
+                <div class="small"><span class="text-secondary">Destination:</span> @Model.DestinationRegion Hub</div>
+                @if (!string.IsNullOrEmpty(Model.TruckLabel))
+                {
+                    <div class="mt-2 small"><span class="text-secondary">Transport:</span> <span class="fw-bold text-warning">@Model.TruckLabel</span></div>
+                }
             </div>
         </div>
 
         <div class="barcode-wrap">
             <div class="barcode-sim"></div>
-            <div class="fw-bold h4 ls-1">@Model.TrackingId</div>
-            <div class="x-small text-secondary mt-2">DAVAO Hub Dispatch Authority - Digital Signature Not Required</div>
+            <div class="fw-bold h2 ls-2 text-white">@Model.TrackingId</div>
+            <div class="x-small text-secondary mt-2">SWIFTFILL OPERATIONAL AUTH - SYSTEM GENERATED - NO SIGNATURE REQUIRED</div>
         </div>
     </div>
 </body>
 </html>
+

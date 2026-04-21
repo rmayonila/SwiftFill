@@ -252,7 +252,6 @@ C:\Users\PERSONAL\SwiftFill\obj\Debug\net10.0\rjsmcshtml.dswa.cache.json
 C:\Users\PERSONAL\SwiftFill\obj\Debug\net10.0\scopedcss\Views\Shared\_Layout.cshtml.rz.scp.css
 C:\Users\PERSONAL\SwiftFill\obj\Debug\net10.0\scopedcss\bundle\SwiftFill.styles.css
 C:\Users\PERSONAL\SwiftFill\obj\Debug\net10.0\scopedcss\projectbundle\SwiftFill.bundle.scp.css
-C:\Users\PERSONAL\SwiftFill\obj\Debug\net10.0\compressed\5r5q39yl56-{0}-pziegw6rvh-pziegw6rvh.gz
 C:\Users\PERSONAL\SwiftFill\obj\Debug\net10.0\compressed\qe6szxe292-{0}-61n19gt1b8-61n19gt1b8.gz
 C:\Users\PERSONAL\SwiftFill\obj\Debug\net10.0\compressed\95r2w3qn2m-{0}-bqjiyaj88i-bqjiyaj88i.gz
 C:\Users\PERSONAL\SwiftFill\obj\Debug\net10.0\compressed\0ao7f42bae-{0}-c2jlpeoesf-c2jlpeoesf.gz
@@ -328,3 +327,4 @@ C:\Users\PERSONAL\SwiftFill\obj\Debug\net10.0\compressed\kuvuzaif4d-{0}-qlccset4
 C:\Users\PERSONAL\SwiftFill\obj\Debug\net10.0\compressed\nqky0mald0-{0}-xzw0cte36n-xzw0cte36n.gz
 C:\Users\PERSONAL\SwiftFill\obj\Debug\net10.0\compressed\dpcn2el5ax-{0}-jfsiqqwiad-jfsiqqwiad.gz
 C:\Users\PERSONAL\SwiftFill\obj\Debug\net10.0\SwiftFill.sourcelink.json
+C:\Users\PERSONAL\SwiftFill\obj\Debug\net10.0\compressed\5r5q39yl56-{0}-pziegw6rvh-pziegw6rvh.gz

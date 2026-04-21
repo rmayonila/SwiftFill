@@ -1,0 +1,12 @@
+# Ignore sensitive config files
+appsettings.json
+appsettings.Development.json
+
+# Ignore build folders (IMPORTANT)
+bin/
+obj/
+
+# Ignore log and temporary files
+*.log
+errors.txt
+*.sql

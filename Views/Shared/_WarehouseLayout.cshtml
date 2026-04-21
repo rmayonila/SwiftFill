@@ -196,11 +196,6 @@
                 @if (Context.Session.GetString("UserHub") == "Davao Hub")
                 {
                     <li class="nav-item">
-                        <a class="nav-link @(action == "PickingStation" ? "active" : "")" asp-controller="Warehouse" asp-action="PickingStation">
-                            <i class="bi bi-truck"></i> Picking Station
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link @(action == "PackingLine" ? "active" : "")" asp-controller="Warehouse" asp-action="PackingLine">
                             <i class="bi bi-box-seam-fill"></i> Packing Line
                         </a>

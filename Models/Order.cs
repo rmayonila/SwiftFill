@@ -77,5 +77,13 @@ namespace SwiftFill.Models
 
         public Payment? Payment { get; set; }
         public ReturnRequest? ReturnRequest { get; set; }
+
+        // --- NEW PACKING & SORTING LOGIC ---
+        public bool AvailPacking { get; set; } = false;
+        public decimal PackingFee { get; set; } = 0m;
+        public string? PackedByStaffId { get; set; }
+        public string? PackingLocation { get; set; } // "Store" or "Warehouse"
+        public string? SortingStatus { get; set; }   // "Sorted in Warehouse" or "Pending in Store"
+        public string? TruckLabel { get; set; }     // e.g., "Truck A"
     }
 }

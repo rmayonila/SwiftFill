@@ -206,6 +206,73 @@ namespace SwiftFill.Controllers
             return View(model);
         }
 
+        public async Task<IActionResult> Pack(string search, string status, int page = 1)
+        {
+            int pageSize = 10;
+            var query = _context.Orders.Where(o => !o.IsArchived).AsQueryable();
+
+            if (!string.IsNullOrEmpty(status) && status != "All")
+            {
+                query = query.Where(o => o.Status == status);
+            }
+            else
+            {
+                query = query.Where(o => o.Status == "Pending" || o.Status == "Picked");
+            }
+
+            if (!string.IsNullOrEmpty(search))
+                query = query.Where(o => o.TrackingId.Contains(search) || o.ReceiverName.Contains(search));
+
+            var totalItems = await query.CountAsync();
+            var orders = await query.OrderByDescending(o => o.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.Search = search;
+            ViewBag.Status = status;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            return View(orders);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdatePacking(string trackingId, bool availPacking, decimal packingFee, string packingLocation, string sortingStatus)
+        {
+            try 
+            {
+                var order = await _context.Orders.Include(o => o.Payment).FirstOrDefaultAsync(o => o.TrackingId == trackingId);
+                if (order == null) return Json(new { success = false, message = "Order not found." });
+
+                // Update payment if fee changed - subtract old fee, add new fee
+                if (order.Payment != null)
+                {
+                    order.Payment.Amount = order.Payment.Amount - order.PackingFee + packingFee;
+                }
+
+                order.AvailPacking = availPacking;
+                order.PackingFee = packingFee;
+                order.PackingLocation = packingLocation;
+                order.SortingStatus = sortingStatus;
+                order.PackedByStaffId = _userManager.GetUserId(User);
+                order.Status = "Packed"; 
+                order.UpdatedAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+
+                _audit.Log(User.Identity?.Name ?? "Admin", "Admin", "Packing Update",
+                    $"Order {trackingId} packed at {packingLocation} by {User.Identity?.Name}.",
+                    AuditLogType.Inventory);
+
+                return Json(new { success = true, trackingId = trackingId });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "System Error: " + ex.Message });
+            }
+        }
+
         public async Task<IActionResult> OrderSummary(string trackingId)
         {
             var order = await _context.Orders
@@ -246,7 +313,7 @@ namespace SwiftFill.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateManualOrder(Order model, string paymentMethod, string deliveryType = "DoorToDoor", string originHub = "Davao Hub")
+        public async Task<IActionResult> CreateManualOrder(Order model, string paymentMethod, string deliveryType = "DoorToDoor", string originHub = "Davao Hub", bool availPacking = false, decimal packingFee = 0)
         {
             // Guard: originHub must be a real hub
             if (!SwiftFill.Models.HubRegistry.Names.Contains(originHub))
@@ -259,6 +326,8 @@ namespace SwiftFill.Controllers
             model.DeliveryType = deliveryType;    // "DoorToDoor" or "BranchPickup"
             model.OriginHub = originHub;
             model.CurrentLocation = originHub;    // Parcel starts at chosen origin hub
+            model.AvailPacking = availPacking;
+            model.PackingFee = packingFee;
             model.CreatedAt = DateTime.UtcNow;
             model.UpdatedAt = DateTime.UtcNow;
 
@@ -266,10 +335,10 @@ namespace SwiftFill.Controllers
 
             // Pricing from DB
             var rates = _context.ShippingRates.FirstOrDefault(r => r.DestinationRegion == model.DestinationRegion);
-            decimal totalAmount = 150 + (decimal)(model.Weight * 45); // Fallback
+            decimal totalAmount = 150 + (decimal)(model.Weight * 45) + packingFee; // Fallback + packing
             if (rates != null)
             {
-                totalAmount = rates.Calculate(model.Weight);
+                totalAmount = rates.Calculate(model.Weight) + packingFee;
             }
 
             var payment = new Payment

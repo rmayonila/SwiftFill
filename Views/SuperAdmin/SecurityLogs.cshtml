@@ -60,7 +60,9 @@
                             </td>
                             <td class="py-3">
                                 <div class="fw-bold text-warning small">@log.Actor</div>
-                                <div class="text-secondary" style="font-size: 0.7rem;">@log.Role</div>
+                                <div class="text-secondary" style="font-size: 0.7rem;">
+                                    @(log.Role == "WarehouseStaff" ? "Staff Account" : (log.Role == "Admin" ? "In-store Manager" : log.Role))
+                                </div>
                             </td>
                             <td class="py-3">
                                 <span class="badge" style="background: @log.BadgeColor; color: @log.BadgeTextColor; border: 1px solid @log.BadgeBorder; font-size: 0.7rem;">

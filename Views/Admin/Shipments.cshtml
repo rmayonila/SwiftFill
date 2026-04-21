@@ -84,7 +84,21 @@
                             </td>
                             <td class="py-3">
                                 <div class="text-white">@order.DestinationRegion</div>
-                                <div class="text-secondary x-small mb-1">@order.Weight kg | @(order.ItemCategory ?? "General")</div>
+                                <div class="text-secondary x-small mb-1">
+                                    @order.Weight kg | @(order.ItemCategory ?? "General")
+                                    @if (order.AvailPacking)
+                                    {
+                                        <span class="ms-1 px-1 rounded border border-warning text-warning" style="font-size: 0.6rem;" title="Packing Required/Fee">
+                                            <i class="bi bi-box-seam me-1"></i>₱@order.PackingFee
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="ms-1 px-1 rounded border border-success text-success" style="font-size: 0.6rem;" title="Self-Packed">
+                                            <i class="bi bi-person-check me-1"></i>Packed
+                                        </span>
+                                    }
+                                </div>
                                 @if (order.Payment != null)
                                 {
                                     <span class="badge border @(order.Payment.IsPaid ? "border-success text-success" : "border-warning text-warning") bg-transparent px-2" style="font-size: 0.6rem;">

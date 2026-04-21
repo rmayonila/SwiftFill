@@ -1,13 +1,9 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace SwiftFill.Models
 {
-    /// <summary>
-    /// A manually-entered rider record for non-Davao hub transfer hubs.
-    /// These riders are NOT system users — they are added by warehouse staff
-    /// for the purpose of local delivery assignment within a hub's service area.
-    /// </summary>
     public class ManualRider
     {
         [Key]
@@ -20,7 +16,7 @@ namespace SwiftFill.Models
         public string Phone { get; set; } = string.Empty;
 
         /// <summary>Hub this rider is assigned to (e.g. "Cebu Hub").</summary>
-        [Required, MaxLength(64)]
+        [MaxLength(64), ValidateNever]
         public string Hub { get; set; } = string.Empty;
 
         /// <summary>

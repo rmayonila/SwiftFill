@@ -66,6 +66,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cT3JkZXJTdW1tYXJ5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[c:/Users/PERSONAL/SwiftFill/Views/Admin/Pack.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cUGFjay5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [c:/Users/PERSONAL/SwiftFill/Views/Admin/Payments.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cUGF5bWVudHMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
@@ -220,6 +224,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [c:/Users/PERSONAL/SwiftFill/Views/Warehouse/PickingStation.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcV2FyZWhvdXNlXFBpY2tpbmdTdGF0aW9uLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[c:/Users/PERSONAL/SwiftFill/Views/Warehouse/TruckTracking.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcV2FyZWhvdXNlXFRydWNrVHJhY2tpbmcuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [c:/Users/PERSONAL/SwiftFill/Views/Warehouse/WarehouseQueue.cshtml]

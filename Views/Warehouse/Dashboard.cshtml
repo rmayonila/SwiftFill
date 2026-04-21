@@ -94,7 +94,10 @@
                 <th>Destination</th>
                 <th>Delivery Type</th>
                 <th>Status / Location</th>
-                <th>Assign Rider</th>
+                @if (currentHub != "Davao Hub")
+                {
+                    <th>Assign Rider</th>
+                }
                 <th>Action</th>
             </tr>
         </thead>
@@ -115,7 +118,7 @@
                 <tr>
                     <td class="text-warning fw-bold">#@item.TrackingId</td>
                     <td>
-                        <div class="fw-semibold text-black">@item.ReceiverName</div>
+                        <div class="fw-semibold text-white">@item.ReceiverName</div>
                         <div class="small text-secondary">@item.ReceiverAddress</div>
                     </td>
                     <td>@item.DestinationRegion</td>
@@ -141,36 +144,39 @@
                             <i class="bi bi-geo-alt me-1"></i>@item.CurrentLocation
                         </div>
                     </td>
-                    <td>
-                        @if (canRider)
-                        {
-                            <select class="form-select form-select-sm bg-dark text-white border-secondary rider-select" id="rider-@item.TrackingId" data-address="@item.ReceiverAddress">
-                                <option value="">Select Rider</option>
-                                @if (currentHub == "Davao Hub")
-                                {
-                                    @foreach (var rider in Model.AvailableRiders)
+                    @if (currentHub != "Davao Hub")
+                    {
+                        <td>
+                            @if (canRider)
+                            {
+                                <select class="form-select form-select-sm bg-dark text-white border-secondary rider-select" id="rider-@item.TrackingId" data-address="@item.ReceiverAddress">
+                                    <option value="">Select Rider</option>
+                                    @if (currentHub == "Davao Hub")
                                     {
-                                        <option value="@rider.Id">@rider.FirstName @rider.LastName</option>
+                                        @foreach (var rider in Model.AvailableRiders)
+                                        {
+                                            <option value="@rider.Id">@rider.FirstName @rider.LastName</option>
+                                        }
                                     }
-                                }
-                                else
-                                {
-                                    @foreach (var rider in Model.ManualRiders.Where(r => item.ReceiverAddress.Contains(r.Route, StringComparison.OrdinalIgnoreCase)))
+                                    else
                                     {
-                                        <option value="@rider.Id">@rider.Name (@rider.Route)</option>
+                                        @foreach (var rider in Model.ManualRiders.Where(r => item.ReceiverAddress.Contains(r.Route, StringComparison.OrdinalIgnoreCase)))
+                                        {
+                                            <option value="@rider.Id">@rider.Name (@rider.Route)</option>
+                                        }
                                     }
-                                }
-                            </select>
-                        }
-                        else if (isPickup)
-                        {
-                            <span class="text-info small">No rider needed</span>
-                        }
-                        else
-                        {
-                            <span class="text-secondary small">—</span>
-                        }
-                    </td>
+                                </select>
+                            }
+                            else if (isPickup)
+                            {
+                                <span class="text-info small">No rider needed</span>
+                            }
+                            else
+                            {
+                                <span class="text-secondary small">—</span>
+                            }
+                        </td>
+                    }
                     <td>
                         <div class="btn-group">
                             @if (canPick)

@@ -57,7 +57,7 @@
                         {
                             <div class="mt-2 p-2 rounded" style="background: rgba(0,0,0,0.3);">
                                 <div class="text-secondary" style="font-size:0.62rem; text-transform:uppercase; letter-spacing:1px;">Active Code</div>
-                                <div class="font-monospace fw-bold text-warning" style="font-size:1rem; letter-spacing:3px;">@activeCode!.Code</div>
+                                <div class="font-monospace fw-bold text-warning" style="font-size:1rem; letter-spacing:normal;">@activeCode!.Code</div>
                                 <div class="text-secondary mt-1" style="font-size:0.62rem;">Set by: @(activeCode.CreatedBy ?? "System")</div>
                             </div>
                             <form asp-action="DeleteHubCode" method="post" class="mt-2"
@@ -101,12 +101,12 @@
                 @foreach (var code in Model.OrderByDescending(c => c.CreatedAt))
                 {
                     <tr>
-                        <td class="fw-semibold text-black">
+                        <td class="fw-semibold text-white">
                             <i class="bi bi-geo-alt me-1 text-warning"></i>@code.HubName
                         </td>
                         <td>
                             <span class="font-monospace fw-bold @(code.IsActive ? "text-warning" : "text-secondary")"
-                                  style="letter-spacing: 2px; font-size: 1rem;">@code.Code</span>
+                                  style="letter-spacing: normal; font-size: 1rem;">@code.Code</span>
                         </td>
                         <td>
                             @if (code.IsActive)
