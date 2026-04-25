@@ -39,7 +39,19 @@
                     <td>@item.DestinationRegion</td>
                     <td>@item.Weight kg</td>
                     <td>
-                        <button class="btn btn-sm btn-outline-info">Generate Manifest</button>
+                        <form asp-action="MarkShipped" method="post" class="d-flex gap-2">
+                            <input type="hidden" name="trackingId" value="@item.TrackingId" />
+                            <select name="targetHub" class="form-select form-select-sm bg-dark text-white border-secondary" style="width: 150px;" required>
+                                <option value="">Next Hub</option>
+                                @foreach(var h in (ViewBag.Hubs as List<string> ?? new List<string>()).Where(x => x != ViewBag.CurrentHub))
+                                {
+                                    <option value="@h">@h</option>
+                                }
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-success">
+                                <i class="bi bi-send-fill me-1"></i>Ship Out
+                            </button>
+                        </form>
                     </td>
                 </tr>
             }

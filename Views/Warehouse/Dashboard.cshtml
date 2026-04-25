@@ -22,30 +22,24 @@
                 <div style="font-size: 0.7rem; color: rgba(255,255,255,0.35);">@hubInfo.Region · @hubInfo.Island</div>
             }
         </div>
-        <a href="/Account/SelectHub" class="btn btn-sm btn-outline-secondary border-secondary text-secondary">
-            <i class="bi bi-arrow-repeat me-1"></i> Switch Hub
-        </a>
     </div>
 </div>
 
 <div class="row g-4 mb-5">
-    @if (currentHub == "Davao Hub")
-    {
-        <div class="col-md-3">
-            <div class="stat-card yellow">
-                <div class="stat-label">Pending Pick</div>
-                <div class="stat-value">@Model.PendingPickOrders.Count</div>
-                <div class="stat-subtext">Awaiting Warehouse Staff</div>
-            </div>
+    <div class="col-md-3">
+        <div class="stat-card yellow">
+            <div class="stat-label">Pending Pick</div>
+            <div class="stat-value">@Model.PendingPickOrders.Count</div>
+            <div class="stat-subtext">Awaiting Warehouse Staff</div>
         </div>
-        <div class="col-md-3">
-            <div class="stat-card blue">
-                <div class="stat-label">In Packing</div>
-                <div class="stat-value">@Model.PickedOrders.Count</div>
-                <div class="stat-subtext">Currently at Packing Table</div>
-            </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card blue">
+            <div class="stat-label">In Packing</div>
+            <div class="stat-value">@Model.PickedOrders.Count</div>
+            <div class="stat-subtext">Currently at Packing Table</div>
         </div>
-    }
+    </div>
     <div class="col-md-3">
         <div class="stat-card green">
             <div class="stat-label">Ready to Ship</div>
@@ -63,9 +57,18 @@
 </div>
 
 <div class="module-toolbar">
-    <div class="search-container">
-        <i class="bi bi-search"></i>
-        <input type="text" id="searchInput" placeholder="Search Tracking ID, Receiver..." oninput="filterTable(this.value)" />
+    <div class="d-flex gap-2 align-items-center w-100 flex-wrap">
+        <div class="search-container flex-grow-1">
+            <i class="bi bi-search"></i>
+            <input type="text" id="searchInput" placeholder="Search Tracking ID, Receiver..." oninput="filterTable(this.value)" />
+        </div>
+        <form asp-action="QuickReceive" method="post" class="d-flex gap-2">
+            <div class="search-container" style="max-width: 250px;">
+                <i class="bi bi-qr-code-scan"></i>
+                <input type="text" name="trackingId" placeholder="Scan to Receive..." required autocomplete="off" />
+            </div>
+            <button type="submit" class="btn btn-primary fw-bold" style="border-radius: 8px;">Receive</button>
+        </form>
     </div>
 </div>
 
@@ -94,10 +97,7 @@
                 <th>Destination</th>
                 <th>Delivery Type</th>
                 <th>Status / Location</th>
-                @if (currentHub != "Davao Hub")
-                {
-                    <th>Assign Rider</th>
-                }
+                <th>Assign Rider</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -110,10 +110,12 @@
                 var isArrived  = item.Status.StartsWith($"Arrived at {currentHub}");
                 var canPick    = isLocal && item.Status == "Pending";
                 var canPack    = isLocal && item.Status == "Picked";
-                var canShip    = isLocal && item.Status == "Packed";
+                var canShip    = isLocal && (item.Status == "Packed" || item.Status == "Sorted for Transfer");
                 var canReceive = isInbound;
-                var canRider   = isArrived && item.DeliveryType == "DoorToDoor";
-                var isPickup   = isArrived && item.DeliveryType == "BranchPickup";
+                var isFinalDest = HubRegistry.ResolveDestinationHub(item.DestinationRegion) == currentHub;
+                var canSort    = isArrived && !item.Status.Contains("Sorted") && !isFinalDest;
+                var canRider   = isArrived && item.DeliveryType == "DoorToDoor" && !canSort;
+                var isPickup   = isArrived && item.DeliveryType == "BranchPickup" && !canSort;
 
                 <tr>
                     <td class="text-warning fw-bold">#@item.TrackingId</td>
@@ -144,39 +146,30 @@
                             <i class="bi bi-geo-alt me-1"></i>@item.CurrentLocation
                         </div>
                     </td>
-                    @if (currentHub != "Davao Hub")
-                    {
-                        <td>
-                            @if (canRider)
-                            {
-                                <select class="form-select form-select-sm bg-dark text-white border-secondary rider-select" id="rider-@item.TrackingId" data-address="@item.ReceiverAddress">
-                                    <option value="">Select Rider</option>
-                                    @if (currentHub == "Davao Hub")
-                                    {
-                                        @foreach (var rider in Model.AvailableRiders)
-                                        {
-                                            <option value="@rider.Id">@rider.FirstName @rider.LastName</option>
-                                        }
-                                    }
-                                    else
-                                    {
-                                        @foreach (var rider in Model.ManualRiders.Where(r => item.ReceiverAddress.Contains(r.Route, StringComparison.OrdinalIgnoreCase)))
-                                        {
-                                            <option value="@rider.Id">@rider.Name (@rider.Route)</option>
-                                        }
-                                    }
-                                </select>
-                            }
-                            else if (isPickup)
-                            {
-                                <span class="text-info small">No rider needed</span>
-                            }
-                            else
-                            {
-                                <span class="text-secondary small">—</span>
-                            }
-                        </td>
-                    }
+                    <td>
+                        @if (canRider)
+                        {
+                            <select class="form-select form-select-sm bg-dark text-white border-secondary rider-select" id="rider-@item.TrackingId" data-address="@item.ReceiverAddress">
+                                <option value="">Select Rider</option>
+                                @foreach (var rider in Model.AvailableRiders)
+                                {
+                                    <option value="@rider.Id">@rider.FirstName @rider.LastName</option>
+                                }
+                                @foreach (var rider in Model.ManualRiders.Where(r => item.ReceiverAddress.Contains(r.Route, StringComparison.OrdinalIgnoreCase)))
+                                {
+                                    <option value="@rider.Id">@rider.Name (@rider.Route)</option>
+                                }
+                            </select>
+                        }
+                        else if (isPickup)
+                        {
+                            <span class="text-info small">No rider needed</span>
+                        }
+                        else
+                        {
+                            <span class="text-secondary small">—</span>
+                        }
+                    </td>
                     <td>
                         <div class="btn-group">
                             @if (canPick)
@@ -199,10 +192,26 @@
                             }
                             else if (canShip)
                             {
-                                <form asp-action="MarkShipped" method="post">
+                                <form asp-action="MarkShipped" method="post" class="d-flex gap-1">
                                     <input type="hidden" name="trackingId" value="@item.TrackingId" />
+                                    <select name="targetHub" class="form-select form-select-sm bg-dark text-white border-secondary" style="width: 130px;" required>
+                                        <option value="">Next Hub</option>
+                                        @foreach(var h in Model.Hubs.Where(x => x != currentHub))
+                                        {
+                                            <option value="@h">@h</option>
+                                        }
+                                    </select>
                                     <button type="submit" class="btn btn-sm btn-success">
-                                        <i class="bi bi-send me-1"></i>Ship Out
+                                        <i class="bi bi-send-fill"></i>
+                                    </button>
+                                </form>
+                            }
+                            else if (canSort)
+                            {
+                                <form asp-action="MarkSorted" method="post">
+                                    <input type="hidden" name="trackingId" value="@item.TrackingId" />
+                                    <button type="submit" class="btn btn-sm btn-outline-info">
+                                        <i class="bi bi-filter-circle me-1"></i>Sort for Transfer
                                     </button>
                                 </form>
                             }

@@ -24,9 +24,24 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 builder.Services.AddControllersWithViews();
+builder.Services.AddAuthorization(options =>
+{
+    foreach (var permission in SwiftFill.Models.Permissions.GetAll())
+    {
+        options.AddPolicy(permission, policy => policy.RequireClaim("Permission", permission));
+    }
+    
+    // Legacy support or combined policies
+    options.AddPolicy("CanManageShipments", policy => policy.RequireClaim("Permission", SwiftFill.Models.Permissions.Shipments.Edit));
+    options.AddPolicy("CanManageInventory", policy => policy.RequireClaim("Permission", SwiftFill.Models.Permissions.Inventory.Edit));
+    options.AddPolicy("CanViewReports", policy => policy.RequireClaim("Permission", SwiftFill.Models.Permissions.Finance.View));
+    options.AddPolicy("CanManageBilling", policy => policy.RequireClaim("Permission", SwiftFill.Models.Permissions.Finance.Edit));
+});
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<SwiftFill.Services.OrderService>();
 builder.Services.AddSingleton<SwiftFill.Services.AuditLogService>();
+builder.Services.AddHttpClient<SwiftFill.Services.GoogleMapsService>();
+builder.Services.AddScoped<SwiftFill.Services.GoogleMapsService>();
 
 var app = builder.Build();
 

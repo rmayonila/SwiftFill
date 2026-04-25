@@ -146,18 +146,18 @@
                             </td>
                             <td class="py-3 pe-4 text-end">
                                 <div class="d-flex justify-content-end gap-2">
-                                    <a asp-action="OrderSummary" asp-route-trackingId="@order.TrackingId" class="btn btn-sm btn-outline-secondary border-0 p-1" title="View Summary">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary border-0 p-1" title="View Summary" 
+                                            onclick="viewOrderDetails('@order.TrackingId')">
                                         <i class="bi bi-file-earmark-text"></i>
-                                    </a>
-                                    <a asp-action="EditOrder" asp-route-trackingId="@order.TrackingId" class="btn btn-sm btn-outline-warning border-0 p-1" title="Edit Order">
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-warning border-0 p-1" title="Edit Order" 
+                                            onclick="editOrder('@order.TrackingId')">
                                         <i class="bi bi-pencil-square"></i>
-                                    </a>
-                                    <form asp-action="ArchiveOrder" method="post" class="d-inline">
-                                        <input type="hidden" name="trackingId" value="@order.TrackingId" />
-                                        <button type="submit" class="btn btn-sm btn-outline-danger border-0 p-1" title="Archive Order" onclick="return confirm('Archive this order?')">
-                                            <i class="bi bi-archive"></i>
-                                        </button>
-                                    </form>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger border-0 p-1" title="Archive Order" 
+                                            onclick="confirmArchive('@order.TrackingId')">
+                                        <i class="bi bi-archive"></i>
+                                    </button>
                                 </div>
                                 <div class="x-small text-secondary mt-1">@order.UpdatedAt.ToString("MMM dd HH:mm")</div>
                             </td>
@@ -168,167 +168,250 @@
         </div>
     </div>
 
-    <!-- Pagination -->
-    @if (ViewBag.TotalPages > 1)
-    {
-        <nav class="mt-4">
-            <ul class="pagination pagination-sm justify-content-center">
-                <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
-                    <a class="page-link bg-dark border-0 text-secondary px-3" href="?page=@(ViewBag.CurrentPage - 1)&search=@ViewBag.Search&status=@ViewBag.Status&region=@ViewBag.Region">Previous</a>
-                </li>
-                @for (int i = 1; i <= ViewBag.TotalPages; i++)
-                {
-                    <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
-                        <a class="page-link @(ViewBag.CurrentPage == i ? "bg-orange border-0" : "bg-dark border-0 text-secondary") mx-1 rounded" href="?page=@i&search=@ViewBag.Search&status=@ViewBag.Status&region=@ViewBag.Region">@i</a>
-                    </li>
-                }
-                <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
-                    <a class="page-link bg-dark border-0 text-secondary px-3" href="?page=@(ViewBag.CurrentPage + 1)&search=@ViewBag.Search&status=@ViewBag.Status&region=@ViewBag.Region">Next</a>
-                </li>
-            </ul>
-        </nav>
-    }
 </div>
 
-<!-- Manual Order Modal -->
-<div class="modal fade" id="manualOrderModal" tabindex="-1">
+<!-- View Order Details Modal -->
+<div class="modal fade" id="orderDetailsModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content glass-modal p-2">
+        <div class="modal-content border-0 shadow-lg" style="background: #0a0a0a; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05) !important;">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle text-orange me-2"></i> Manual Order Entry</h5>
+                <h5 class="modal-title text-white fw-bold"><i class="bi bi-file-earmark-text text-warning me-2"></i> Shipment Waybill</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <div class="step-indicator">
-                    <div class="step-dot active" id="dot1"></div>
-                    <div class="step-dot" id="dot2"></div>
-                    <div class="step-dot" id="dot3"></div>
-                    <div class="step-dot" id="dot4"></div>
+            <div class="modal-body p-4" id="orderDetailsContent">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-warning" role="status"></div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-warning fw-bold" onclick="window.print()">Print Waybill</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Order Modal -->
+<div class="modal fade" id="editOrderModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="background: #0f0f0f; border-radius: 16px; border: 1px solid rgba(255,140,0,0.1) !important;">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-white fw-bold"><i class="bi bi-pencil-square text-orange me-2"></i> Update Shipment Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-0">
+                <form asp-action="EditOrder" method="post" id="editOrderForm">
+                    <input type="hidden" name="TrackingId" id="editTrackingId" />
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <h6 class="text-secondary x-small text-uppercase mb-3">Sender Details</h6>
+                            <input type="text" name="SenderName" id="editSenderName" class="minimal-input w-100 mb-2" placeholder="Full Name" required>
+                            <input type="text" name="SenderPhone" id="editSenderPhone" class="minimal-input w-100 mb-2" placeholder="Phone Number" required>
+                            <textarea name="SenderAddress" id="editSenderAddress" class="minimal-input w-100" placeholder="Pickup Address" rows="2" required></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-secondary x-small text-uppercase mb-3">Receiver Details</h6>
+                            <input type="text" name="ReceiverName" id="editReceiverName" class="minimal-input w-100 mb-2" placeholder="Full Name" required>
+                            <input type="text" name="ReceiverPhone" id="editReceiverPhone" class="minimal-input w-100 mb-2" placeholder="Phone Number" required>
+                            <textarea name="ReceiverAddress" id="editReceiverAddress" class="minimal-input w-100" placeholder="Delivery Address" rows="2" required></textarea>
+                        </div>
+                        <div class="col-12"><hr class="border-white border-opacity-5"></div>
+                        <div class="col-md-3">
+                            <label class="text-secondary x-small mb-1">Weight (kg)</label>
+                            <input type="number" name="Weight" id="editWeight" class="minimal-input w-100" step="0.1" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="text-secondary x-small mb-1">Category</label>
+                            <select name="ItemCategory" id="editCategory" class="minimal-input w-100">
+                                <option value="Electronics">Electronics</option>
+                                <option value="Apparel">Apparel</option>
+                                <option value="Documents">Documents</option>
+                                <option value="Fragile">Fragile</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="text-secondary x-small mb-1">Value (PHP)</label>
+                            <input type="number" name="DeclaredValue" id="editValue" class="minimal-input w-100" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="text-secondary x-small mb-1">Destination</label>
+                            <select name="DestinationRegion" id="editRegion" class="minimal-input w-100" required>
+                                <option value="NCR">Metro Manila</option>
+                                <option value="Luzon">Luzon</option>
+                                <option value="Visayas">Visayas</option>
+                                <option value="Mindanao">Mindanao</option>
+                            </select>
+                        </div>
+                        <div class="col-12 mt-4">
+                            <label class="text-secondary x-small mb-1">Update Payment Mode</label>
+                            <select name="PaymentMethod" id="editPaymentMethod" class="minimal-input w-100 text-orange fw-bold">
+                                <option value="Pending Hub Verification">Pending Hub Verification</option>
+                                <option value="Cash">Cash (Paid at Hub)</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                                <option value="COD">Collect on Drop (COD)</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="editOrderForm" class="btn btn-primary px-4 fw-bold" style="background:#FF8C00;">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Archive Confirmation Modal -->
+<div class="modal fade" id="archiveModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+        <div class="modal-content border-0 shadow-lg" style="background: #0a0a0a; border-radius: 16px; border: 1px solid rgba(220,53,69,0.2) !important;">
+            <div class="modal-body text-center p-4">
+                <div class="display-4 text-danger mb-3"><i class="bi bi-exclamation-octagon"></i></div>
+                <h5 class="text-white fw-bold mb-2">Archive Shipment?</h5>
+                <p class="text-secondary small mb-4">Are you sure you want to archive <strong id="archiveTrackingId" class="text-white"></strong>? This will remove it from active management.</p>
+                <form asp-action="ArchiveOrder" method="post" id="archiveForm">
+                    <input type="hidden" name="trackingId" id="archiveTrackingIdInput" />
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-dark flex-fill" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger flex-fill fw-bold">Yes, Archive</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Manual Order Multi-Step Modal -->
+<div class="modal fade" id="manualOrderModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="background: #0f0f0f; border-radius: 16px; border: 1px solid rgba(255,140,0,0.1) !important;">
+            <div class="modal-header border-0 pb-0">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-orange d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                        <i class="bi bi-plus-lg text-black fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title text-white fw-bold mb-0">Create New Shipment</h5>
+                        <p class="text-secondary x-small mb-0">Manual booking for walk-in customers</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <!-- Progress Stepper -->
+                <div class="d-flex justify-content-center mb-4 gap-2">
+                    <div id="dot1" class="step-dot active"></div>
+                    <div id="dot2" class="step-dot"></div>
+                    <div id="dot3" class="step-dot"></div>
+                    <div id="dot4" class="step-dot"></div>
                 </div>
 
                 <form asp-action="CreateManualOrder" method="post" id="manualOrderForm">
-                    <!-- Step 1: Logistics Entities -->
-                    <div class="step-content" id="step1">
-                        <div class="row g-4">
+                    <!-- Step 1: Core Specs -->
+                    <div id="step1" class="animate-fade-in">
+                        <h6 class="text-white mb-3"><i class="bi bi-1-circle text-orange me-2"></i> Logistics Core</h6>
+                        <div class="row g-3">
                             <div class="col-md-6">
-                                <h6 class="text-white-50 x-small text-uppercase ls-1 mb-3">Sender Details</h6>
-                                <input type="text" name="SenderName" class="minimal-input w-100 mb-3" placeholder="Full Name" required>
-                                <input type="text" name="SenderPhone" class="minimal-input w-100 mb-3" placeholder="09XXXXXXXXX" required pattern="09[0-9]{9}">
-                                <textarea name="SenderAddress" class="minimal-input w-100" placeholder="Pickup Address" rows="2" required></textarea>
+                                <label class="text-secondary x-small mb-2 d-block">Origin Hub</label>
+                                <select name="originHub" class="minimal-input w-100">
+                                    @foreach(var hub in SwiftFill.Models.HubRegistry.Names) {
+                                        <option value="@hub">@hub</option>
+                                    }
+                                </select>
                             </div>
                             <div class="col-md-6">
-                                <h6 class="text-white-50 x-small text-uppercase ls-1 mb-3">Receiver Details</h6>
-                                <input type="text" name="ReceiverName" class="minimal-input w-100 mb-3" placeholder="Full Name" required>
-                                <input type="text" name="ReceiverPhone" class="minimal-input w-100 mb-3" placeholder="09XXXXXXXXX" required pattern="09[0-9]{9}">
-                                <textarea name="ReceiverAddress" class="minimal-input w-100" placeholder="Delivery Address" rows="2" required></textarea>
+                                <label class="text-secondary x-small mb-2 d-block">Destination Region</label>
+                                <select name="DestinationRegion" class="minimal-input w-100" required>
+                                    <option value="NCR">Metro Manila (NCR)</option>
+                                    <option value="Luzon">Luzon Region</option>
+                                    <option value="Visayas">Visayas Region</option>
+                                    <option value="Mindanao">Mindanao Region</option>
+                                </select>
                             </div>
                             <div class="col-12">
-                                <label class="text-secondary x-small mb-1">
-                                    <i class="bi bi-geo-alt-fill text-orange me-1"></i> Origin Hub (Where is the parcel being sent FROM?)
-                                </label>
-                                <select name="originHub" class="minimal-input w-100" required>
-                                    <option value="Davao Hub">Davao Hub — Davao Region · Mindanao</option>
-                                    <option value="Manila Hub">Manila Hub — National Capital Region · Luzon</option>
-                                    <option value="Cebu Hub">Cebu Hub — Central Visayas · Visayas</option>
-                                    <option value="Cagayan de Oro Hub">Cagayan de Oro Hub — Northern Mindanao</option>
-                                    <option value="Iloilo Hub">Iloilo Hub — Western Visayas · Visayas</option>
-                                    <option value="Bacolod Hub">Bacolod Hub — Negros Occidental · Visayas</option>
-                                    <option value="Zamboanga Hub">Zamboanga Hub — Zamboanga Peninsula · Mindanao</option>
-                                    <option value="General Santos Hub">General Santos Hub — Region XII · Mindanao</option>
-                                </select>
+                                <label class="text-secondary x-small mb-3 d-block">Delivery Mode</label>
+                                <div class="row g-3">
+                                    <div class="col-6">
+                                        <input type="radio" class="btn-check" name="deliveryType" id="modeD2D" value="DoorToDoor" checked>
+                                        <label class="btn btn-outline-secondary delivery-type-card p-3 w-100 text-start border-secondary border-opacity-10" for="modeD2D">
+                                            <i class="bi bi-house-door text-orange fs-4 d-block mb-2"></i>
+                                            <div class="text-white fw-bold small">Door-to-Door</div>
+                                            <div class="text-secondary x-small">Delivery to receiver address</div>
+                                        </label>
+                                    </div>
+                                    <div class="col-6">
+                                        <input type="radio" class="btn-check" name="deliveryType" id="modePickup" value="BranchPickup">
+                                        <label class="btn btn-outline-secondary delivery-type-card p-3 w-100 text-start border-secondary border-opacity-10" for="modePickup">
+                                            <i class="bi bi-building text-orange fs-4 d-block mb-2"></i>
+                                            <div class="text-white fw-bold small">Branch Pickup</div>
+                                            <div class="text-secondary x-small">Claim at destination hub</div>
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
+                    <!-- Step 2: Sender -->
+                    <div id="step2" class="d-none animate-fade-in">
+                        <h6 class="text-white mb-3"><i class="bi bi-2-circle text-orange me-2"></i> Sender Information</h6>
+                        <input type="text" name="SenderName" class="minimal-input w-100 mb-3" placeholder="Full Name" required>
+                        <input type="text" name="SenderPhone" class="minimal-input w-100 mb-3" placeholder="Contact Number (+63...)" required>
+                        <textarea name="SenderAddress" class="minimal-input w-100" placeholder="Street Address, Barangay, City" rows="3" required></textarea>
+                    </div>
 
-                    <!-- Step 2: Item Telemetry -->
-                    <div class="step-content d-none" id="step2">
-                        <div class="row g-4 pt-2">
-                            <div class="col-md-4">
+                    <!-- Step 3: Receiver -->
+                    <div id="step3" class="d-none animate-fade-in">
+                        <h6 class="text-white mb-3"><i class="bi bi-3-circle text-orange me-2"></i> Receiver Information</h6>
+                        <input type="text" name="ReceiverName" class="minimal-input w-100 mb-3" placeholder="Full Name" required>
+                        <input type="text" name="ReceiverPhone" class="minimal-input w-100 mb-3" placeholder="Contact Number (+63...)" required>
+                        <textarea name="ReceiverAddress" class="minimal-input w-100" placeholder="Complete Delivery Address" rows="3" required></textarea>
+                    </div>
+
+                    <!-- Step 4: Package & Payment -->
+                    <div id="step4" class="d-none animate-fade-in">
+                        <h6 class="text-white mb-3"><i class="bi bi-4-circle text-orange me-2"></i> Package & Payment</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="text-secondary x-small mb-1">Weight (kg)</label>
+                                <input type="number" name="Weight" class="minimal-input w-100" step="0.1" value="1.0" required>
+                            </div>
+                            <div class="col-md-6">
                                 <label class="text-secondary x-small mb-1">Item Category</label>
                                 <select name="ItemCategory" class="minimal-input w-100">
+                                    <option value="General">General Merchandise</option>
                                     <option value="Electronics">Electronics</option>
                                     <option value="Apparel">Apparel</option>
                                     <option value="Documents">Documents</option>
-                                    <option value="Fragile">Fragile</option>
+                                    <option value="Fragile">Fragile Items</option>
                                 </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="text-secondary x-small mb-1">Weight (kg)</label>
-                                <input type="number" name="Weight" class="minimal-input w-100" placeholder="0.0" step="0.1" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="text-secondary x-small mb-1">Declared Value (PHP)</label>
-                                <input type="number" name="DeclaredValue" class="minimal-input w-100" placeholder="500.00" required>
                             </div>
                             <div class="col-12">
-                                <label class="text-secondary x-small mb-1">Destination Region</label>
-                                <select name="DestinationRegion" class="minimal-input w-100" required>
-                                    <option value="NCR">Metro Manila</option>
-                                    <option value="Luzon">Luzon</option>
-                                    <option value="Visayas">Visayas</option>
-                                    <option value="Mindanao">Mindanao</option>
+                                <label class="text-secondary x-small mb-1">Payment Method</label>
+                                <select name="paymentMethod" class="minimal-input w-100 fw-bold text-orange">
+                                    <option value="COD">Cash on Delivery (COD)</option>
+                                    <option value="Prepaid">Prepaid (Paid at Origin)</option>
+                                    <option value="GCash">GCash / Digital</option>
                                 </select>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Step 3: Delivery Type -->
-                    <div class="step-content d-none" id="step3">
-                        <div class="text-center py-3">
-                            <i class="bi bi-truck display-5 text-orange mb-3 opacity-50"></i>
-                            <h6 class="text-white mb-1">How will the parcel be delivered?</h6>
-                            <p class="text-secondary x-small mb-4">This determines if a rider will be needed at the destination hub.</p>
-                            <div class="d-flex justify-content-center gap-3 mt-2">
-                                <div class="flex-fill" style="max-width: 220px;">
-                                    <input type="radio" class="btn-check" name="deliveryType" id="dtDoor" value="DoorToDoor" checked>
-                                    <label class="btn btn-outline-secondary border-secondary p-4 w-100 text-start delivery-type-card" for="dtDoor">
-                                        <div class="mb-2"><i class="bi bi-truck fs-4 text-orange"></i></div>
-                                        <div class="fw-bold text-white mb-1">Door-to-Door</div>
-                                        <div class="x-small text-secondary">A rider will deliver the parcel directly to the receiver's address.</div>
-                                    </label>
-                                </div>
-                                <div class="flex-fill" style="max-width: 220px;">
-                                    <input type="radio" class="btn-check" name="deliveryType" id="dtPickup" value="BranchPickup">
-                                    <label class="btn btn-outline-secondary border-secondary p-4 w-100 text-start delivery-type-card" for="dtPickup">
-                                        <div class="mb-2"><i class="bi bi-building fs-4 text-info"></i></div>
-                                        <div class="fw-bold text-white mb-1">Branch Pickup</div>
-                                        <div class="x-small text-secondary">Receiver picks up from the nearest SwiftFill branch. No rider needed.</div>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Step 4: Payment -->
-                    <div class="step-content d-none" id="step4">
-                        <div class="text-center py-4">
-                            <i class="bi bi-wallet2 display-5 text-orange mb-3 opacity-50"></i>
-                            <h6 class="text-white">Select Payment Mode</h6>
-                            <div class="d-flex justify-content-center gap-3 mt-4">
-                                <div class="flex-fill">
-                                    <input type="radio" class="btn-check" name="paymentMethod" id="prepaid" value="Prepaid" checked>
-                                    <label class="btn btn-outline-secondary border-secondary p-4 w-100" for="prepaid">
-                                        <div class="h5 mb-1">Prepaid</div>
-                                        <div class="x-small opacity-50">Paid via Hub</div>
-                                    </label>
-                                </div>
-                                <div class="flex-fill">
-                                    <input type="radio" class="btn-check" name="paymentMethod" id="cod" value="COD">
-                                    <label class="btn btn-outline-secondary border-secondary p-4 w-100" for="cod">
-                                        <div class="h5 mb-1">COD</div>
-                                        <div class="x-small opacity-50">Collect on Drop</div>
-                                    </label>
+                            <div class="col-12">
+                                <div class="p-3 rounded bg-dark border border-secondary border-opacity-10 d-flex justify-content-between align-items-center">
+                                    <div class="form-check form-switch mb-0">
+                                        <input class="form-check-input" type="checkbox" name="availPacking" id="availPacking" value="true">
+                                        <label class="form-check-label text-white small" for="availPacking">Apply Packing Services</label>
+                                    </div>
+                                    <input type="number" name="packingFee" class="minimal-input text-end" style="width: 100px;" value="0" placeholder="Fee">
                                 </div>
                             </div>
                         </div>
                     </div>
                 </form>
             </div>
-            <div class="modal-footer border-0 pt-0 pb-4 px-4">
-                <button type="button" class="btn btn-outline-secondary px-4 me-auto border-0" id="prevBtn" style="display:none;">Back</button>
-                <button type="button" class="btn btn-primary px-5 py-2 shadow-sm border-0" id="nextBtn" style="background:#FF8C00;">Next</button>
-                <button type="submit" form="manualOrderForm" class="btn btn-primary px-5 py-2 shadow-sm border-0" id="submitOrderBtn" style="display:none; background:#FF8C00;">Complete Entry</button>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-dark px-4" id="prevBtn" style="display: none;">Back</button>
+                <button type="button" class="btn btn-primary px-4 fw-bold" id="nextBtn" style="background:#FF8C00;">Continue</button>
+                <button type="submit" form="manualOrderForm" class="btn btn-primary px-4 fw-bold" id="submitOrderBtn" style="background:#FF8C00; display: none;">Book Shipment</button>
             </div>
         </div>
     </div>
@@ -336,46 +419,150 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Manual Order Stepper
         const nextBtn = document.getElementById('nextBtn');
         const prevBtn = document.getElementById('prevBtn');
         const submitBtn = document.getElementById('submitOrderBtn');
         const totalSteps = 4;
         let currentStep = 1;
 
-        nextBtn.addEventListener('click', () => {
-            if (currentStep < totalSteps) {
-                document.getElementById(`step${currentStep}`).classList.add('d-none');
-                document.getElementById(`dot${currentStep}`).classList.remove('active');
-                currentStep++;
-                document.getElementById(`step${currentStep}`).classList.remove('d-none');
-                document.getElementById(`dot${currentStep}`).classList.add('active');
-            }
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                if (currentStep < totalSteps) {
+                    document.getElementById(`step${currentStep}`).classList.add('d-none');
+                    document.getElementById(`dot${currentStep}`).classList.remove('active');
+                    currentStep++;
+                    document.getElementById(`step${currentStep}`).classList.remove('d-none');
+                    document.getElementById(`dot${currentStep}`).classList.add('active');
+                }
 
-            if (currentStep === totalSteps) {
-                nextBtn.style.display = 'none';
-                submitBtn.style.display = 'block';
-            }
-            prevBtn.style.display = 'block';
-        });
+                if (currentStep === totalSteps) {
+                    nextBtn.style.display = 'none';
+                    submitBtn.style.display = 'block';
+                }
+                prevBtn.style.display = 'block';
+            });
+        }
 
-        prevBtn.addEventListener('click', () => {
-            if (currentStep > 1) {
-                document.getElementById(`step${currentStep}`).classList.add('d-none');
-                document.getElementById(`dot${currentStep}`).classList.remove('active');
-                currentStep--;
-                document.getElementById(`step${currentStep}`).classList.remove('d-none');
-                document.getElementById(`dot${currentStep}`).classList.add('active');
-            }
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                if (currentStep > 1) {
+                    document.getElementById(`step${currentStep}`).classList.add('d-none');
+                    document.getElementById(`dot${currentStep}`).classList.remove('active');
+                    currentStep--;
+                    document.getElementById(`step${currentStep}`).classList.remove('d-none');
+                    document.getElementById(`dot${currentStep}`).classList.add('active');
+                }
 
-            if (currentStep < totalSteps) {
-                nextBtn.style.display = 'block';
-                submitBtn.style.display = 'none';
-            }
-            if (currentStep === 1) {
-                prevBtn.style.display = 'none';
-            }
-        });
+                if (currentStep < totalSteps) {
+                    nextBtn.style.display = 'block';
+                    submitBtn.style.display = 'none';
+                }
+                if (currentStep === 1) {
+                    prevBtn.style.display = 'none';
+                }
+            });
+        }
     });
+
+    function viewOrderDetails(trackingId) {
+        const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
+        const content = document.getElementById('orderDetailsContent');
+        content.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-warning" role="status"></div></div>';
+        modal.show();
+
+        fetch(`/Admin/GetOrderJson?trackingId=${trackingId}`)
+            .then(r => r.json())
+            .then(order => {
+                content.innerHTML = `
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <div class="p-3 rounded bg-dark border border-secondary border-opacity-10">
+                                <label class="text-secondary x-small text-uppercase ls-1 d-block mb-2">Sender</label>
+                                <div class="fw-bold text-white fs-5">${order.senderName}</div>
+                                <div class="text-secondary small mb-1">${order.senderAddress}</div>
+                                <div class="text-warning small">${order.senderPhone}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 rounded bg-dark border border-secondary border-opacity-10">
+                                <label class="text-secondary x-small text-uppercase ls-1 d-block mb-2">Receiver</label>
+                                <div class="fw-bold text-white fs-5">${order.receiverName}</div>
+                                <div class="text-secondary small mb-1">${order.receiverAddress}</div>
+                                <div class="text-warning small">${order.receiverPhone}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-3 rounded bg-dark border border-secondary border-opacity-10 mb-4">
+                        <label class="text-secondary x-small text-uppercase ls-1 d-block mb-3">Package Telemetry</label>
+                        <div class="row text-center">
+                            <div class="col-3">
+                                <div class="text-secondary x-small">Weight</div>
+                                <div class="fw-bold text-white">${order.weight} kg</div>
+                            </div>
+                            <div class="col-3">
+                                <div class="text-secondary x-small">Category</div>
+                                <div class="fw-bold text-white">${order.itemCategory || 'General'}</div>
+                            </div>
+                            <div class="col-3">
+                                <div class="text-secondary x-small">Hub Origin</div>
+                                <div class="fw-bold text-white">${order.originHub}</div>
+                            </div>
+                            <div class="col-3">
+                                <div class="text-secondary x-small">Status</div>
+                                <div class="fw-bold text-orange">${order.status}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center p-3 rounded bg-dark-soft border border-warning border-opacity-20">
+                        <div>
+                            <div class="text-secondary x-small text-uppercase">Payment Amount</div>
+                            <div class="fw-bold text-warning fs-4">₱${(order.payment?.amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="text-secondary x-small text-uppercase">Method & Status</div>
+                            <div class="fw-bold text-white">${order.payment?.method || 'Unspecified'}</div>
+                            <span class="badge ${order.payment?.isPaid ? 'bg-success' : 'bg-danger'} p-1 px-2" style="font-size:0.6rem">
+                                ${order.payment?.isPaid ? 'PAID' : 'UNPAID'}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="text-center mt-5">
+                        <div class="barcode-sim mx-auto mb-2" style="height: 40px; width: 200px; background: repeating-linear-gradient(90deg, #fff, #fff 2px, #000 2px, #000 4px);"></div>
+                        <code class="fs-4 text-white">${order.trackingId}</code>
+                    </div>
+                `;
+            });
+    }
+
+    function editOrder(trackingId) {
+        const modal = new bootstrap.Modal(document.getElementById('editOrderModal'));
+        modal.show();
+
+        fetch(`/Admin/GetOrderJson?trackingId=${trackingId}`)
+            .then(r => r.json())
+            .then(order => {
+                document.getElementById('editTrackingId').value = order.trackingId;
+                document.getElementById('editSenderName').value = order.senderName;
+                document.getElementById('editSenderPhone').value = order.senderPhone;
+                document.getElementById('editSenderAddress').value = order.senderAddress;
+                document.getElementById('editReceiverName').value = order.receiverName;
+                document.getElementById('editReceiverPhone').value = order.receiverPhone;
+                document.getElementById('editReceiverAddress').value = order.receiverAddress;
+                document.getElementById('editWeight').value = order.weight;
+                document.getElementById('editCategory').value = order.itemCategory;
+                document.getElementById('editValue').value = order.declaredValue;
+                document.getElementById('editRegion').value = order.destinationRegion;
+                document.getElementById('editPaymentMethod').value = order.payment?.method || 'Pending Hub Verification';
+            });
+    }
+
+    function confirmArchive(trackingId) {
+        const modal = new bootstrap.Modal(document.getElementById('archiveModal'));
+        document.getElementById('archiveTrackingId').textContent = trackingId;
+        document.getElementById('archiveTrackingIdInput').value = trackingId;
+        modal.show();
+    }
 </script>
 
 <style>
@@ -387,5 +574,22 @@
         border-color: #ff8c00 !important;
         background: rgba(255,140,0,0.06) !important;
         box-shadow: 0 0 0 2px rgba(255,140,0,0.3);
+    }
+    .bg-dark-soft { background: rgba(255,255,255,0.02); }
+    .ls-2 { letter-spacing: 2px; }
+    
+    .step-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.1); transition: all 0.3s; }
+    .step-dot.active { background: #FF8C00; box-shadow: 0 0 10px rgba(255,140,0,0.5); width: 24px; border-radius: 4px; }
+    .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+    @@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    
+    @@media print {
+        body * { visibility: hidden; }
+        #orderDetailsContent, #orderDetailsContent * { visibility: visible; }
+        #orderDetailsContent { position: absolute; left: 0; top: 0; width: 100%; color: black !important; background: white !important; }
+        #orderDetailsContent .bg-dark { background: white !important; border-color: #eee !important; color: black !important; }
+        #orderDetailsContent .text-white { color: black !important; }
+        #orderDetailsContent .text-secondary { color: #666 !important; }
+        #orderDetailsContent .barcode-sim { background: repeating-linear-gradient(90deg, #000, #000 2px, #fff 2px, #fff 4px) !important; }
     }
 </style>

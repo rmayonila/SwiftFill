@@ -4,71 +4,87 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Rider</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <style>
-        /* ===== GLOBAL SIDEBAR LAYOUT ===== */
-        body { background-color: #000000; color: #ffffff; font-family: 'Inter', sans-serif; }
+        /* ===== RESPONSIVE RIDER LAYOUT ===== */
+        :root {
+            --sidebar-width: 260px;
+            --mobile-nav-height: 70px;
+        }
 
+        body { 
+            background-color: #000000; 
+            color: #ffffff; 
+            font-family: 'Inter', sans-serif;
+            margin: 0; padding: 0;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar - Hidden on mobile */
         .sidebar {
-            width: 260px;
+            width: var(--sidebar-width);
             position: fixed;
             top: 0; left: 0;
             height: 100vh;
             background: #0a0a0a;
             border-right: 1px solid rgba(255,140,0,0.15);
-            padding-top: 0;
-            z-index: 1000;
+            z-index: 1050;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            transition: all 0.3s ease;
         }
 
-        .sidebar .nav-sidebar-wrap {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding-bottom: 16px;
-        }
-        .sidebar .nav-sidebar-wrap::-webkit-scrollbar { width: 4px; }
-        .sidebar .nav-sidebar-wrap::-webkit-scrollbar-thumb { background: rgba(255,140,0,0.25); border-radius: 4px; }
-
+        /* Main Content - Full width on mobile, shifted on desktop */
         .main-content {
-            margin-left: 260px;
-            padding: 20px 36px;
+            margin-left: var(--sidebar-width);
+            padding: 24px;
             min-height: 100vh;
             background: #000000;
+            transition: all 0.3s ease;
+            padding-bottom: calc(var(--mobile-nav-height) + 20px); /* Space for bottom nav */
+        }
+
+        /* Top Bar - sticky for mobile */
+        .rider-topbar {
+            padding: 16px 24px;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
         .sidebar-brand {
             display: flex;
             align-items: center;
-            padding: 20px 22px 16px;
+            padding: 24px 22px;
             text-decoration: none;
             border-bottom: 1px solid rgba(255,140,0,0.1);
-            flex-shrink: 0;
         }
-        .sidebar-brand .brand-text {
+        .brand-text {
+            font-family: 'Sora', sans-serif;
             font-size: 1.25rem;
             font-weight: 800;
             color: #ffffff;
-            letter-spacing: 0.5px;
+            letter-spacing: -0.5px;
         }
 
         .nav-sidebar .nav-link {
             color: rgba(255,255,255,0.5);
-            padding: 12px 22px;
-            min-height: 50px;
-            font-size: 0.88rem;
+            padding: 14px 22px;
+            font-size: 0.9rem;
             font-weight: 500;
-            line-height: 1.4;
-            transition: background 0.2s, color 0.2s, border-color 0.2s;
+            transition: all 0.2s;
             border-left: 3px solid transparent;
             display: flex;
             align-items: center;
-            white-space: nowrap;
         }
 
         .nav-sidebar .nav-link:hover,
@@ -80,146 +96,205 @@
         .nav-sidebar .nav-link.active {
             color: #FF8C00;
             background: rgba(255,140,0,0.12);
-            box-shadow: inset 4px 0 10px rgba(255,140,0,0.1);
         }
 
         .nav-sidebar .nav-link i {
-            margin-right: 11px;
-            font-size: 1rem;
-            flex-shrink: 0;
+            margin-right: 12px;
+            font-size: 1.1rem;
         }
 
-        .sidebar-logout {
-            padding: 16px 22px;
-            border-top: 1px solid rgba(255,140,0,0.1);
-            flex-shrink: 0;
-        }
-
-        /* Standard Module Page Styles for tools */
-        .module-toolbar {
-            background: #0a0a0a;
-            border: 1px solid #1a1a1a;
-            border-radius: 12px;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
+        /* Bottom Nav - Only visible on small screens */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: var(--mobile-nav-height);
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,140,0,0.2);
+            display: none;
+            justify-content: space-around;
             align-items: center;
-            margin-bottom: 20px;
+            z-index: 1060;
+            padding: 0 10px;
         }
-        .search-container {
-            position: relative;
-            width: 350px;
-        }
-        .search-container i {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #6c757d;
-        }
-        .search-container input {
-            background: #111;
-            border: 1px solid #222;
-            border-radius: 8px;
-            padding: 10px 15px 10px 40px;
-            color: #fff;
-            width: 100%;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        .search-container input:focus {
-            border-color: #ff8c00;
-        }
-        .filter-btn {
-            background: #111;
-            border: 1px solid #222;
-            color: #fff;
-            padding: 10px 20px;
-            border-radius: 8px;
-            transition: background 0.2s;
+
+        .bottom-nav-link {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: rgba(255,255,255,0.4);
             text-decoration: none;
-            display: inline-block;
-            cursor: pointer;
+            font-size: 0.7rem;
+            font-weight: 600;
+            gap: 4px;
+            transition: all 0.2s;
         }
-        .filter-btn:hover {
-            background: #1a1a1a;
-            color: #ff8c00;
+
+        .bottom-nav-link i { font-size: 1.4rem; }
+        .bottom-nav-link.active { color: #ff8c00; }
+
+        /* Responsive Breakpoints */
+        @@media (max-width: 991.98px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.show { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 15px; }
+            .bottom-nav { display: flex; }
         }
-        .pagination-container {
+
+        /* Hamburger Toggle */
+        .sidebar-toggler {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            display: none;
+        }
+
+        @@media (max-width: 991.98px) {
+            .sidebar-toggler { display: block; }
+        }
+
+        .profile-btn {
+            background: rgba(255, 140, 0, 0.1);
+            border: 1px solid rgba(255, 140, 0, 0.2);
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #1a1a1a;
+            gap: 8px;
         }
-        .page-info { color: #6c757d; font-size: 0.9rem; }
     </style>
 </head>
 <body>
-    <!-- Left Sidebar -->
-    <div class="sidebar">
+    <!-- Left Sidebar (Desktop) -->
+    <div class="sidebar" id="sidebar">
         <a href="/" class="sidebar-brand">
-            <img src="~/images/logo.png" style="height:40px;" alt="SwiftFill" />
+            <img src="~/images/logo.png" style="height:35px;" alt="Logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/709/709790.png'" />
             <span class="brand-text ms-2">SwiftFill</span>
         </a>
 
         @{ string action = ViewContext.RouteData.Values["Action"]?.ToString() ?? ""; }
 
-        <div class="nav-sidebar-wrap">
+        <div class="pt-4 flex-grow-1">
             <ul class="nav flex-column nav-sidebar">
                 <li class="nav-item">
-                    <div class="px-4 mt-3 mb-2 text-secondary text-uppercase x-small ls-1">Main Menu</div>
-                </li>
-                
-                <li class="nav-item">
                     <a class="nav-link @(action == "Index" ? "active" : "")" asp-controller="Rider" asp-action="Index">
-                        <i class="bi bi-list-task"></i> Dispatch Manifest
+                        <i class="bi bi-geo-alt-fill"></i> Delivery Route
                     </a>
                 </li>
-                
                 <li class="nav-item">
                     <a class="nav-link @(action == "History" ? "active" : "")" asp-controller="Rider" asp-action="History">
-                        <i class="bi bi-clock-history"></i> Delivery History
+                        <i class="bi bi-clock-history"></i> Completed
                     </a>
                 </li>
-                
                 <li class="nav-item">
                     <a class="nav-link @(action == "Remittance" ? "active" : "")" asp-controller="Rider" asp-action="Remittance">
-                        <i class="bi bi-cash-stack"></i> Cash Remittance
+                        <i class="bi bi-currency-dollar"></i> Remittance
                     </a>
                 </li>
             </ul>
         </div>
 
-        <div class="sidebar-logout">
+        <div class="p-4 border-top border-secondary border-opacity-10">
             <form method="post" action="/Account/Logout">
-                <button type="submit" class="btn w-100 fw-bold"
-                    style="border:1px solid rgba(220,53,69,0.4);color:rgba(220,53,69,0.8);background:rgba(220,53,69,0.05);border-radius:8px;font-size:0.85rem;padding:10px;">
-                    <i class="bi bi-box-arrow-right"></i> Logout
+                <button type="submit" class="btn btn-outline-danger w-100 btn-sm">
+                    <i class="bi bi-power me-2"></i> Sign Out
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- Main Content Area -->
+    <!-- Main Content -->
     <div class="main-content">
-        <!-- Dashboard Top Header -->
-        <div class="d-flex justify-content-end align-items-center mb-4 pb-3">
-            <div class="d-flex align-items-center">
-                <span class="text-secondary me-4" style="font-size: 1.2rem; cursor: pointer;"><i class="bi bi-bell-fill"></i></span>
-                <div class="rounded-circle d-flex justify-content-center align-items-center fw-bold shadow-sm" style="width: 35px; height: 35px; background: #ff8c00; color: #000;">
-                    @((User.Identity?.Name ?? "R").Substring(0,1).ToUpper())
+        <div class="rider-topbar rounded-4 mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <button class="sidebar-toggler" onclick="toggleSidebar()">
+                    <i class="bi bi-list"></i>
+                </button>
+                <div class="d-none d-md-block">
+                    <h5 class="m-0 fw-bold">Rider Terminal</h5>
                 </div>
-                <span class="ms-2 fw-semibold text-white">@User.Identity?.Name</span>
+                <div class="d-md-none">
+                    <img src="~/images/logo.png" style="height:28px;" alt="Logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/709/709790.png'" />
+                </div>
+            </div>
+            
+            <div class="d-flex align-items-center gap-3">
+                <div class="profile-btn">
+                    <span class="d-none d-sm-inline">@User.Identity?.Name</span>
+                    <div class="rounded-circle bg-orange text-dark fw-bold d-flex align-items-center justify-content-center" style="width:24px; height:24px; font-size: 0.7rem;">
+                         @((User.Identity?.Name ?? "R").Substring(0,1).ToUpper())
+                    </div>
+                </div>
             </div>
         </div>
 
         @RenderBody()
     </div>
 
+    <!-- Bottom Navigation (Mobile) -->
+    <nav class="bottom-nav">
+        <a class="bottom-nav-link @(action == "Index" ? "active" : "")" asp-controller="Rider" asp-action="Index">
+            <i class="bi bi-geo-alt"></i>
+            <span>Route</span>
+        </a>
+        <a class="bottom-nav-link @(action == "History" ? "active" : "")" asp-controller="Rider" asp-action="History">
+            <i class="bi bi-check2-circle"></i>
+            <span>History</span>
+        </a>
+        <a class="bottom-nav-link @(action == "Remittance" ? "active" : "")" asp-controller="Rider" asp-action="Remittance">
+            <i class="bi bi-wallet2"></i>
+            <span>Cash</span>
+        </a>
+        <a href="javascript:void(0)" class="bottom-nav-link" data-bs-toggle="offcanvas" data-bs-target="#userOffcanvas">
+            <i class="bi bi-person-circle"></i>
+            <span>Account</span>
+        </a>
+    </nav>
+
+    <!-- Account Offcanvas (Mobile) -->
+    <div class="offcanvas offcanvas-bottom bg-dark text-white border-top border-orange" tabindex="-1" id="userOffcanvas" style="height: auto; border-radius: 20px 20px 0 0;">
+        <div class="offcanvas-header border-bottom border-secondary border-opacity-10 py-4">
+            <h5 class="offcanvas-title fw-bold">My Account</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body p-4">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <div class="rounded-circle bg-orange text-dark fw-bold d-flex align-items-center justify-content-center" style="width:60px; height:60px; font-size: 1.5rem;">
+                     @((User.Identity?.Name ?? "R").Substring(0,1).ToUpper())
+                </div>
+                <div>
+                    <h5 class="mb-0 fw-bold">@User.Identity?.Name</h5>
+                    <p class="text-secondary small mb-0">Delivery Partner • SwiftFill</p>
+                </div>
+            </div>
+            <form method="post" action="/Account/Logout">
+                <button type="submit" class="btn btn-danger w-100 py-3 fw-bold rounded-3">
+                    <i class="bi bi-box-arrow-right me-2"></i> Log Out
+                </button>
+            </form>
+        </div>
+    </div>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('show');
+        }
+        
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const toggler = document.querySelector('.sidebar-toggler');
+            if (window.innerWidth < 992 && sidebar.classList.contains('show') && !sidebar.contains(event.target) && !toggler.contains(event.target)) {
+                sidebar.classList.remove('show');
+            }
+        });
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

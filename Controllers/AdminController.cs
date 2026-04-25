@@ -145,6 +145,14 @@ namespace SwiftFill.Controllers
             return View(order);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetOrderJson(string trackingId)
+        {
+            var order = await _context.Orders.Include(o => o.Payment).FirstOrDefaultAsync(o => o.TrackingId == trackingId);
+            if (order == null) return NotFound();
+            return Json(order);
+        }
+
         [HttpPost]
         public async Task<IActionResult> EditOrder(Order model, string? PaymentMethod)
         {

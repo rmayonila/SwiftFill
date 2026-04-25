@@ -26,6 +26,12 @@ namespace SwiftFill.Controllers
         private string GetCurrentHub()
         {
             var hub = HttpContext.Session.GetString("UserHub");
+            if (string.IsNullOrEmpty(hub))
+            {
+                // Fetch from logged-in user profile
+                var user = _userManager.GetUserAsync(User).Result;
+                hub = user?.Hub;
+            }
             return string.IsNullOrEmpty(hub) ? HubRegistry.All[0].Name : hub;
         }
 
@@ -61,7 +67,7 @@ namespace SwiftFill.Controllers
             // Packed orders at this hub that are destined for another hub
             var orders = await _context.Orders
                 .Where(o => o.CurrentLocation == currentHub &&
-                            o.Status == "Packed" &&
+                            (o.Status == "Packed" || o.Status == "Sorted for Transfer") &&
                             !o.IsArchived)
                 .ToListAsync();
 
@@ -161,21 +167,33 @@ namespace SwiftFill.Controllers
         }
 
         /// <summary>
-        /// Ship (dispatch) a packed parcel from the current hub to its destination hub.
-        /// The parcel remains at CurrentLocation = currentHub until Received at destination.
-        /// Status updates to "In Transit to [Destination Hub]".
+        /// Ship (dispatch) a parcel from the current hub to the SPECIFIED target hub.
         /// </summary>
         [HttpPost]
-        public async Task<IActionResult> MarkShipped(string trackingId)
+        public async Task<IActionResult> MarkShipped(string trackingId, string targetHub)
         {
             var currentHub = GetCurrentHub();
             var order = await _context.Orders.FirstOrDefaultAsync(o => o.TrackingId == trackingId);
-            if (order != null && order.CurrentLocation == currentHub && order.Status == "Packed")
+            if (order != null && order.CurrentLocation == currentHub && (order.Status == "Packed" || order.Status == "Sorted for Transfer"))
             {
-                // Determine the destination hub from the destination region
-                var destinationHub = ResolveDestinationHub(order.DestinationRegion, currentHub);
-                order.Status = $"In Transit to {destinationHub}";
-                // CurrentLocation stays as currentHub until the destination hub Receives it
+                order.Status = $"In Transit to {targetHub}";
+                order.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        /// <summary>
+        /// Staff at an intermediate hub marks a parcel as "Sorted" to prepare it for the next transfer.
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> MarkSorted(string trackingId)
+        {
+            var currentHub = GetCurrentHub();
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.TrackingId == trackingId);
+            if (order != null && order.CurrentLocation == currentHub && order.Status.StartsWith("Arrived"))
+            {
+                order.Status = "Sorted for Transfer";
                 order.UpdatedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
             }
@@ -201,6 +219,26 @@ namespace SwiftFill.Controllers
                 await _context.SaveChangesAsync();
             }
             return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> QuickReceive(string trackingId)
+        {
+            var currentHub = GetCurrentHub();
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.TrackingId == trackingId);
+            if (order != null)
+            {
+                order.CurrentLocation = currentHub;
+                order.Status = $"Arrived at {currentHub}";
+                order.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Parcel #{trackingId} received at {currentHub}.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Tracking ID not found.";
+            }
+            return RedirectToAction(nameof(Dashboard));
         }
 
         /// <summary>
@@ -250,7 +288,8 @@ namespace SwiftFill.Controllers
             var hasArrivedDoorToDoor = localOrders.Any(o => o.Status.StartsWith("Arrived") && o.DeliveryType == "DoorToDoor");
             if (hasArrivedDoorToDoor)
             {
-                riders = (await _userManager.GetUsersInRoleAsync("DeliveryRider")).ToList();
+                var allRiders = await _userManager.GetUsersInRoleAsync("DeliveryRider");
+                riders = allRiders.Where(r => r.Hub == currentHub).ToList();
             }
 
             return new AdminDashboardViewModel
@@ -259,35 +298,12 @@ namespace SwiftFill.Controllers
                 RecentShipments = allOrders,
                 PendingPickOrders = localOrders.Where(o => o.Status == "Pending").ToList(),
                 PickedOrders     = localOrders.Where(o => o.Status == "Picked").ToList(),
-                PackedOrders     = localOrders.Where(o => o.Status == "Packed").ToList(),
+                PackedOrders     = localOrders.Where(o => o.Status == "Packed" || o.Status == "Sorted for Transfer").ToList(),
                 AvailableRiders  = riders,
                 ManualRiders     = await _context.ManualRiders.Where(r => r.Hub == currentHub && r.IsActive).ToListAsync(),
                 Hubs             = HubRegistry.Names
             };
         }
 
-        // ============================================================
-        // HELPER — MAP DESTINATION REGION → HUB
-        // Matches a destination region/island group to the correct hub.
-        // Priority: same island as current hub → nearest hub.
-        // ============================================================
-        private static string ResolveDestinationHub(string destinationRegion, string currentHub)
-        {
-            // Direct region matches
-            var hub = HubRegistry.All.FirstOrDefault(h =>
-                h.Region.Equals(destinationRegion, StringComparison.OrdinalIgnoreCase) ||
-                h.Name.Contains(destinationRegion, StringComparison.OrdinalIgnoreCase));
-            if (hub != null) return hub.Name;
-
-            // Island-group fallback
-            return destinationRegion switch
-            {
-                "NCR"      => "Manila Hub",
-                "Luzon"    => "Manila Hub",
-                "Visayas"  => "Cebu Hub",
-                "Mindanao" => "Cagayan de Oro Hub",
-                _          => $"{destinationRegion} Hub"
-            };
-        }
     }
 }

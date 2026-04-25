@@ -1,3 +1,4 @@
+@using SwiftFill.Services
 @model SwiftFill.Models.Order
 @{
     ViewData["Title"] = "Track Package";
@@ -195,84 +196,23 @@
                                 <h5 class="fw-bold mb-4 border-bottom border-secondary pb-3"><i class="bi bi-geo-alt me-2"></i> Tracking Timeline</h5>
                                 
                                 <ul class="timeline m-0 p-0">
-                                    @{
-                                        bool isPending = Model.Status == "Pending";
-                                        bool isPicked = Model.Status == "Picked";
-                                        bool isPacked = Model.Status == "Packed";
-                                        bool isDispatched = Model.Status == "Dispatched";
-                                        bool isDelivered = Model.Status == "Delivered";
-                                        bool isReturned = Model.Status == "Returned";
-                                    }
-
-                                    <li class="timeline-item @(true ? "completed" : "")">
-                                        <div class="timeline-content">
-                                            <div class="timeline-title">Order Created</div>
-                                            <p class="timeline-text">Package data received and system generated.</p>
-                                            <div class="timeline-date">@Model.CreatedAt.ToString("MMM dd, yyyy HH:mm")</div>
-                                        </div>
-                                    </li>
-                                    
-                                    <li class="timeline-item @(!isPending ? "completed" : "") @(isPending ? "active" : "")">
-                                        <div class="timeline-content">
-                                            <div class="timeline-title">Hub Internal Processing</div>
-                                            <p class="timeline-text">Pick & Pack stage at @Model.CurrentLocation.</p>
-                                        </div>
-                                    </li>
-
-                                    <li class="timeline-item @(isDispatched || isDelivered || isReturned || (Model.DeliveryType == "BranchPickup" && Model.Status.Contains("Arrived")) ? "completed" : "") @(isPacked ? "active" : "")">
-                                        <div class="timeline-content">
-                                            @if (Model.DeliveryType == "BranchPickup")
-                                            {
-                                                <div class="timeline-title">@(Model.Status.Contains("Arrived") ? "Arrived at Branch" : "Processing for Pickup")</div>
-                                                <p class="timeline-text">
-                                                    @if (Model.Status.Contains("Arrived"))
-                                                    {
-                                                        <span class="text-orange fw-bold"><i class="bi bi-check-circle me-1"></i> Ready for Pickup</span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span>En route to the selected collection point.</span>
-                                                    }
-                                                </p>
-                                            }
-                                            else
-                                            {
-                                                <div class="timeline-title">Out for Delivery</div>
-                                                <p class="timeline-text">
-                                                    Handed over to local delivery fleet.
-                                                    @if (Model.AssignedRider != null)
-                                                    {
-                                                        <br /><span class="text-white-50"><i class="bi bi-scooter"></i> Rider Assigned</span>
-                                                    }
-                                                </p>
-                                            }
-                                        </div>
-                                    </li>
-
-                                    <li class="timeline-item @(isDelivered || isReturned ? "active" : "")" style="margin-bottom: 0;">
-                                        <div class="timeline-content text-white">
-                                            @if (isDelivered)
-                                            {
-                                                <div class="timeline-title text-success"><i class="bi bi-box-seam-fill me-1"></i> Successfully Delivered</div>
-                                                <p class="timeline-text">The package has reached its final destination.</p>
-                                                <div class="timeline-date text-success fw-bold mt-2">@Model.UpdatedAt.ToString("MMM dd, yyyy HH:mm")</div>
-                                            }
-                                            else if (isReturned)
-                                            {
-                                                <div class="timeline-title text-danger"><i class="bi bi-arrow-return-left me-1"></i> Returned to Sender</div>
-                                                <p class="timeline-text">Package delivery failed and was marked for return.</p>
-                                                @if (!string.IsNullOrEmpty(Model.Notes))
+                                    @foreach (var ev in TrackingLogic.GetPublicTimeline(Model))
+                                    {
+                                        <li class="timeline-item @(ev.IsCompleted ? "completed" : "") @(ev.IsActive ? "active" : "")">
+                                            <div class="timeline-content">
+                                                <div class="timeline-title @(ev.Title.Contains("Delivered") ? "text-success" : "")">
+                                                    <i class="bi @ev.Icon me-1"></i> @ev.Title
+                                                </div>
+                                                <p class="timeline-text">@ev.Description</p>
+                                                @if (ev.Date.HasValue)
                                                 {
-                                                    <div class="alert alert-dark border-secondary p-2 mt-2 small mb-0">Reason: @Model.Notes</div>
+                                                    <div class="timeline-date @(ev.Title.Contains("Delivered") ? "text-success fw-bold" : "")">
+                                                        @ev.Date.Value.ToString("MMM dd, yyyy HH:mm")
+                                                    </div>
                                                 }
-                                            }
-                                            else
-                                            {
-                                                <div class="timeline-title">Final Delivery</div>
-                                                <p class="timeline-text">Awaiting final recipient confirmation.</p>
-                                            }
-                                        </div>
-                                    </li>
+                                            </div>
+                                        </li>
+                                    }
                                 </ul>
                             </div>
                         </div>

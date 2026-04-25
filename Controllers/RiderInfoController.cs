@@ -18,16 +18,19 @@ namespace SwiftFill.Controllers
 
         private string GetCurrentHub()
         {
-            return HttpContext.Session.GetString("UserHub") ?? "Davao Hub";
+            var hub = HttpContext.Session.GetString("UserHub");
+            if (string.IsNullOrEmpty(hub))
+            {
+                // We don't have UserManager injected here, but we can use HttpContext if needed.
+                // However, the SelectHub logic now sets this session during login.
+                // As a fallback for this controller, we'll just check the session.
+            }
+            return hub ?? "Davao Hub";
         }
 
         public async Task<IActionResult> Index()
         {
             var currentHub = GetCurrentHub();
-            if (currentHub == "Davao Hub")
-            {
-                return RedirectToAction("Index", "Warehouse");
-            }
 
             var riders = await _context.ManualRiders
                 .Where(r => r.Hub == currentHub)

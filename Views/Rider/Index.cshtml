@@ -1,237 +1,240 @@
 @model IEnumerable<SwiftFill.Models.Order>
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @{
-    ViewData["Title"] = "My Tasks";
-    Layout = "_RiderLayout"; // This connects to your new shared layout
+    ViewData["Title"] = "My Route";
+    Layout = "_RiderLayout";
 }
 
 <style>
-    .delivery-card {
+    .rider-card {
         background: rgba(255, 255, 255, 0.03);
         border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 16px;
-        transition: all 0.3s ease;
+        border-radius: 20px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         overflow: hidden;
     }
-    .delivery-card:hover {
+    .rider-card:hover {
         background: rgba(255, 255, 255, 0.05);
-        border-color: rgba(255, 140, 0, 0.2);
-        transform: translateY(-2px);
+        border-color: rgba(255, 140, 0, 0.3);
+        transform: translateY(-4px);
     }
-    .contact-btn, .map-btn {
-        padding: 8px 12px;
-        border-radius: 8px;
-        text-decoration: none;
-        display: inline-flex;
+    .action-btn {
+        width: 45px;
+        height: 45px;
+        border-radius: 12px;
+        display: flex;
         align-items: center;
-        gap: 8px;
-        font-weight: 500;
-        transition: all 0.2s ease;
+        justify-content: center;
+        text-decoration: none;
+        transition: all 0.2s;
+        font-size: 1.2rem;
     }
-    .contact-btn {
+    .btn-call { background: rgba(25, 135, 84, 0.1); color: #198754; border: 1px solid rgba(25, 135, 84, 0.2); }
+    .btn-call:hover { background: #198754; color: #fff; }
+    
+    .btn-nav { background: rgba(13, 110, 253, 0.1); color: #0d6efd; border: 1px solid rgba(13, 110, 253, 0.2); }
+    .btn-nav:hover { background: #0d6efd; color: #fff; }
+
+    .pod-preview {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 12px;
+        display: none;
+        margin-top: 10px;
+        border: 2px solid #ff8c00;
+    }
+
+    .eta-badge {
         background: rgba(255, 140, 0, 0.1);
         color: #ff8c00;
-        border: 1px solid rgba(255, 140, 0, 0.2);
-    }
-    .contact-btn:hover { background: #ff8c00; color: #000; }
-    
-    .map-btn {
-        background: rgba(13, 110, 253, 0.1);
-        color: #0d6efd;
-        border: 1px solid rgba(13, 110, 253, 0.2);
-    }
-    .map-btn:hover { background: #0d6efd; color: #fff; }
-
-    .payment-tag {
-        font-size: 0.75rem;
+        padding: 4px 12px;
+        border-radius: 8px;
         font-weight: 700;
-        text-transform: uppercase;
-        padding: 4px 10px;
-        border-radius: 20px;
-    }
-    .cod-amount {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: #ff8c00;
+        font-size: 0.8rem;
     }
 </style>
 
 <div class="animate-fade-up">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold text-white mb-1"><i class="bi bi-list-task text-orange me-2"></i> Active Itinerary</h2>
-            <p class="text-secondary small mb-0">Manage your specific route and delivery status.</p>
-        </div>
-        <div class="text-end">
-            <span class="badge bg-dark border border-success text-success px-3 py-2">
-                <span class="spinner-grow spinner-grow-sm me-1" role="status"></span> LIVE ROUTE
-            </span>
-        </div>
-    </div>
-
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success bg-success bg-opacity-10 border-success border-opacity-25 text-success alert-dismissible fade show mb-4" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-
-    <div class="row g-4 mb-5">
-        <div class="col-md-3">
+    <!-- Daily Summary -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
             <div class="glass-card p-3 h-100 border-0 border-start border-orange border-4" style="background: rgba(255, 140, 0, 0.05);">
-                <div class="text-orange opacity-75 small fw-bold">Pending Drops</div>
-                <div class="text-white h2 mb-0 fw-bold">@Model.Count()</div>
+                <div class="text-secondary smaller fw-bold text-uppercase ls-1">Remaining</div>
+                <div class="text-white h3 mb-0 fw-bold">@Model.Count()</div>
             </div>
         </div>
-        <div class="col-md-9">
-            <div class="glass-card p-3 h-100 d-flex align-items-center" style="background: rgba(255, 255, 255, 0.01);">
-                <i class="bi bi-exclamation-triangle-fill text-orange me-3 fs-3"></i>
+        <div class="col-6 col-md-3">
+            <div class="glass-card p-3 h-100" style="background: rgba(25, 135, 84, 0.05);">
+                <div class="text-secondary smaller fw-bold text-uppercase ls-1">Collected</div>
+                <div class="text-white h3 mb-0 fw-bold">₱@Model.Where(o => o.Payment?.Method == "COD").Sum(o => o.Payment?.Amount ?? 0).ToString("N0")</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 d-none d-md-block">
+            <div class="glass-card p-3 h-100 d-flex align-items-center">
+                <i class="bi bi-info-circle text-orange me-3 fs-4"></i>
                 <div class="text-secondary small">
-                    <strong>Rider Notice:</strong> Verify COD amounts exactly as listed. Ensure customers sign the digital log (forthcoming) before completing delivery. Use built-in navigation for optimal routing.
+                    Always capture a clear photo of the parcel at the customer's door or with the recipient.
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="module-toolbar">
-        <div class="search-container">
+    <!-- Search & Filter -->
+    <div class="module-toolbar mb-4">
+        <div class="search-container flex-grow-1">
             <i class="bi bi-search"></i>
-            <input type="text" placeholder="Search tracking ID or target location..." />
-        </div>
-        <div class="d-flex gap-2">
-            <a href="#" class="filter-btn"><i class="bi bi-funnel"></i> Filter</a>
+            <input type="text" id="routeSearch" placeholder="Search customer or address..." onkeyup="filterRoute()" />
         </div>
     </div>
 
-    <div class="row g-4">
-       @foreach (var order in Model)
-{
-    <div class="col-12">
-        <div class="delivery-card p-4">
-            <form asp-action="UpdateStatus" method="post" enctype="multipart/form-data">
-                <input type="hidden" name="trackingId" value="@order.TrackingId" />
-                
-                <div class="row">
-                    <div class="col-md-8">
-                        <div class="mt-3">
-                            <label class="text-secondary small d-block mb-2">Proof of Delivery / Return</label>
-                            <div class="d-flex align-items-center gap-3">
-                                <label for="file-@order.TrackingId" class="btn btn-dark border-secondary rounded-3 px-3 py-2">
-                                    <i class="bi bi-camera-fill text-orange me-2"></i> Attach Photo
-                                </label>
-                                <input type="file" id="file-@order.TrackingId" name="proofPhoto" class="d-none" onchange="updateFileLabel('@order.TrackingId')">
-                                <span id="label-@order.TrackingId" class="text-secondary smaller">No file chosen</span>
-                            </div>
+    <!-- Route List -->
+    <div class="row g-4" id="routeList">
+        @foreach (var order in Model)
+        {
+            <div class="col-12 route-item" data-search="@order.ReceiverName @order.ReceiverAddress @order.TrackingId">
+                <div class="rider-card p-3 p-md-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="badge bg-dark border border-secondary text-secondary mb-2">#@order.TrackingId</span>
+                            <h5 class="text-white fw-bold mb-1">@order.ReceiverName</h5>
+                            <p class="text-secondary small mb-0"><i class="bi bi-geo-alt-fill text-orange me-1"></i> @order.ReceiverAddress</p>
+                        </div>
+                        <div class="text-end">
+                            <div class="text-orange fw-bold h4 mb-1">₱@order.Payment?.Amount.ToString("N2")</div>
+                            <span class="badge bg-dark text-orange border border-orange">@order.Payment?.Method</span>
                         </div>
                     </div>
-                    
-                    <div class="col-md-4 text-end d-flex flex-column justify-content-between">
-                        <div class="cod-amount">₱@order.Payment?.Amount.ToString("N2")</div>
 
-                        <div class="mt-4">
-                            <button type="submit" name="status" value="Delivered" class="btn btn-success w-100 py-2 fw-bold mb-2">
-                                DELIVERED
-                            </button>
+                    <div class="d-flex gap-2 mb-4">
+                        <a href="tel:@order.ReceiverPhone" class="action-btn btn-call" title="Call Customer">
+                            <i class="bi bi-telephone-fill"></i>
+                        </a>
+                        <a href="https://www.google.com/maps/search/?api=1&query=@Uri.EscapeDataString(order.ReceiverAddress)" target="_blank" class="action-btn btn-nav" title="Navigate">
+                            <i class="bi bi-cursor-fill"></i>
+                        </a>
+                        <button class="btn btn-dark border-secondary flex-grow-1 fw-bold rounded-3" onclick="showMapModal('@order.ReceiverAddress')">
+                            <i class="bi bi-map me-2"></i> View on Map
+                        </button>
+                    </div>
 
-                            <div class="d-flex gap-2">
-                                <button type="button" class="btn btn-outline-warning flex-fill py-2 fw-bold small" 
-                                        onclick="showStatusModal('@order.TrackingId', 'Failed')">
-                                    FAILED
-                                </button>
-                                
-                                <button type="button" class="btn btn-outline-danger flex-fill py-2 fw-bold small" 
-                                        onclick="showStatusModal('@order.TrackingId', 'Returned')">
-                                    RETURN
-                                </button>
+                    <hr class="border-secondary opacity-10">
+
+                    <!-- Proof of Delivery Form -->
+                    <form asp-action="UpdateStatus" method="post" enctype="multipart/form-data" id="form-@order.TrackingId">
+                        <input type="hidden" name="trackingId" value="@order.TrackingId" />
+                        
+                        <div class="row align-items-end g-3">
+                            <div class="col-12">
+                                <label class="text-secondary smaller fw-bold text-uppercase mb-2 d-block">Proof of Delivery (Required for Success)</label>
+                                <div class="d-flex align-items-center gap-3">
+                                    <label for="file-@order.TrackingId" class="btn btn-outline-orange btn-sm px-3 py-2 rounded-3">
+                                        <i class="bi bi-camera-fill me-2"></i> Capture/Attach
+                                    </label>
+                                    <input type="file" id="file-@order.TrackingId" name="proofPhoto" class="d-none" accept="image/*" 
+                                           onchange="handlePhotoUpload('@order.TrackingId')">
+                                    <span id="label-@order.TrackingId" class="text-secondary smaller">No image attached</span>
+                                </div>
+                                <img id="preview-@order.TrackingId" class="pod-preview" src="#" alt="Preview" />
+                            </div>
+
+                            <div class="col-12 mt-3">
+                                <div class="btn-group w-100">
+                                    <button type="submit" name="status" value="Delivered" id="btn-deliver-@order.TrackingId" 
+                                            class="btn btn-success py-3 fw-bold flex-grow-1" disabled>
+                                        COMPLETE DELIVERY
+                                    </button>
+                                    <button type="button" class="btn btn-dark border-secondary px-3" data-bs-toggle="dropdown">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end border-secondary shadow">
+                                        <li><a class="dropdown-item text-warning" href="#" onclick="showStatusModal('@order.TrackingId', 'Failed')">
+                                            <i class="bi bi-exclamation-triangle-fill me-2"></i> Mark as Failed
+                                        </a></li>
+                                        <li><a class="dropdown-item text-danger" href="#" onclick="showStatusModal('@order.TrackingId', 'Returned')">
+                                            <i class="bi bi-arrow-return-left me-2"></i> Return to Hub
+                                        </a></li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </form>
                 </div>
-            </form>
-        </div>
-    </div>
-}
-
-<div class="modal fade" id="statusModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content bg-dark border-secondary">
-            <div class="modal-header border-0">
-                <h5 class="modal-title text-white">Confirm <span id="modalStatusTitle"></span></h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form asp-action="UpdateStatus" method="post">
-                <div class="modal-body">
-                    <input type="hidden" name="trackingId" id="statusTrackingId" />
-                    <input type="hidden" name="status" id="statusValue" />
-                    
-                    <label class="text-secondary small mb-2">Reason for <span id="modalStatusLabel"></span>:</label>
-                    <select name="failReason" class="form-select bg-black text-white border-secondary mb-3">
-                        <option value="Customer Not Home">Customer Not Home</option>
-                        <option value="Refused to Pay (COD)">Refused to Pay (COD)</option>
-                        <option value="Incorrect Address">Incorrect Address</option>
-                        <option value="Damaged Item">Item Damaged in Transit</option>
-                        <option value="Customer Cancelled">Customer Cancelled on Arrival</option>
-                    </select>
-                    
-                    <p class="smaller text-warning" id="attemptWarning">
-                        Note: Failed deliveries will stay in your list until 3 attempts are reached.
-                    </p>
-                </div>
-                <div class="modal-footer border-0">
-                    <button type="submit" class="btn btn-orange w-100 py-2">Confirm Action</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
         }
-
-        <div class="col-12 mt-4">
-            <div class="pagination-container">
-                <div class="page-info">Showing 1 to @Model.Count() of @Model.Count() entries</div>
-                <div class="btn-group">
-                    <button class="btn btn-sm btn-outline-secondary disabled">Previous</button>
-                    <button class="btn btn-sm btn-secondary">1</button>
-                    <button class="btn btn-sm btn-outline-secondary disabled">Next</button>
-                </div>
-            </div>
-        </div>
 
         @if (!Model.Any())
         {
             <div class="col-12 text-center py-5">
-                <i class="bi bi-check-all text-success display-1 opacity-25 mb-3"></i>
-                <h3 class="text-white">All Clear!</h3>
-                <p class="text-secondary">No active deliveries assigned to you right now.</p>
+                <div class="glass-card py-5">
+                    <i class="bi bi-clipboard-check text-success display-1 opacity-25 mb-4"></i>
+                    <h3 class="text-white fw-bold">All items delivered!</h3>
+                    <p class="text-secondary">Your manifest is clear for today.</p>
+                </div>
             </div>
         }
     </div>
 </div>
 
-<div class="modal fade" id="failReasonModal" tabindex="-1" aria-hidden="true">
+<!-- Map Modal (API 1: Google Maps JS API) -->
+<div class="modal fade" id="mapModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content bg-dark border-orange overflow-hidden" style="border-radius: 24px;">
+            <div class="modal-header border-0 bg-black bg-opacity-50 position-absolute w-100 z-3">
+                <h5 class="modal-title text-white fw-bold">Address Pin</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0" style="height: 450px;">
+                <div id="googleMap" style="width: 100%; height: 100%;">
+                    <!-- Placeholder if no API Key -->
+                    <div id="map-placeholder" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-secondary bg-black">
+                        <i class="bi bi-map-fill fs-1 mb-3"></i>
+                        <p>Google Maps Loading...</p>
+                        <small class="text-muted">Requires API Key in settings</small>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-black border-0 p-3">
+                <div class="d-flex justify-content-between w-100 align-items-center">
+                    <div id="distanceInfo" class="text-orange fw-bold">
+                        <!-- API 2: Distance Matrix Info goes here -->
+                        <i class="bi bi-truck me-2"></i> <span id="etaValue">Calculating ETA...</span>
+                    </div>
+                    <button class="btn btn-orange px-4 fw-bold" data-bs-dismiss="modal">Got it</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Status Modal -->
+<div class="modal fade" id="statusModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content bg-dark border-secondary" style="border-radius: 16px;">
+        <div class="modal-content bg-dark border-secondary" style="border-radius: 20px;">
             <div class="modal-header border-0">
-                <h5 class="modal-title text-white">Select Failure Reason</h5>
+                <h5 class="modal-title text-white fw-bold">Delivery <span id="modalStatusTitle"></span></h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form asp-action="UpdateStatus" method="post">
-                <div class="modal-body">
-                    <input type="hidden" name="trackingId" id="modalTrackingId" />
-                    <input type="hidden" name="status" value="Failed" />
-                    <div class="mb-3">
-                        <label class="text-secondary small mb-2">Why could this not be delivered?</label>
-                        <select name="failReason" class="form-select bg-black text-white border-secondary">
-                            <option value="Customer Not Home">Customer Not Home</option>
-                            <option value="Refused to Pay (COD)">Refused to Pay (COD)</option>
-                            <option value="Incorrect Address">Incorrect Address</option>
-                            <option value="Customer Unreachable">Customer Unreachable</option>
-                        </select>
-                    </div>
+                <div class="modal-body pt-0">
+                    <input type="hidden" name="trackingId" id="statusTrackingId" />
+                    <input type="hidden" name="status" id="statusValue" />
+                    
+                    <label class="text-secondary small mb-2 fw-bold text-uppercase">Reason:</label>
+                    <select name="failReason" class="form-select bg-black text-white border-secondary mb-3 py-3">
+                        <option value="Customer Not Home">Customer Not Home</option>
+                        <option value="Refused to Pay (COD)">Refused to Pay (COD)</option>
+                        <option value="Incorrect Address">Incorrect Address</option>
+                        <option value="Unreachable">Phone/Gate Unreachable</option>
+                        <option value="Customer Cancelled">Customer Cancelled</option>
+                    </select>
+                    
+                    <p class="smaller text-warning" id="attemptWarning">
+                        <i class="bi bi-info-circle me-1"></i> This order will remain in your list for a re-attempt (max 3).
+                    </p>
                 </div>
-                <div class="modal-footer border-0">
-                    <button type="submit" class="btn btn-danger w-100 py-2 fw-bold">Confirm Failure</button>
+                <div class="modal-footer border-0 pb-4">
+                    <button type="submit" class="btn btn-orange w-100 py-3 fw-bold">Confirm Status</button>
                 </div>
             </form>
         </div>
@@ -239,30 +242,90 @@
 </div>
 
 @section Scripts {
+    <script src="https://maps.googleapis.com/maps/api/js?key=@Configuration["GoogleMaps:ApiKey"]&callback=initMap" async defer></script>
     <script>
-        function showFailModal(id) {
-            document.getElementById('modalTrackingId').value = id;
-            var myModal = new bootstrap.Modal(document.getElementById('failReasonModal'));
-            myModal.show();
+        let map;
+        let geocoder;
+
+        function initMap() {
+            // This function is expected by the Google Maps script
+            geocoder = new google.maps.Geocoder();
         }
 
-        function updateFileLabel(id) {
-        const fileName = document.getElementById('file-' + id).files[0].name;
-        document.getElementById('label-' + id).innerText = fileName;
-        document.getElementById('label-' + id).classList.replace('text-secondary', 'text-success');
-    }
+        function filterRoute() {
+            const query = document.getElementById('routeSearch').value.toLowerCase();
+            const items = document.querySelectorAll('.route-item');
+            items.forEach(item => {
+                const text = item.getAttribute('data-search').toLowerCase();
+                item.style.display = text.includes(query) ? 'block' : 'none';
+            });
+        }
 
-    function showStatusModal(id, status) {
-        document.getElementById('statusTrackingId').value = id;
-        document.getElementById('statusValue').value = status;
-        document.getElementById('modalStatusTitle').innerText = status;
-        document.getElementById('modalStatusLabel').innerText = status;
-        
-        // Hide warning if it's a direct Return
-        const warning = document.getElementById('attemptWarning');
-        warning.style.display = (status === 'Returned') ? 'none' : 'block';
+        function handlePhotoUpload(id) {
+            const input = document.getElementById('file-' + id);
+            const label = document.getElementById('label-' + id);
+            const preview = document.getElementById('preview-' + id);
+            const btn = document.getElementById('btn-deliver-' + id);
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    label.innerText = "Image Captured";
+                    label.classList.replace('text-secondary', 'text-orange');
+                    if(btn) btn.disabled = false;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
 
-        new bootstrap.Modal(document.getElementById('statusModal')).show();
-    }
+        function showStatusModal(id, status) {
+            document.getElementById('statusTrackingId').value = id;
+            document.getElementById('statusValue').value = status;
+            document.getElementById('modalStatusTitle').innerText = status;
+            
+            const warning = document.getElementById('attemptWarning');
+            warning.style.display = (status === 'Returned') ? 'none' : 'block';
+
+            new bootstrap.Modal(document.getElementById('statusModal')).show();
+        }
+
+        async function showMapModal(address) {
+            new bootstrap.Modal(document.getElementById('mapModal')).show();
+            document.getElementById('etaValue').innerText = "Calculating ETA...";
+            
+            // 1. Get ETA via our C# API (Uses Distance Matrix API internally)
+            try {
+                const response = await fetch(`/Rider/GetEta?destination=${encodeURIComponent(address)}`);
+                const data = await response.json();
+                document.getElementById('etaValue').innerText = data.eta;
+            } catch (e) {
+                document.getElementById('etaValue').innerText = "ETA Unavailable";
+            }
+
+            // 2. Initialize Map (Uses Google Maps JS API pin)
+            if (typeof google !== 'undefined' && google.maps) {
+                geocoder = new google.maps.Geocoder();
+                geocoder.geocode({ 'address': address }, function (results, status) {
+                    if (status === 'OK') {
+                        const mapOptions = {
+                            zoom: 15,
+                            center: results[0].geometry.location,
+                            mapTypeId: google.maps.MapTypeId.ROADMAP,
+                            styles: [{ "elementType": "geometry", "stylers": [{ "color": "#212121" }] }, { "elementType": "labels.text.fill", "stylers": [{ "color": "#757575" }] }] // Dark mode map
+                        };
+                        const mapDiv = document.getElementById('googleMap');
+                        document.getElementById('map-placeholder').style.display = 'none';
+                        map = new google.maps.Map(mapDiv, mapOptions);
+                        new google.maps.Marker({
+                            map: map,
+                            position: results[0].geometry.location,
+                            title: address
+                        });
+                    }
+                });
+            }
+        }
     </script>
 }

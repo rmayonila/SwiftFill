@@ -62,7 +62,7 @@
                             <span class="badge @(order.Status == "Picked" ? "bg-info" : "bg-secondary")">@order.Status</span>
                         </td>
                         <td>
-                            <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#packModal-@order.TrackingId">
+                            <button class="btn btn-sm btn-outline-warning" onclick="openPackModal('@order.TrackingId')">
                                 Update Packing
                             </button>
                         </td>
@@ -93,132 +93,125 @@
     }
 </div>
 
-@foreach (var order in Model)
-{
-    <!-- Modal -->
-    <div class="modal fade" id="packModal-@order.TrackingId" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content bg-dark text-white border-warning">
-                <div class="modal-header border-secondary">
-                    <h5 class="modal-title">Packing Details - @order.TrackingId</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <form asp-action="UpdatePacking" method="post">
-                    <div class="modal-body">
-                        <input type="hidden" name="trackingId" value="@order.TrackingId" />
+<!-- Single Shared Packing Modal -->
+<div class="modal fade" id="packModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-warning" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold"><i class="bi bi-box-seam text-warning me-2"></i> Packing Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="UpdatePacking" method="post" id="packForm">
+                <div class="modal-body pt-3">
+                    <input type="hidden" name="trackingId" id="packTrackingId" />
+                    
+                    <div class="mb-4 p-3 rounded bg-black bg-opacity-50 border border-secondary border-opacity-10">
+                        <div class="text-secondary x-small text-uppercase mb-1">Target Shipment</div>
+                        <div class="fw-bold text-white fs-5" id="displayTrackingId">#—</div>
+                        <div class="text-secondary small" id="displayReceiver">—</div>
+                    </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Service Required</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="availPacking" value="true" id="packCheck-@order.TrackingId" @(order.AvailPacking ? "checked" : "")>
-                                <label class="form-check-label" for="packCheck-@order.TrackingId">
-                                    Bubble Wrap / Box / Crating
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small text-uppercase ls-1">Service Required</label>
+                        <div class="form-check p-0">
+                            <div class="glass-card p-3 d-flex align-items-center gap-3" style="background: rgba(255,255,255,0.02); cursor:pointer;" onclick="document.getElementById('availPacking').click()">
+                                <input class="form-check-input ms-0 mt-0" type="checkbox" name="availPacking" value="true" id="availPacking">
+                                <label class="form-check-label text-white-50" for="availPacking" style="cursor:pointer;">
+                                    Bubble Wrap / Box / Crating Required
                                 </label>
                             </div>
                         </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Packing Fee (₱)</label>
-                            <input type="number" name="packingFee" class="form-control bg-secondary text-white border-0" value="@order.PackingFee" step="0.01">
-                            <small class="text-secondary">Additional fee based on item size/fragility.</small>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Packing Location</label>
-                            <select name="packingLocation" class="form-select bg-secondary text-white border-0">
-                                <option value="Store" selected="@(order.PackingLocation == "Store")">In Front of Customer (Store)</option>
-                                <option value="Warehouse" selected="@(order.PackingLocation == "Warehouse")">Warehouse (Large Cargo/Electric)</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Sorting Status</label>
-                            <select name="sortingStatus" class="form-select bg-secondary text-white border-0">
-                                <option value="Pending in Store" selected="@(order.SortingStatus == "Pending in Store")">Pending in Store</option>
-                                <option value="Sorted in Warehouse" selected="@(order.SortingStatus == "Sorted in Warehouse")">Sorted in Warehouse</option>
-                            </select>
-                        </div>
                     </div>
-                    <div class="modal-footer border-secondary">
-                        <button type="submit" class="btn btn-warning fw-bold px-4">Save & Mark Packed</button>
+
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small text-uppercase ls-1">Packing Fee (₱)</label>
+                        <input type="number" name="packingFee" id="packFee" class="form-control bg-dark border-secondary text-white shadow-none" value="0" step="0.01">
                     </div>
-                </form>
-            </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small text-uppercase ls-1">Packing Location</label>
+                        <select name="packingLocation" id="packLocation" class="form-select bg-dark border-secondary text-white shadow-none">
+                            <option value="Store">In Front of Customer (Store)</option>
+                            <option value="Warehouse">Warehouse (Large Cargo/Electric)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small text-uppercase ls-1">Sorting Status</label>
+                        <select name="sortingStatus" id="sortStatus" class="form-select bg-dark border-secondary text-white shadow-none">
+                            <option value="Pending in Store">Pending in Store</option>
+                            <option value="Sorted in Warehouse">Sorted in Warehouse</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning fw-bold px-4">Complete Packing</button>
+                </div>
+            </form>
         </div>
     </div>
-}
+</div>
 
 @section Scripts {
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const forms = document.querySelectorAll('form[action*="UpdatePacking"]');
-            forms.forEach(form => {
-                form.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    
-                    const btn = form.querySelector('button[type="submit"]');
-                    const originalBtnHtml = btn.innerHTML;
-                    
-                    btn.disabled = true;
-                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Saving...';
+        let currentTargetRow = null;
 
-                    const formData = new FormData(form);
-                    
-                    // Handle checkbox specifically for FormData if needed, but normally browser does it.
-                    // If unchecked, it won't be in FormData, which is handled as 'false' by binder.
-
-                    try {
-                        const response = await fetch(form.action, {
-                            method: 'POST',
-                            headers: {
-                                'X-Requested-With': 'XMLHttpRequest'
-                            },
-                            body: formData
-                        });
-                        
-                        const result = await response.json();
-                        
-                        if (result.success) {
-                            // 1. Find and close the modal
-                            const modalElement = form.closest('.modal');
-                            const modal = bootstrap.Modal.getInstance(modalElement);
-                            if (modal) modal.hide();
-
-                            // 2. Update the table row
-                            const row = modalElement.closest('tr');
-                            if (row) {
-                                // Update status badge
-                                const statusBadge = row.querySelector('.badge');
-                                statusBadge.className = 'badge bg-success';
-                                statusBadge.textContent = 'Packed';
-                                
-                                // Remove the update button or replace it
-                                const actionCell = cellForAction(row);
-                                if (actionCell) {
-                                    actionCell.innerHTML = '<span class="text-success small fw-bold"><i class="bi bi-check-circle me-1"></i> Completed</span>';
-                                }
-                            }
-                            
-                            // Optional: Small toast or alert
-                            console.log('Update successful for ' + result.trackingId);
-                        } else {
-                            alert('Update Failed: ' + result.message);
-                            btn.disabled = false;
-                            btn.innerHTML = originalBtnHtml;
-                        }
-                    } catch (err) {
-                        console.error('Fetch error:', err);
-                        alert('An error occurred during the update.');
-                        btn.disabled = false;
-                        btn.innerHTML = originalBtnHtml;
-                    }
+        function openPackModal(trackingId) {
+            currentTargetRow = event.target.closest('tr');
+            const modal = new bootstrap.Modal(document.getElementById('packModal'));
+            
+            // Reset fields while loading
+            document.getElementById('displayTrackingId').textContent = '#' + trackingId;
+            document.getElementById('packTrackingId').value = trackingId;
+            
+            fetch(`/Admin/GetOrderJson?trackingId=${trackingId}`)
+                .then(r => r.json())
+                .then(order => {
+                    document.getElementById('displayReceiver').textContent = order.receiverName;
+                    document.getElementById('availPacking').checked = order.availPacking;
+                    document.getElementById('packFee').value = order.packingFee;
+                    document.getElementById('packLocation').value = order.packingLocation || 'Store';
+                    document.getElementById('sortStatus').value = order.sortingStatus || 'Pending in Store';
+                    modal.show();
                 });
-            });
+        }
 
-            function cellForAction(row) {
-                // Returns the last <td> in the row
-                const cells = row.querySelectorAll('td');
-                return cells[cells.length - 1];
+        document.getElementById('packForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const form = this;
+            const btn = form.querySelector('button[type="submit"]');
+            const originalBtnHtml = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Updating...';
+
+            const formData = new FormData(form);
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: formData
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('packModal')).hide();
+                    if (currentTargetRow) {
+                        const statusBadge = currentTargetRow.querySelector('.badge');
+                        statusBadge.className = 'badge bg-success';
+                        statusBadge.textContent = 'Packed';
+                        const actionCell = currentTargetRow.querySelector('td:last-child');
+                        actionCell.innerHTML = '<span class="text-success small fw-bold"><i class="bi bi-check-circle me-1"></i> Completed</span>';
+                    }
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (err) {
+                alert('System error occurred.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalBtnHtml;
             }
         });
     </script>
@@ -227,4 +220,5 @@
 <style>
     .animate-fade-up { animation: fadeUp 0.3s ease-out forwards; }
     @@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .ls-1 { letter-spacing: 1px; }
 </style>

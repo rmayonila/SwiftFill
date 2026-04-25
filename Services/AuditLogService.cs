@@ -1,50 +1,92 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
+using SwiftFill.Data;
+using System.ComponentModel.DataAnnotations;
+
 namespace SwiftFill.Services
 {
     /// <summary>
-    /// In-memory audit log service. Stores up to 500 recent entries.
-    /// Registered as a Singleton so logs persist for the lifetime of the app process.
-    /// No DB migration required — logs reset on app restart (acceptable for a live ERP).
+    /// Persistent audit log service. Stores entries in the SQL database.
+    /// Registered as a Singleton, but uses IServiceScopeFactory to access Scoped DbContext.
     /// </summary>
     public class AuditLogService
     {
-        private readonly LinkedList<AuditLogEntry> _entries = new();
-        private readonly object _lock = new();
-        private const int MaxEntries = 500;
+        private readonly IServiceScopeFactory _scopeFactory;
+
+        public AuditLogService(IServiceScopeFactory scopeFactory)
+        {
+            _scopeFactory = scopeFactory;
+        }
 
         public void Log(string actor, string role, string action, string detail, AuditLogType type = AuditLogType.System)
         {
-            var entry = new AuditLogEntry
+            using (var scope = _scopeFactory.CreateScope())
             {
-                Timestamp = DateTime.Now,
-                Actor = actor,
-                Role = role,
-                Action = action,
-                Detail = detail,
-                Type = type
-            };
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                
+                var entry = new AuditLogEntry
+                {
+                    Timestamp = DateTime.Now,
+                    Actor = actor,
+                    Role = role,
+                    Action = action,
+                    Detail = detail,
+                    Type = type
+                };
 
-            lock (_lock)
-            {
-                _entries.AddFirst(entry);
-                if (_entries.Count > MaxEntries)
-                    _entries.RemoveLast();
+                context.AuditLogs.Add(entry);
+                context.SaveChanges();
             }
         }
 
-        /// <summary>Returns most recent Security-type events.</summary>
-        public IEnumerable<AuditLogEntry> GetSecurityLogs() =>
-            _entries.Where(e => e.Type == AuditLogType.Security).Take(100);
+        /// <summary>Returns recent Security-type events from DB.</summary>
+        public IEnumerable<AuditLogEntry> GetSecurityLogs()
+        {
+            using (var scope = _scopeFactory.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                return context.AuditLogs
+                    .Where(e => e.Type == AuditLogType.Security)
+                    .OrderByDescending(e => e.Timestamp)
+                    .Take(100)
+                    .ToList();
+            }
+        }
 
-        /// <summary>Returns most recent System-type events.</summary>
-        public IEnumerable<AuditLogEntry> GetSystemLogs() =>
-            _entries.Where(e => e.Type == AuditLogType.System).Take(100);
+        /// <summary>Returns recent System-type events from DB.</summary>
+        public IEnumerable<AuditLogEntry> GetSystemLogs()
+        {
+            using (var scope = _scopeFactory.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                return context.AuditLogs
+                    .Where(e => e.Type == AuditLogType.System)
+                    .OrderByDescending(e => e.Timestamp)
+                    .Take(100)
+                    .ToList();
+            }
+        }
 
-        /// <summary>Returns all entries.</summary>
-        public IEnumerable<AuditLogEntry> GetAllLogs() => _entries.Take(200);
+        /// <summary>Returns all entries from DB.</summary>
+        public IEnumerable<AuditLogEntry> GetAllLogs()
+        {
+            using (var scope = _scopeFactory.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                return context.AuditLogs
+                    .OrderByDescending(e => e.Timestamp)
+                    .Take(200)
+                    .ToList();
+            }
+        }
     }
 
     public class AuditLogEntry
     {
+        [Key]
+        public int Id { get; set; }
         public DateTime Timestamp { get; set; }
         public string Actor { get; set; } = "";        // Username or "System"
         public string Role { get; set; } = "";         // Role at time of action

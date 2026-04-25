@@ -1,64 +1,52 @@
 @model decimal
 @{
     ViewData["Title"] = "Cash Remittance";
-    Layout = "_RiderLayout"; // This MUST match the name of your shared layout file
+    Layout = "_RiderLayout";
 }
 
 <div class="animate-fade-up">
     <div class="mb-4">
-        <h2 class="fw-bold text-white mb-1"><i class="bi bi-cash-stack text-orange me-2"></i> Cash Remittance</h2>
-        <p class="text-secondary small">Track and remit your collected Cash on Delivery (COD) funds.</p>
+        <h2 class="fw-bold text-white mb-1">Cash Hub</h2>
+        <p class="text-secondary small">Manage your COD collections and remittances.</p>
     </div>
 
-    <div class="glass-card p-5 text-center border-0 border-top border-orange border-4 mb-4" style="background: rgba(255, 140, 0, 0.05);">
-        <div class="text-secondary small mb-2 text-uppercase fw-bold">Current Cash on Hand</div>
-        <div class="display-3 fw-bold text-white mb-3">₱@Model.ToString("N2")</div>
-        <p class="text-secondary small mb-4">This amount represents all COD collections for today. Please remit to the Davao Hub Cashier before 6:00 PM.</p>
+    <div class="glass-card p-4 p-md-5 text-center border-0 border-top border-orange border-4 mb-4" 
+         style="background: linear-gradient(180deg, rgba(255, 140, 0, 0.08) 0%, rgba(0,0,0,0) 100%);">
+        <i class="bi bi-wallet2 text-orange fs-1 mb-3 d-block"></i>
+        <div class="text-secondary small mb-1 text-uppercase fw-bold ls-1">Estimated Cash on Hand</div>
+        <div class="display-4 fw-bold text-white mb-2">₱@Model.ToString("N2")</div>
+        <p class="text-secondary smaller mb-4 mx-auto" style="max-width: 300px;">
+            Total collected from COD deliveries today. Please remit to your assigned hub before day-end.
+        </p>
         
-        <button class="btn btn-warning px-5 py-3 fw-bold rounded-pill shadow-sm" style="background: #ff8c00; border: none; color: #000;">
-            GENERATE REMITTANCE QR
+        <button class="btn btn-orange w-100 py-3 fw-bold rounded-3 shadow" onclick="alert('QR Code Generated (Simulation)')">
+            <i class="bi bi-qr-code me-2"></i> GENERATE REMITTANCE QR
         </button>
     </div>
 
-    <!-- Added Module Features -->
-    <div class="module-toolbar">
-        <div class="search-container">
-            <i class="bi bi-search"></i>
-            <input type="text" placeholder="Search past remittance history..." />
+    <!-- Features -->
+    <div class="row g-3">
+        <div class="col-6">
+            <div class="glass-card p-3 border-0 bg-white bg-opacity-5">
+                <i class="bi bi-clock text-orange mb-2 d-block"></i>
+                <div class="text-secondary smaller fw-bold">Last Remit</div>
+                <div class="text-white fw-bold">--:--</div>
+            </div>
         </div>
-        <div class="d-flex gap-2">
-            <a href="#" class="filter-btn"><i class="bi bi-funnel"></i> Filter</a>
+        <div class="col-6">
+            <div class="glass-card p-3 border-0 bg-white bg-opacity-5">
+                <i class="bi bi-check-circle text-orange mb-2 d-block"></i>
+                <div class="text-secondary smaller fw-bold">Status</div>
+                <div class="text-white fw-bold">Pending</div>
+            </div>
         </div>
-    </div>
-
-    <div class="glass-card p-0 overflow-hidden">
-        <table class="table table-dark table-hover mb-0">
-            <thead class="bg-black text-secondary small text-uppercase">
-                <tr>
-                    <th class="ps-4 py-3">Remittance ID</th>
-                    <th>Date</th>
-                    <th>Amount Remitted</th>
-                    <th>Status</th>
-                    <th class="text-end pe-4">Receipt</th>
-                </tr>
-            </thead>
-            <tbody class="align-middle">
-                <tr>
-                    <td colspan="5" class="text-center py-4 text-secondary">
-                        <i class="bi bi-inbox fs-3 d-block mb-2"></i>
-                        No recorded remittance history yet
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="pagination-container mt-4">
-        <div class="page-info">Showing 0 to 0 of 0 entries</div>
-        <div class="btn-group">
-            <button class="btn btn-sm btn-outline-secondary disabled">Previous</button>
-            <button class="btn btn-sm btn-secondary disabled">1</button>
-            <button class="btn btn-sm btn-outline-secondary disabled">Next</button>
+        
+        <div class="col-12 mt-4">
+            <h6 class="text-secondary text-uppercase smaller fw-bold mb-3 ls-1">Recent Remittance History</h6>
+            <div class="glass-card p-5 text-center bg-white bg-opacity-5 border-0">
+                <i class="bi bi-journals fs-1 text-secondary opacity-25 mb-2 d-block"></i>
+                <p class="text-secondary small mb-0">No past transactions found for this period.</p>
+            </div>
         </div>
     </div>
 </div>

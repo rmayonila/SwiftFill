@@ -19,229 +19,229 @@ build_property.TargetFrameworkIdentifier = .NETCoreApp
 build_property.TargetFrameworkVersion = v10.0
 build_property.RootNamespace = SwiftFill
 build_property.RootNamespace = SwiftFill
-build_property.ProjectDir = c:\Users\PERSONAL\SwiftFill\
+build_property.ProjectDir = C:\Users\PERSONAL\SwiftFill\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 9.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = c:\Users\PERSONAL\SwiftFill
+build_property.MSBuildProjectDirectory = C:\Users\PERSONAL\SwiftFill
 build_property._RazorSourceGeneratorDebug = 
 build_property.EffectiveAnalysisLevelStyle = 10.0
 build_property.EnableCodeStyleSeverity = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Account/AccessDenied.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Account/AccessDenied.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxBY2Nlc3NEZW5pZWQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Account/ForgotPassword.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Account/ForgotPassword.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxGb3Jnb3RQYXNzd29yZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Account/Login.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Account/Login.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxMb2dpbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Account/SelectHub.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Account/SelectHub.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxTZWxlY3RIdWIuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Account/SignUp.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Account/SignUp.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxTaWduVXAuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Admin/Archive.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Admin/Archive.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cQXJjaGl2ZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Admin/Dashboard.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Admin/Dashboard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cRGFzaGJvYXJkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Admin/EditOrder.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Admin/EditOrder.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cRWRpdE9yZGVyLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Admin/OrderSummary.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Admin/OrderSummary.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cT3JkZXJTdW1tYXJ5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Admin/Pack.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Admin/Pack.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cUGFjay5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Admin/Payments.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Admin/Payments.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cUGF5bWVudHMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Admin/RecentActivity.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Admin/RecentActivity.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cUmVjZW50QWN0aXZpdHkuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Admin/Reports.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Admin/Reports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cUmVwb3J0cy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Admin/Returns.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Admin/Returns.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cUmV0dXJucy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Admin/Shipments.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Admin/Shipments.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cU2hpcG1lbnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Admin/ShippingRates.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Admin/ShippingRates.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cU2hpcHBpbmdSYXRlcy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Customer/Book.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Customer/Book.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcQm9vay5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Customer/Index.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Customer/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Customer/Returns.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Customer/Returns.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcUmV0dXJucy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Customer/Track.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Customer/Track.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcVHJhY2suY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Home/Demo.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Home/Demo.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxEZW1vLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Home/Index.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Home/Track.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Home/Track.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxUcmFjay5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/RiderInfo/Index.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/RiderInfo/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmlkZXJJbmZvXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Rider/History.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Rider/History.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmlkZXJcSGlzdG9yeS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Rider/Index.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Rider/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmlkZXJcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Rider/Remittance.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Rider/Remittance.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmlkZXJcUmVtaXR0YW5jZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Shared/Error.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Shared/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Shared/_AdminLayout.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Shared/_AdminLayout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9BZG1pbkxheW91dC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Shared/_DashboardLayout.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Shared/_DashboardLayout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9EYXNoYm9hcmRMYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Shared/_RiderLayout.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Shared/_RiderLayout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9SaWRlckxheW91dC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Shared/_ValidationScriptsPartial.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Shared/_WarehouseLayout.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Shared/_WarehouseLayout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9XYXJlaG91c2VMYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/SuperAdmin/AuditLogs.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/SuperAdmin/AuditLogs.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VwZXJBZG1pblxBdWRpdExvZ3MuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/SuperAdmin/Branding.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/SuperAdmin/Branding.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VwZXJBZG1pblxCcmFuZGluZy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/SuperAdmin/HubCodes.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/SuperAdmin/HubCodes.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VwZXJBZG1pblxIdWJDb2Rlcy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/SuperAdmin/Index.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/SuperAdmin/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VwZXJBZG1pblxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/SuperAdmin/Inventory.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/SuperAdmin/Inventory.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VwZXJBZG1pblxJbnZlbnRvcnkuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/SuperAdmin/SecurityLogs.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/SuperAdmin/SecurityLogs.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VwZXJBZG1pblxTZWN1cml0eUxvZ3MuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/SuperAdmin/SecurityPolicies.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/SuperAdmin/SecurityPolicies.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VwZXJBZG1pblxTZWN1cml0eVBvbGljaWVzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/SuperAdmin/ShippingRates.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/SuperAdmin/ShippingRates.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VwZXJBZG1pblxTaGlwcGluZ1JhdGVzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/SuperAdmin/SystemLogs.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/SuperAdmin/SystemLogs.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VwZXJBZG1pblxTeXN0ZW1Mb2dzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/SuperAdmin/SystemSettings.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/SuperAdmin/SystemSettings.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VwZXJBZG1pblxTeXN0ZW1TZXR0aW5ncy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/SuperAdmin/Users.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/SuperAdmin/Users.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VwZXJBZG1pblxVc2Vycy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/SuperAdmin/Warehouses.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/SuperAdmin/Warehouses.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VwZXJBZG1pblxXYXJlaG91c2VzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Warehouse/Dashboard.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Warehouse/Dashboard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcV2FyZWhvdXNlXERhc2hib2FyZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Warehouse/HubTransfers.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Warehouse/HubTransfers.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcV2FyZWhvdXNlXEh1YlRyYW5zZmVycy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Warehouse/PackingLine.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Warehouse/PackingLine.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcV2FyZWhvdXNlXFBhY2tpbmdMaW5lLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Warehouse/PickingStation.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Warehouse/PickingStation.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcV2FyZWhvdXNlXFBpY2tpbmdTdGF0aW9uLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Warehouse/TruckTracking.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Warehouse/TruckTracking.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcV2FyZWhvdXNlXFRydWNrVHJhY2tpbmcuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Warehouse/WarehouseQueue.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Warehouse/WarehouseQueue.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcV2FyZWhvdXNlXFdhcmVob3VzZVF1ZXVlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/_ViewImports.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/_ViewImports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/_ViewStart.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/_ViewStart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[c:/Users/PERSONAL/SwiftFill/Views/Shared/_Layout.cshtml]
+[C:/Users/PERSONAL/SwiftFill/Views/Shared/_Layout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = b-p5sl5teyg6

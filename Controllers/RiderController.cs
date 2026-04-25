@@ -14,11 +14,13 @@ namespace SwiftFill.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _environment;
+        private readonly SwiftFill.Services.GoogleMapsService _mapsService;
 
-        public RiderController(ApplicationDbContext context, IWebHostEnvironment environment)
+        public RiderController(ApplicationDbContext context, IWebHostEnvironment environment, SwiftFill.Services.GoogleMapsService mapsService)
         {
             _context = context;
             _environment = environment;
+            _mapsService = mapsService;
         }
 
         // --- 1. ACTIVE TASKS (DASHBOARD) ---
@@ -157,6 +159,17 @@ namespace SwiftFill.Controllers
                 amount = order.Payment?.Amount.ToString("N2") ?? "0.00",
                 photo = order.ProofImagePath
             });
+        }
+
+        // --- 6. AJAX ETA (API 2: Distance Matrix) ---
+        [HttpGet]
+        public async Task<JsonResult> GetEta(string destination)
+        {
+            // Placeholder origin: In a real app, this would be the Rider's current GPS coord or Hub address
+            string origin = "Davao Hub, Philippines"; 
+            string eta = await _mapsService.GetDistanceAndTimeAsync(origin, destination);
+            
+            return Json(new { eta = eta });
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace SwiftFill.Models
 {
@@ -10,6 +11,8 @@ namespace SwiftFill.Models
 
         [Required]
         public string TrackingId { get; set; } = string.Empty;
+
+        [JsonIgnore]
         public Order? Order { get; set; }
 
         [Required]

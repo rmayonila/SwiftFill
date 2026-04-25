@@ -141,7 +141,7 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Warehouses" ? "active" : "")" asp-controller="SuperAdmin" asp-action="Warehouses">
-                            <i class="bi bi-buildings mt-1"></i> Hub Configuration
+                            <i class="bi bi-geo-alt-fill mt-1"></i> Hub Locations
                         </a>
                     </li>
                     <li class="nav-item">
@@ -157,11 +157,6 @@
                     <li class="nav-item">
                         <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Branding" ? "active" : "")" asp-controller="SuperAdmin" asp-action="Branding">
                             <i class="bi bi-palette mt-1"></i> Manage Branding
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "HubCodes" ? "active" : "")" asp-controller="SuperAdmin" asp-action="HubCodes">
-                            <i class="bi bi-key-fill mt-1"></i> Hub Access Codes
                         </a>
                     </li>
                 }

@@ -29,6 +29,28 @@ namespace SwiftFill.Models
         /// <summary>Returns the region for a given hub name.</summary>
         public static string? GetRegion(string hubName) =>
             All.FirstOrDefault(h => h.Name == hubName)?.Region;
+
+        /// <summary>
+        /// Matches a destination region/island group to the correct final destination hub.
+        /// </summary>
+        public static string ResolveDestinationHub(string destinationRegion)
+        {
+            // Direct region/name matches
+            var hub = All.FirstOrDefault(h =>
+                h.Region.Equals(destinationRegion, StringComparison.OrdinalIgnoreCase) ||
+                h.Name.Contains(destinationRegion, StringComparison.OrdinalIgnoreCase));
+            if (hub != null) return hub.Name;
+
+            // Island-group fallback
+            return destinationRegion switch
+            {
+                "NCR"      => "Manila Hub",
+                "Luzon"    => "Manila Hub",
+                "Visayas"  => "Cebu Hub",
+                "Mindanao" => "Cagayan de Oro Hub",
+                _          => $"{destinationRegion} Hub"
+            };
+        }
     }
 
     public record HubInfo(string Name, string Region, string Island);

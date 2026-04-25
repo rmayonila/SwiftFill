@@ -40,6 +40,13 @@ namespace SwiftFill.Data
                 if (result.Succeeded)
                 {
                     await userManager.AddToRoleAsync(newAdmin, "SuperAdmin");
+                    
+                    // Assign all granular permissions to SuperAdmin by default
+                    string[] permissions = { "Shipments", "Inventory", "Reports", "Billing" };
+                    foreach (var perm in permissions)
+                    {
+                        await userManager.AddClaimAsync(newAdmin, new System.Security.Claims.Claim("Permission", perm));
+                    }
                 }
             }
             

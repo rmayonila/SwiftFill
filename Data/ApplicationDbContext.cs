@@ -18,9 +18,10 @@ namespace SwiftFill.Data
         public DbSet<ReturnRequest> ReturnRequests { get; set; }
 
         // ── New tables ──
-        public DbSet<HubAccessCode> HubAccessCodes { get; set; }
         public DbSet<ShippingRate> ShippingRates { get; set; }
         public DbSet<ManualRider> ManualRiders { get; set; }
+        public DbSet<SwiftFill.Services.AuditLogEntry> AuditLogs { get; set; }
+        public DbSet<Warehouse> Warehouses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -58,10 +59,18 @@ namespace SwiftFill.Data
                 .WithMany()
                 .HasForeignKey(o => o.AssignedRiderId);
 
-            // One active code per hub — enforce at DB level
-            builder.Entity<HubAccessCode>()
-                .HasIndex(h => new { h.HubName, h.IsActive })
-                .IsUnique(false); // allow history; uniqueness enforced in controller
+            // Configure Decimal Precisions
+            builder.Entity<Order>(entity => {
+                entity.Property(e => e.PackingFee).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.ShippingFee).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.DeclaredValue).HasColumnType("decimal(18,2)");
+            });
+
+            builder.Entity<ShippingRate>(entity => {
+                entity.Property(e => e.BaseRate).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.PricePerKg).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.ZoneSurcharge).HasColumnType("decimal(18,2)");
+            });
         }
     }
 }
