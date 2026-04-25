@@ -1,6 +1,7 @@
 # Ignore sensitive config files
 appsettings.json
 appsettings.Development.json
+.env
 
 # Ignore build folders (IMPORTANT)
 bin/

@@ -19,7 +19,9 @@ namespace SwiftFill.Services
         public async Task<string> GetDistanceAndTimeAsync(string origin, string destination)
         {
             string apiKey = _configuration["GoogleMaps:ApiKey"] ?? string.Empty;
-            if (string.IsNullOrEmpty(apiKey)) return "ETA: API Key Missing";
+
+            if (string.IsNullOrEmpty(apiKey) || apiKey == "YOUR_GOOGLE_MAPS_API_KEY_HERE" || apiKey == "SET_IN_ENV_FILE") 
+                return "ETA: API Key Missing";
 
             string url = $"https://maps.googleapis.com/maps/api/distancematrix/json?origins={origin}&destinations={destination}&key={apiKey}";
 

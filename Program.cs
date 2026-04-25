@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using SwiftFill.Data;
 using SwiftFill.Models;
 
+DotNetEnv.Env.Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
