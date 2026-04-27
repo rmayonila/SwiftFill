@@ -22,6 +22,7 @@ namespace SwiftFill.Data
         public DbSet<ManualRider> ManualRiders { get; set; }
         public DbSet<SwiftFill.Services.AuditLogEntry> AuditLogs { get; set; }
         public DbSet<Warehouse> Warehouses { get; set; }
+        public DbSet<PaymentMethod> PaymentMethods { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

@@ -28,7 +28,7 @@ namespace SwiftFill.Data
             {
                 var newAdmin = new ApplicationUser
                 {
-                    UserName = "superadmin@swiftfill.com",
+                    UserName = "superadmin",
                     Email = "superadmin@swiftfill.com",
                     FirstName = "System",
                     LastName = "Administrator",
@@ -49,6 +49,11 @@ namespace SwiftFill.Data
                     }
                 }
             }
+            else if (superAdminUser.UserName != "superadmin")
+            {
+                superAdminUser.UserName = "superadmin";
+                await userManager.UpdateAsync(superAdminUser);
+            }
             
             // Auto-promote Rhealyn's Google Account to SuperAdmin
             var rhealyn = await userManager.FindByEmailAsync("r.mayonila.547819@umindanao.edu.ph");
@@ -63,7 +68,7 @@ namespace SwiftFill.Data
             {
                 var newStandardAdmin = new ApplicationUser
                 {
-                    UserName = "admin@swiftfill.com",
+                    UserName = "admin",
                     Email = "admin@swiftfill.com",
                     FirstName = "Warehouse",
                     LastName = "Manager",
@@ -76,6 +81,11 @@ namespace SwiftFill.Data
                     await userManager.AddToRoleAsync(newStandardAdmin, "Admin");
                 }
             }
+            else if (adminUser.UserName != "admin")
+            {
+                adminUser.UserName = "admin";
+                await userManager.UpdateAsync(adminUser);
+            }
 
             // Create default Warehouse Staff user
             var staffUser = await userManager.FindByEmailAsync("staff@swiftfill.com");
@@ -83,7 +93,7 @@ namespace SwiftFill.Data
             {
                 var newStaff = new ApplicationUser
                 {
-                    UserName = "staff@swiftfill.com",
+                    UserName = "staff",
                     Email = "staff@swiftfill.com",
                     FirstName = "Warehouse",
                     LastName = "Staff",
@@ -96,6 +106,11 @@ namespace SwiftFill.Data
                     await userManager.AddToRoleAsync(newStaff, "WarehouseStaff");
                 }
             }
+            else if (staffUser.UserName != "staff")
+            {
+                staffUser.UserName = "staff";
+                await userManager.UpdateAsync(staffUser);
+            }
 
             // Create default Delivery Rider user
             var riderUser = await userManager.FindByEmailAsync("rider@swiftfill.com");
@@ -103,7 +118,7 @@ namespace SwiftFill.Data
             {
                 var newRider = new ApplicationUser
                 {
-                    UserName = "rider@swiftfill.com",
+                    UserName = "rider",
                     Email = "rider@swiftfill.com",
                     FirstName = "Delivery",
                     LastName = "Rider",
@@ -116,6 +131,11 @@ namespace SwiftFill.Data
                     await userManager.AddToRoleAsync(newRider, "DeliveryRider");
                 }
             }
+            else if (riderUser.UserName != "rider")
+            {
+                riderUser.UserName = "rider";
+                await userManager.UpdateAsync(riderUser);
+            }
 
             // Create default Customer user
             var customerUser = await userManager.FindByEmailAsync("customer@swiftfill.com");
@@ -123,7 +143,7 @@ namespace SwiftFill.Data
             {
                 var newCustomer = new ApplicationUser
                 {
-                    UserName = "customer@swiftfill.com",
+                    UserName = "customer",
                     Email = "customer@swiftfill.com",
                     FirstName = "Alex",
                     LastName = "Doe",
@@ -135,6 +155,24 @@ namespace SwiftFill.Data
                 {
                     await userManager.AddToRoleAsync(newCustomer, "Customer");
                 }
+            }
+            else if (customerUser.UserName != "customer")
+            {
+                customerUser.UserName = "customer";
+                await userManager.UpdateAsync(customerUser);
+            }
+
+            // Seed Payment Methods
+            var dbContext = serviceProvider.GetRequiredService<ApplicationDbContext>();
+            if (!dbContext.PaymentMethods.Any())
+            {
+                dbContext.PaymentMethods.AddRange(new List<PaymentMethod>
+                {
+                    new PaymentMethod { Name = "COD", Description = "Collect on Delivery", IconClass = "bi-cash-stack", IsActive = true },
+                    new PaymentMethod { Name = "GCash", Description = "Digital Wallet (GCash)", IconClass = "bi-phone-fill", IsActive = true, IsOnline = true },
+                    new PaymentMethod { Name = "Bank Transfer", Description = "Direct Bank Deposit", IconClass = "bi-bank", IsActive = true, IsOnline = true }
+                });
+                await dbContext.SaveChangesAsync();
             }
         }
     }

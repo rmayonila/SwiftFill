@@ -29,26 +29,54 @@ namespace SwiftFill.Controllers
 
         public IActionResult Dashboard()
         {
-            var model = new AdminDashboardViewModel
+            var model = GetDashboardViewModel();
+            return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult GetDashboardStats()
+        {
+            var model = GetDashboardViewModel();
+            return Json(new {
+                totalOrders = model.TotalOrders,
+                pendingOrders = model.PendingOrders,
+                inTransit = model.InTransit,
+                delivered = model.Delivered,
+                totalRevenue = model.TotalRevenue,
+                statusCounts = model.StatusCounts,
+                dailyTrend = model.DailyTrend,
+                recentShipments = model.RecentShipments.Select(s => new {
+                    s.TrackingId,
+                    s.SenderName,
+                    s.ReceiverName,
+                    s.DestinationRegion,
+                    s.Status,
+                    createdAt = s.CreatedAt.ToString("MMM dd"),
+                    weight = s.Weight
+                })
+            });
+        }
+
+        private AdminDashboardViewModel GetDashboardViewModel()
+        {
+            return new AdminDashboardViewModel
             {
-                // Current Volume = orders NOT yet delivered or returned
-                TotalOrders = _context.Orders.Count(o => o.Status != "Delivered" && o.Status != "Returned"),
-                PendingOrders = _context.Orders.Count(o => o.Status == "Pending"),
-                InTransit = _context.Orders.Count(o => o.Status == "Transit" || o.Status == "OutForDelivery"),
-                Delivered = _context.Orders.Count(o => o.Status == "Delivered"),
+                TotalOrders = _context.Orders.Count(o => o.Status != "Delivered" && o.Status != "Returned" && !o.IsArchived),
+                PendingOrders = _context.Orders.Count(o => o.Status == "Pending" && !o.IsArchived),
+                InTransit = _context.Orders.Count(o => (o.Status.Contains("Transit") || o.Status == "OutForDelivery") && !o.IsArchived),
+                Delivered = _context.Orders.Count(o => o.Status == "Delivered" && !o.IsArchived),
                 TotalRevenue = _context.Payments.Where(p => p.IsPaid).Sum(p => p.Amount),
                 
-                StatusCounts = _context.Orders.GroupBy(o => o.Status)
+                StatusCounts = _context.Orders.Where(o => !o.IsArchived).GroupBy(o => o.Status)
                     .Select(g => new StatusDistributionItem { Status = g.Key, Count = g.Count() }).ToList(),
                 
-                DailyTrend = _context.Orders.Where(o => o.CreatedAt >= DateTime.Now.AddDays(-7))
+                DailyTrend = _context.Orders.Where(o => o.CreatedAt >= DateTime.Now.AddDays(-7) && !o.IsArchived)
                     .GroupBy(o => o.CreatedAt.Date)
                     .OrderBy(g => g.Key)
                     .Select(g => new DailyTrendItem { Date = g.Key.ToString("MM-dd"), Count = g.Count() }).ToList(),
                 
-                RecentShipments = _context.Orders.OrderByDescending(o => o.CreatedAt).Take(5).ToList()
+                RecentShipments = _context.Orders.Where(o => !o.IsArchived).OrderByDescending(o => o.CreatedAt).Take(5).ToList()
             };
-            return View(model);
         }
         
         public async Task<IActionResult> Shipments(string search, string status, string region, int page = 1)
@@ -76,6 +104,7 @@ namespace SwiftFill.Controllers
             ViewBag.Region = region;
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            ViewBag.PaymentMethods = await _context.PaymentMethods.Where(m => m.IsActive).ToListAsync();
 
             return View(orders);
         }
@@ -368,25 +397,59 @@ namespace SwiftFill.Controllers
         }
 
 
-        public IActionResult Payments(string search, int page = 1)
+        public IActionResult Payments(string search, string status, int page = 1)
         {
-            int pageSize = 5;
-            var query = _context.Payments.Where(p => p.IsPaid);
+            int pageSize = 10;
+            var query = _context.Payments.Include(p => p.Order).AsQueryable();
 
             if (!string.IsNullOrEmpty(search))
-                query = query.Where(p => p.TrackingId.Contains(search));
+                query = query.Where(p => p.TrackingId.Contains(search) || p.Order.ReceiverName.Contains(search));
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                if (status == "Paid") query = query.Where(p => p.IsPaid);
+                else if (status == "Pending") query = query.Where(p => !p.IsPaid);
+            }
 
             var totalItems = query.Count();
-            var payments = query.OrderByDescending(p => p.PaidAt)
+            var payments = query.OrderByDescending(p => p.IsPaid == false).ThenByDescending(p => p.PaidAt ?? p.Order.CreatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
 
             ViewBag.Search = search;
+            ViewBag.Status = status;
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 
             return View(payments);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ConfirmPayment(int paymentId)
+        {
+            var payment = await _context.Payments.Include(p => p.Order).FirstOrDefaultAsync(p => p.PaymentId == paymentId);
+            if (payment != null)
+            {
+                payment.IsPaid = true;
+                payment.PaidAt = DateTime.UtcNow;
+                payment.CollectedByUserId = _userManager.GetUserId(User);
+                
+                if (payment.Order != null && payment.Order.Status != "Delivered")
+                {
+                    // If it was COD and we're settling it, it's a good sign the delivery was successful
+                    // though usually the rider marks it delivered first.
+                }
+
+                await _context.SaveChangesAsync();
+                
+                _audit.Log(User.Identity?.Name ?? "Admin", "Admin", "Payment Settlement",
+                    $"Payment for {payment.TrackingId} (₱{payment.Amount}) confirmed as received.",
+                    AuditLogType.Finance);
+                
+                TempData["SuccessMessage"] = $"Payment for {payment.TrackingId} settled successfully.";
+            }
+            return RedirectToAction(nameof(Payments));
         }
 
         public IActionResult Reconciliation(string search, int page = 1) 
@@ -514,20 +577,71 @@ namespace SwiftFill.Controllers
             var targetYear = year ?? DateTime.Now.Year;
 
             var filteredOrders = _context.Orders
-                .Where(o => o.CreatedAt.Month == targetMonth && o.CreatedAt.Year == targetYear);
+                .Where(o => o.CreatedAt.Month == targetMonth && o.CreatedAt.Year == targetYear && !o.IsArchived);
 
             var model = new AdminDashboardViewModel
             {
                 RevenueByRegion = filteredOrders.GroupBy(o => o.DestinationRegion)
                     .Select(g => new RegionRevenueItem { Region = g.Key, Total = (decimal)g.Count() }).ToList(),
                 TotalOrders = filteredOrders.Count(),
-                Delivered = filteredOrders.Count(o => o.Status == "Delivered")
+                Delivered = filteredOrders.Count(o => o.Status == "Delivered"),
+                DailyTrend = filteredOrders.GroupBy(o => o.CreatedAt.Date)
+                    .OrderBy(g => g.Key)
+                    .Select(g => new DailyTrendItem { Date = g.Key.ToString("MM-dd"), Count = g.Count() }).ToList()
             };
 
             ViewBag.SelectedMonth = targetMonth;
             ViewBag.SelectedYear = targetYear;
 
             return View(model);
+        }
+
+        public async Task<IActionResult> PaymentsManagement()
+        {
+            var methods = await _context.PaymentMethods.ToListAsync();
+            return View(methods);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddPaymentMethod(PaymentMethod method)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.PaymentMethods.Add(method);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Payment method {method.Name} added.";
+            }
+            return RedirectToAction(nameof(PaymentsManagement));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdatePaymentMethod(PaymentMethod method)
+        {
+            var existing = await _context.PaymentMethods.FindAsync(method.Id);
+            if (existing != null)
+            {
+                existing.Name = method.Name;
+                existing.Description = method.Description;
+                existing.IsActive = method.IsActive;
+                existing.IsOnline = method.IsOnline;
+                existing.IconClass = method.IconClass;
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Payment method {method.Name} updated.";
+            }
+            return RedirectToAction(nameof(PaymentsManagement));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeletePaymentMethod(int id)
+        {
+            var method = await _context.PaymentMethods.FindAsync(id);
+            if (method != null)
+            {
+                _context.PaymentMethods.Remove(method);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Payment method removed.";
+            }
+            return RedirectToAction(nameof(PaymentsManagement));
         }
     }
 }

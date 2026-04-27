@@ -14,6 +14,7 @@ namespace SwiftFill.Models
         public List<DailyTrendItem> DailyTrend { get; set; } = new();
         public List<RegionRevenueItem> RevenueByRegion { get; set; } = new();
         public List<Order> RecentShipments { get; set; } = new();
+        public List<PaymentMethod> PaymentMethods { get; set; } = new();
 
         // For Picking.cshtml
         public List<Order> PendingPickOrders { get; set; } = new();

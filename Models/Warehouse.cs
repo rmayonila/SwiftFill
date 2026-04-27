@@ -24,5 +24,7 @@ namespace SwiftFill.Models
         public string Status { get; set; } = "Operational";
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public bool IsArchived { get; set; } = false;
     }
 }

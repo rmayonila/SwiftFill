@@ -151,11 +151,19 @@
                 <div class="row g-3 mb-3">
                     <div class="col-6">
                         <label class="form-label">First Name</label>
-                        <input type="text" class="form-control" style="border-left: 1px solid #30363d; padding-left: 15px;" placeholder="John" required>
+                        <input type="text" name="firstName" class="form-control" style="border-left: 1px solid #30363d; padding-left: 15px;" placeholder="John" required>
                     </div>
                     <div class="col-6">
                         <label class="form-label">Last Name</label>
-                        <input type="text" class="form-control" style="border-left: 1px solid #30363d; padding-left: 15px;" placeholder="Doe" required>
+                        <input type="text" name="lastName" class="form-control" style="border-left: 1px solid #30363d; padding-left: 15px;" placeholder="Doe" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                        <input type="text" name="username" class="form-control" placeholder="Choose a username" required>
                     </div>
                 </div>
 
@@ -163,7 +171,7 @@
                     <label class="form-label">Email</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                        <input type="email" class="form-control" placeholder="you@company.com" required>
+                        <input type="email" name="email" class="form-control" placeholder="you@company.com" required>
                     </div>
                 </div>
                 

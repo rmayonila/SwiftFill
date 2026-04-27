@@ -148,11 +148,12 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Data from ViewModel
-        const trendData = @Html.Raw(Json.Serialize(Model.DailyTrend));
-        const statusData = @Html.Raw(Json.Serialize(Model.StatusCounts));
+        let trendData = @Html.Raw(Json.Serialize(Model.DailyTrend));
+        let statusData = @Html.Raw(Json.Serialize(Model.StatusCounts));
 
         // Trend Chart
-        new Chart(document.getElementById('trendChart'), {
+        const trendCtx = document.getElementById('trendChart');
+        const trendChart = new Chart(trendCtx, {
             type: 'line',
             data: {
                 labels: trendData.map(d => d.date),
@@ -177,13 +178,14 @@
         });
 
         // Status Chart
-        new Chart(document.getElementById('statusChart'), {
+        const statusCtx = document.getElementById('statusChart');
+        const statusChart = new Chart(statusCtx, {
             type: 'doughnut',
             data: {
                 labels: statusData.map(d => d.status),
                 datasets: [{
                     data: statusData.map(d => d.count),
-                    backgroundColor: ['#ffc107', '#0dcaf0', '#198754', '#6c757d', '#dc3545'],
+                    backgroundColor: ['#ffc107', '#0dcaf0', '#198754', '#6c757d', '#dc3545', '#ff8c00', '#6f42c1'],
                     borderWidth: 0,
                     hoverOffset: 15
                 }]
@@ -196,5 +198,61 @@
                 cutout: '70%'
             }
         });
+
+        // Real-time updates polling
+        async function refreshDashboard() {
+            try {
+                const response = await fetch('/Admin/GetDashboardStats');
+                const data = await response.json();
+
+                // Update Stat Cards
+                document.querySelector('.stat-value.text-white.h2:nth-child(1)').parentElement.querySelector('.stat-value').textContent = data.totalOrders;
+                document.querySelectorAll('.stat-value.text-white.h2')[1].textContent = data.inTransit;
+                document.querySelectorAll('.stat-value.text-white.h2')[2].textContent = '₱' + data.totalRevenue.toLocaleString('en-US');
+                document.querySelectorAll('.stat-value.text-white.h2')[3].textContent = data.pendingOrders;
+
+                // Update Charts
+                trendChart.data.labels = data.dailyTrend.map(d => d.date);
+                trendChart.data.datasets[0].data = data.dailyTrend.map(d => d.count);
+                trendChart.update('none');
+
+                statusChart.data.labels = data.statusCounts.map(d => d.status);
+                statusChart.data.datasets[0].data = data.statusCounts.map(d => d.count);
+                statusChart.update('none');
+
+                // Update Recent Shipments Table
+                const tbody = document.querySelector('table tbody');
+                tbody.innerHTML = data.recentShipments.map(s => `
+                    <tr>
+                        <td class="border-0 ps-0 py-3">
+                            <span class="text-orange fw-bold">${s.trackingId}</span>
+                            <div class="x-small text-secondary">${s.senderName}</div>
+                        </td>
+                        <td class="border-0 py-3">
+                            <div class="text-white">${s.destinationRegion}</div>
+                            <div class="x-small text-secondary">${s.receiverName}</div>
+                        </td>
+                        <td class="border-0 py-3">
+                            <span class="badge border bg-transparent px-3 ${s.status === 'Delivered' ? 'border-success text-success' : 'border-warning text-warning'}" style="font-size: 0.7rem;">
+                                ${s.status}
+                            </span>
+                        </td>
+                        <td class="border-0 py-3 text-end pe-0">
+                            <div class="text-white small">${s.createdAt}</div>
+                            <div class="x-small text-secondary">${s.weight} kg</div>
+                        </td>
+                    </tr>
+                `).join('');
+
+                // Update "Last Updated" timestamp
+                const now = new Date();
+                document.querySelector('.text-secondary.small').textContent = 'Last Updated: ' + now.toLocaleTimeString('en-GB');
+            } catch (error) {
+                console.error('Error refreshing dashboard:', error);
+            }
+        }
+
+        // Poll every 10 seconds
+        setInterval(refreshDashboard, 10000);
     </script>
 }

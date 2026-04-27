@@ -40,12 +40,30 @@ namespace SwiftFill.Controllers
         public IActionResult AuditLogs() => View();
         public IActionResult DatabaseStats() => View();
 
-        public async Task<IActionResult> Users()
+        public async Task<IActionResult> Users(string search, string role, int page = 1)
         {
-            var users = await _userManager.Users.ToListAsync();
+            int pageSize = 10;
+            var usersQuery = _userManager.Users.AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                usersQuery = usersQuery.Where(u => u.Email.Contains(search) || u.FirstName.Contains(search) || u.LastName.Contains(search));
+            }
+
+            var users = await usersQuery.ToListAsync();
+
+            if (!string.IsNullOrEmpty(role))
+            {
+                var usersInRole = await _userManager.GetUsersInRoleAsync(role);
+                users = users.Intersect(usersInRole).ToList();
+            }
+
+            var totalItems = users.Count();
+            var pagedUsers = users.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
             var model = new List<UserManagementViewModel>();
 
-            foreach (var user in users)
+            foreach (var user in pagedUsers)
             {
                 var roles = await _userManager.GetRolesAsync(user);
                 var claims = await _userManager.GetClaimsAsync(user);
@@ -59,6 +77,11 @@ namespace SwiftFill.Controllers
             }
 
             ViewBag.AllHubNames = await _context.Warehouses.Select(w => w.Name).ToListAsync();
+            
+            ViewBag.Search = search;
+            ViewBag.Role = role;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 
             return View(model);
         }
@@ -70,7 +93,7 @@ namespace SwiftFill.Controllers
             {
                 var user = new ApplicationUser
                 {
-                    UserName = model.Email,
+                    UserName = model.UserName,
                     Email = model.Email,
                     FirstName = model.FirstName,
                     LastName = model.LastName,
@@ -138,11 +161,12 @@ namespace SwiftFill.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateProfile(string userId, string firstName, string lastName, string phoneNumber, string hub)
+        public async Task<IActionResult> UpdateProfile(string userId, string userName, string firstName, string lastName, string phoneNumber, string hub, string? newPassword)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null) return NotFound();
 
+            user.UserName = userName;
             user.FirstName = firstName;
             user.LastName = lastName;
             user.PhoneNumber = phoneNumber;
@@ -151,6 +175,17 @@ namespace SwiftFill.Controllers
             var result = await _userManager.UpdateAsync(user);
             if (result.Succeeded)
             {
+                if (!string.IsNullOrEmpty(newPassword))
+                {
+                    var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                    var passwordResult = await _userManager.ResetPasswordAsync(user, token, newPassword);
+                    if (!passwordResult.Succeeded)
+                    {
+                        TempData["ErrorMessage"] = "Profile updated, but password reset failed: " + string.Join(" ", passwordResult.Errors.Select(e => e.Description));
+                        return RedirectToAction(nameof(Users));
+                    }
+                }
+
                 TempData["SuccessMessage"] = $"Profile updated for {user.Email}.";
                 return RedirectToAction(nameof(Users));
             }
@@ -184,9 +219,26 @@ namespace SwiftFill.Controllers
             return RedirectToAction(nameof(Users));
         }
 
-        public async Task<IActionResult> Warehouses()
+        public async Task<IActionResult> Warehouses(string search, int page = 1)
         {
-            var warehouses = await _context.Warehouses.OrderByDescending(w => w.CreatedAt).ToListAsync();
+            int pageSize = 8;
+            var query = _context.Warehouses.Where(w => !w.IsArchived).AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(w => w.Name.Contains(search) || w.Region.Contains(search) || w.Island.Contains(search));
+            }
+
+            var totalItems = await query.CountAsync();
+            var warehouses = await query.OrderByDescending(w => w.CreatedAt)
+                                        .Skip((page - 1) * pageSize)
+                                        .Take(pageSize)
+                                        .ToListAsync();
+
+            ViewBag.Search = search;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
             return View(warehouses);
         }
 
@@ -240,15 +292,102 @@ namespace SwiftFill.Controllers
             return RedirectToAction(nameof(Warehouses));
         }
 
-        public IActionResult SystemLogs()
+        [HttpPost]
+        public async Task<IActionResult> ArchiveHub(int id)
         {
-            var logs = _audit.GetSystemLogs().ToList();
+            var warehouse = await _context.Warehouses.FindAsync(id);
+            if (warehouse != null)
+            {
+                warehouse.IsArchived = true;
+                await _context.SaveChangesAsync();
+                _audit.Log(User.Identity?.Name ?? "SuperAdmin", "SuperAdmin", "Archive Hub", 
+                    $"Warehouse '{warehouse.Name}' archived.", AuditLogType.System);
+                TempData["SuccessMessage"] = $"Warehouse '{warehouse.Name}' archived successfully.";
+            }
+            return RedirectToAction(nameof(Warehouses));
+        }
+        
+        [HttpPost]
+        public async Task<IActionResult> RestoreHub(int id)
+        {
+            var warehouse = await _context.Warehouses.FindAsync(id);
+            if (warehouse != null)
+            {
+                warehouse.IsArchived = false;
+                await _context.SaveChangesAsync();
+                _audit.Log(User.Identity?.Name ?? "SuperAdmin", "SuperAdmin", "Restore Hub", 
+                    $"Warehouse '{warehouse.Name}' restored.", AuditLogType.System);
+                TempData["SuccessMessage"] = $"Warehouse '{warehouse.Name}' restored successfully.";
+            }
+            return RedirectToAction(nameof(Archive));
+        }
+
+        public async Task<IActionResult> Archive(string search, int page = 1)
+        {
+            int pageSize = 8;
+            var query = _context.Warehouses.Where(w => w.IsArchived).AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(w => w.Name.Contains(search) || w.Region.Contains(search) || w.Island.Contains(search));
+            }
+
+            var totalItems = await query.CountAsync();
+            var warehouses = await query.OrderByDescending(w => w.CreatedAt)
+                                        .Skip((page - 1) * pageSize)
+                                        .Take(pageSize)
+                                        .ToListAsync();
+
+            ViewBag.Search = search;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            return View(warehouses);
+        }
+
+        public async Task<IActionResult> SystemLogs(string search, int page = 1)
+        {
+            int pageSize = 15;
+            var query = _context.AuditLogs.Where(l => l.Type == AuditLogType.System).AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(l => l.Action.Contains(search) || l.Detail.Contains(search) || l.Actor.Contains(search));
+            }
+
+            var totalItems = await query.CountAsync();
+            var logs = await query.OrderByDescending(l => l.Timestamp)
+                                  .Skip((page - 1) * pageSize)
+                                  .Take(pageSize)
+                                  .ToListAsync();
+
+            ViewBag.Search = search;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
             return View(logs);
         }
 
-        public IActionResult SecurityLogs()
+        public async Task<IActionResult> SecurityLogs(string search, int page = 1)
         {
-            var logs = _audit.GetSecurityLogs().ToList();
+            int pageSize = 15;
+            var query = _context.AuditLogs.Where(l => l.Type == AuditLogType.Security).AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(l => l.Action.Contains(search) || l.Detail.Contains(search) || l.Actor.Contains(search));
+            }
+
+            var totalItems = await query.CountAsync();
+            var logs = await query.OrderByDescending(l => l.Timestamp)
+                                  .Skip((page - 1) * pageSize)
+                                  .Take(pageSize)
+                                  .ToListAsync();
+
+            ViewBag.Search = search;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
             return View(logs);
         }
 

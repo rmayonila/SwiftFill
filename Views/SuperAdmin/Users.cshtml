@@ -35,6 +35,25 @@
         </div>
     }
 
+    <!-- Search & Filter Bar -->
+    <div class="minimal-filter-bar mb-4 p-2 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+        <form method="get" class="d-flex w-100 gap-3 align-items-center">
+            <div class="search-wrapper flex-grow-1">
+                <i class="bi bi-search"></i>
+                <input type="text" name="search" value="@ViewBag.Search" class="minimal-input w-100" 
+                       placeholder="Search email, first name, or last name...">
+            </div>
+            <select name="role" class="minimal-input" style="width: 150px; background: transparent; border: none;" onchange="this.form.submit()">
+                <option value="">All Roles</option>
+                <option value="Admin" selected="@(ViewBag.Role == "Admin")">Admin</option>
+                <option value="WarehouseStaff" selected="@(ViewBag.Role == "WarehouseStaff")">Warehouse Staff</option>
+                <option value="DeliveryRider" selected="@(ViewBag.Role == "DeliveryRider")">Delivery Rider</option>
+                <option value="SuperAdmin" selected="@(ViewBag.Role == "SuperAdmin")">SuperAdmin</option>
+            </select>
+            <button type="submit" class="btn btn-sm btn-warning px-4 py-2 border-0 shadow-sm text-dark fw-bold">Filter</button>
+        </form>
+    </div>
+
     <!-- User Management Table -->
     <div class="card premium-card border-0 shadow-lg" style="background: rgba(22, 27, 34, 0.9); backdrop-filter: blur(14px); border-radius: 12px; border: 1px solid #30363d !important; overflow: hidden;">
         <div class="card-header bg-transparent border-bottom border-dark py-3 px-4 d-flex justify-content-between align-items-center">
@@ -50,7 +69,9 @@
                     <thead style="background: rgba(0,0,0,0.3);">
                         <tr>
                             <th class="ps-4 py-3 text-secondary fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 1px;">User Identity</th>
+                            <th class="py-3 text-secondary fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 1px;">Username</th>
                             <th class="py-3 text-secondary fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 1px;">Role & Permissions</th>
+                            <th class="py-3 text-secondary fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 1px;">Hub Assignment</th>
                             <th class="py-3 text-secondary fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 1px;">Status</th>
                             <th class="pe-4 py-3 text-secondary fw-semibold text-uppercase text-end" style="font-size: 0.75rem; letter-spacing: 1px;">Controls</th>
                         </tr>
@@ -73,6 +94,10 @@
                                 </td>
                                 
                                 <td class="py-3">
+                                    <code class="text-orange">@user.UserName</code>
+                                </td>
+                                
+                                <td class="py-3">
                                     <span class="badge bg-orange text-dark mb-1">@item.Role</span>
                                     <div class="d-flex flex-wrap gap-1">
                                         @foreach(var claim in item.Claims)
@@ -80,6 +105,13 @@
                                             <span class="text-secondary" style="font-size: 0.65rem; border: 1px solid #30363d; padding: 1px 4px; border-radius: 4px;">@claim</span>
                                         }
                                         @if(!item.Claims.Any()){ <span class="text-muted smaller">No specific claims</span> }
+                                    </div>
+                                </td>
+
+                                <td class="py-3">
+                                    <div class="d-flex align-items-center text-white-50 small">
+                                        <i class="bi bi-geo-alt-fill text-orange me-2"></i>
+                                        @(user.Hub ?? "No Hub Assigned")
                                     </div>
                                 </td>
                                 
@@ -111,7 +143,7 @@
                                             <i class="bi bi-shield-lock"></i>
                                         </button>
                                         <button class="btn btn-sm btn-dark border-secondary text-secondary hover-white" title="Edit Profile" 
-                                                onclick="openEditProfileModal('@user.Id', '@user.FirstName', '@user.LastName', '@user.PhoneNumber', '@user.Hub')">
+                                                onclick="openEditProfileModal('@user.Id', '@user.UserName', '@user.FirstName', '@user.LastName', '@user.PhoneNumber', '@user.Hub')">
                                             <i class="bi bi-pencil-square"></i>
                                         </button>
                                         <form asp-action="SuspendUser" method="post" class="d-inline">
@@ -138,6 +170,31 @@
                 </table>
             </div>
         </div>
+
+        <!-- Pagination -->
+        @if (ViewBag.TotalPages != null && ViewBag.TotalPages > 1)
+        {
+            <div class="card-footer bg-transparent border-top border-dark py-3">
+                <div class="d-flex justify-content-center">
+                    <nav>
+                        <ul class="pagination pagination-sm m-0" style="--bs-pagination-bg: transparent; --bs-pagination-border-color: rgba(255,255,255,0.1); --bs-pagination-color: #fff; --bs-pagination-hover-bg: rgba(255,255,255,0.1); --bs-pagination-hover-color: #fff; --bs-pagination-active-bg: #ff8c00; --bs-pagination-active-border-color: #ff8c00;">
+                            <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                                <a class="page-link" href="?search=@ViewBag.Search&role=@ViewBag.Role&page=@(ViewBag.CurrentPage - 1)">Previous</a>
+                            </li>
+                            @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                            {
+                                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                    <a class="page-link" href="?search=@ViewBag.Search&role=@ViewBag.Role&page=@i">@i</a>
+                                </li>
+                            }
+                            <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                                <a class="page-link" href="?search=@ViewBag.Search&role=@ViewBag.Role&page=@(ViewBag.CurrentPage + 1)">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        }
     </div>
 </div>
 
@@ -160,6 +217,10 @@
                             <label class="form-label text-secondary small">Last Name</label>
                             <input type="text" name="LastName" class="form-control bg-dark border-secondary text-white shadow-none" required>
                         </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small">Username</label>
+                        <input type="text" name="UserName" class="form-control bg-dark border-secondary text-white shadow-none" placeholder="Enter username" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label text-secondary small">Email Address</label>
@@ -389,6 +450,9 @@
                             <input type="text" name="lastName" id="edit_lastName" class="form-control bg-dark border-secondary text-white" required>
                         </div>
                     </div>
+                    <label class="form-label text-secondary small">Username</label>
+                    <input type="text" name="userName" id="edit_userName" class="form-control bg-dark border-secondary text-white mb-3" required>
+                    
                     <label class="form-label text-secondary small">Phone Number</label>
                     <input type="text" name="phoneNumber" id="edit_phoneNumber" class="form-control bg-dark border-secondary text-white mb-3" placeholder="+63 9XX XXX XXXX">
                     
@@ -399,6 +463,15 @@
                             <option value="@hub">@hub</option>
                         }
                     </select>
+
+                    <div class="mt-4 pt-3 border-top border-dark">
+                        <label class="form-label text-secondary small">Current Password (Encrypted)</label>
+                        <input type="text" class="form-control bg-dark border-secondary text-secondary mb-3" value="********" readonly>
+                        
+                        <label class="form-label text-warning small fw-bold">NEW PASSWORD</label>
+                        <input type="password" name="newPassword" class="form-control bg-dark border-warning text-white" placeholder="Enter new password to reset">
+                        <div class="form-text text-muted smaller">Leave blank to keep existing password.</div>
+                    </div>
                 </div>
                 <div class="modal-footer border-dark">
                     <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Cancel</button>
@@ -470,8 +543,9 @@
         new bootstrap.Modal(document.getElementById('manageRolesModal')).show();
     }
 
-    function openEditProfileModal(id, first, last, phone, hub) {
+    function openEditProfileModal(id, username, first, last, phone, hub) {
         document.getElementById('edit_userId').value = id;
+        document.getElementById('edit_userName').value = username;
         document.getElementById('edit_firstName').value = first;
         document.getElementById('edit_lastName').value = last;
         document.getElementById('edit_phoneNumber').value = phone;

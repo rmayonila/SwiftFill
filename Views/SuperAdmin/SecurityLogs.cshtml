@@ -25,8 +25,11 @@
             <h6 class="mb-0 fw-bold text-white d-flex align-items-center">
                 <i class="bi bi-shield-lock-fill text-danger me-2"></i> Security Trace
             </h6>
-            <input type="text" id="secSearch" class="form-control form-control-sm bg-dark border-secondary text-white" 
-                   style="max-width: 240px;" placeholder="Filter logs..." oninput="filterLogs(this.value)">
+            <form method="get" class="d-flex m-0 gap-2">
+                <input type="text" name="search" value="@ViewBag.Search" class="form-control form-control-sm bg-dark border-secondary text-white" 
+                       style="max-width: 240px;" placeholder="Search logs...">
+                <button type="submit" class="btn btn-sm btn-danger border-0 px-3 fw-bold">Filter</button>
+            </form>
         </div>
         <div class="table-responsive">
             <table class="table table-dark table-hover mb-0 align-middle" id="secTable">
@@ -82,25 +85,52 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Pagination -->
+        @if (ViewBag.TotalPages != null && ViewBag.TotalPages > 1)
+        {
+            <div class="card-footer bg-transparent border-top border-dark py-3">
+                <div class="d-flex justify-content-center">
+                    <nav>
+                        <ul class="pagination pagination-sm m-0" style="--bs-pagination-bg: transparent; --bs-pagination-border-color: rgba(255,255,255,0.1); --bs-pagination-color: #fff; --bs-pagination-hover-bg: rgba(255,255,255,0.1); --bs-pagination-hover-color: #fff; --bs-pagination-active-bg: #dc3545; --bs-pagination-active-border-color: #dc3545;">
+                            <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                                <a class="page-link" href="?search=@ViewBag.Search&page=@(ViewBag.CurrentPage - 1)">Previous</a>
+                            </li>
+                            @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
+                            {
+                                <li class="page-item @(i == (int)ViewBag.CurrentPage ? "active" : "")">
+                                    <a class="page-link" href="?search=@ViewBag.Search&page=@i">@i</a>
+                                </li>
+                            }
+                            <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                                <a class="page-link" href="?search=@ViewBag.Search&page=@(ViewBag.CurrentPage + 1)">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        }
     </div>
 </div>
 
 <script>
-    function filterLogs(q) {
-        q = q.toLowerCase();
-        document.querySelectorAll('#secTable tbody tr').forEach(row => {
-            row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
-        });
-    }
     function exportLogs() {
-        const rows = [...document.querySelectorAll('#secTable tbody tr')].map(r =>
-            [...r.querySelectorAll('td')].map(c => `"${c.textContent.trim().replace(/\s+/g,' ')}"`).join(',')
-        );
-        const csv = 'Timestamp,User,Action,Details,Status\n' + rows.join('\n');
+        const rows = [["Timestamp", "User", "Role", "Action", "Details", "Status"]];
+        document.querySelectorAll('#secTable tbody tr').forEach(tr => {
+            if(tr.innerText.includes("No security events")) return;
+            const cols = Array.from(tr.querySelectorAll('td')).map(td => `"${td.innerText.replace(/"/g, '""')}"`);
+            rows.push(cols);
+        });
+        const csv = rows.map(r => r.join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-        a.download = 'security_logs.csv';
+        a.setAttribute('hidden', '');
+        a.setAttribute('href', url);
+        a.setAttribute('download', 'security_logs.csv');
+        document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
     }
 </script>
 <style>.hover-white:hover { color: #fff !important; background: #30363d !important; }</style>

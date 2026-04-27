@@ -69,7 +69,80 @@
     </div>
 </div>
 
+    <div class="row g-4 mt-2">
+        <div class="col-md-8">
+            <div class="glass-card p-4 border-0" style="background: rgba(255, 255, 255, 0.01);">
+                <h6 class="text-white mb-4 x-small text-uppercase ls-1">Volume Growth Trend</h6>
+                <canvas id="reportTrendChart" style="max-height: 300px;"></canvas>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="glass-card p-4 border-0" style="background: rgba(255, 255, 255, 0.01);">
+                <h6 class="text-white mb-4 x-small text-uppercase ls-1">Regional Share</h6>
+                <canvas id="reportRegionChart" style="max-height: 300px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
     .btn-outline-orange { border-color: #ff8c00; color: #ff8c00; }
     .btn-outline-orange:hover { background: #ff8c00; color: #000; }
+    .ls-1 { letter-spacing: 1px; }
 </style>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const trendData = @Html.Raw(Json.Serialize(Model.DailyTrend));
+        const regionData = @Html.Raw(Json.Serialize(Model.RevenueByRegion));
+
+        // Trend Chart
+        new Chart(document.getElementById('reportTrendChart'), {
+            type: 'bar',
+            data: {
+                labels: trendData.map(d => d.date),
+                datasets: [{
+                    label: 'Daily Shipments',
+                    data: trendData.map(d => d.count),
+                    backgroundColor: '#ff8c00',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b949e' } },
+                    x: { grid: { display: false }, ticks: { color: '#8b949e' } }
+                }
+            }
+        });
+
+        // Region Chart
+        new Chart(document.getElementById('reportRegionChart'), {
+            type: 'polarArea',
+            data: {
+                labels: regionData.map(d => d.region),
+                datasets: [{
+                    data: regionData.map(d => d.total),
+                    backgroundColor: [
+                        'rgba(255, 140, 0, 0.7)',
+                        'rgba(13, 202, 240, 0.7)',
+                        'rgba(25, 135, 84, 0.7)',
+                        'rgba(220, 53, 69, 0.7)'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    r: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { display: false } }
+                },
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: '#8b949e' } }
+                }
+            }
+        });
+    </script>
+}

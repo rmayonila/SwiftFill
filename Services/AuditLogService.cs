@@ -114,5 +114,5 @@ namespace SwiftFill.Services
         };
     }
 
-    public enum AuditLogType { Security, System, Inventory }
+    public enum AuditLogType { Security, System, Inventory, Finance }
 }

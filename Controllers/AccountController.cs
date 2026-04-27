@@ -33,10 +33,33 @@ namespace SwiftFill.Controllers
         public IActionResult SignUp() => View();
 
         [HttpPost]
-        public IActionResult SignUpAs()
+        public async Task<IActionResult> SignUpAs(string username, string email, string firstName, string lastName, string password)
         {
-            TempData["SuccessMessage"] = "Successfully created account. Welcome to SwiftFill!";
-            return RedirectToAction("Index", "Customer");
+            if (ModelState.IsValid)
+            {
+                var user = new ApplicationUser
+                {
+                    UserName = username,
+                    Email = email,
+                    FirstName = firstName,
+                    LastName = lastName,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                var result = await _userManager.CreateAsync(user, password);
+                if (result.Succeeded)
+                {
+                    await _userManager.AddToRoleAsync(user, "Customer");
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    
+                    _audit.Log(username, "Customer", "Registration", "New customer registered.", AuditLogType.Security);
+                    TempData["SuccessMessage"] = "Successfully created account. Welcome to SwiftFill!";
+                    return RedirectToAction("Index", "Customer");
+                }
+                
+                TempData["ErrorMessage"] = string.Join(" ", result.Errors.Select(e => e.Description));
+            }
+            return RedirectToAction("SignUp");
         }
 
         [HttpGet]
@@ -56,12 +79,18 @@ namespace SwiftFill.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> LoginAction(string email, string password, bool rememberMe)
+        public async Task<IActionResult> LoginAction(string username, string password, bool rememberMe)
         {
-            var result = await _signInManager.PasswordSignInAsync(email, password, isPersistent: rememberMe, lockoutOnFailure: false);
+            // First, try to find the user by username or email to get the canonical UserName
+            var user = await _userManager.FindByNameAsync(username) ?? await _userManager.FindByEmailAsync(username);
+            
+            // If user exists, use their actual UserName for the sign-in attempt
+            var loginName = user?.UserName ?? username;
+
+            var result = await _signInManager.PasswordSignInAsync(loginName, password, isPersistent: rememberMe, lockoutOnFailure: false);
             if (result.Succeeded)
             {
-                var user = await _userManager.FindByEmailAsync(email);
+                if (user == null) user = await _userManager.FindByNameAsync(loginName);
                 if (user == null) return Unauthorized();
 
                 var roles = await _userManager.GetRolesAsync(user);
@@ -78,7 +107,10 @@ namespace SwiftFill.Controllers
                     type: AuditLogType.Security
                 );
 
-                TempData["SuccessMessage"] = $"Welcome back, {user.FirstName}!";
+                if (!roles.Contains("SuperAdmin"))
+                {
+                    TempData["SuccessMessage"] = $"Welcome back, {user.FirstName}!";
+                }
 
                 if (roles.Contains("SuperAdmin")) return RedirectToAction("Index", "SuperAdmin");
                 if (roles.Contains("Admin")) return RedirectToAction("Index", "Admin");
@@ -96,14 +128,14 @@ namespace SwiftFill.Controllers
 
             // ── Security log: failed login ──
             _audit.Log(
-                actor: email,
+                actor: username,
                 role: "Unknown",
                 action: "Login Failed",
-                detail: $"Failed login attempt for email: {email} from {HttpContext.Connection.RemoteIpAddress}",
+                detail: $"Failed login attempt for username: {username} from {HttpContext.Connection.RemoteIpAddress}",
                 type: AuditLogType.Security
             );
 
-            TempData["ErrorMessage"] = "Invalid login attempt. Please check your email and password.";
+            TempData["ErrorMessage"] = "Invalid login attempt. Please check your username and password.";
             return RedirectToAction("Login");
         }
 
@@ -120,6 +152,67 @@ namespace SwiftFill.Controllers
             );
             await _signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Settings()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToAction("Login");
+
+            var model = new SettingsViewModel
+            {
+                FirstName = user.FirstName ?? "",
+                LastName = user.LastName ?? "",
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Hub = user.Hub
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Settings(SettingsViewModel model)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToAction("Login");
+
+            if (ModelState.IsValid)
+            {
+                user.FirstName = model.FirstName;
+                user.LastName = model.LastName;
+                user.PhoneNumber = model.PhoneNumber;
+
+                var result = await _userManager.UpdateAsync(user);
+                if (!result.Succeeded)
+                {
+                    TempData["ErrorMessage"] = "Failed to update profile information.";
+                    return View(model);
+                }
+
+                if (!string.IsNullOrEmpty(model.NewPassword))
+                {
+                    if (string.IsNullOrEmpty(model.CurrentPassword))
+                    {
+                        TempData["ErrorMessage"] = "Current password is required to set a new password.";
+                        return View(model);
+                    }
+
+                    var changePasswordResult = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+                    if (!changePasswordResult.Succeeded)
+                    {
+                        TempData["ErrorMessage"] = string.Join(" ", changePasswordResult.Errors.Select(e => e.Description));
+                        return View(model);
+                    }
+                }
+
+                _audit.Log(user.UserName ?? "User", "User", "Update Settings", "User updated their profile/password.", AuditLogType.Security);
+                TempData["SuccessMessage"] = "Your settings have been updated successfully.";
+                return RedirectToAction("Settings");
+            }
+
+            return View(model);
         }
 
         [HttpGet]
