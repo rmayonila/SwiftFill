@@ -65,7 +65,7 @@
                         <th class="py-3">Logistics Detail</th>
                         <th class="py-3">Handling</th>
                         <th class="py-3">Status & Action</th>
-                        <th class="py-3 pe-4 text-end">Telemetry</th>
+                        <th class="py-3 pe-4 text-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -79,18 +79,23 @@
                                         <div class="text-white small">@order.SenderName</div>
                                     </div>
                                     <div class="border-start border-secondary border-opacity-25 ps-3">
-                                        <div class="text-secondary x-small">To Receiver:</div>
+                                        <div class="text-secondary x-small">To Receive By:</div>
                                         <div class="text-white small">@order.ReceiverName</div>
+                                        <div class="text-secondary x-small"><i class="bi bi-geo-alt me-1"></i>@order.ReceiverAddress</div>
                                     </div>
                                 </div>
                             </td>
                             <td class="py-3">
                                 <div class="text-white small">@order.DestinationRegion</div>
                                 <div class="text-secondary x-small">@order.Weight kg | @(order.ItemCategory ?? "General")</div>
+                                @if (order.IsFragile)
+                                {
+                                    <span class="badge bg-warning text-dark mt-1" style="font-size: 0.6rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>FRAGILE</span>
+                                }
                                 @if (order.Payment != null)
                                 {
                                     <div class="mt-1">
-                                        <span class="text-warning fw-bold" style="font-size: 0.7rem;">₱@order.Payment.Amount.ToString("N0")</span>
+                                        <span class="text-warning fw-bold" style="font-size: 0.7rem;">₱@order.Payment.Amount.ToString("N2")</span>
                                         <span class="text-secondary mx-1">•</span>
                                         <span class="x-small text-secondary">@order.Payment.Method</span>
                                     </div>
@@ -210,11 +215,15 @@
                         <div class="col-md-3">
                             <label class="text-secondary x-small mb-1">Category</label>
                             <select name="ItemCategory" id="editCategory" class="minimal-input w-100">
+                                <option value="General">General Merchandise</option>
                                 <option value="Electronics">Electronics</option>
                                 <option value="Apparel">Apparel</option>
                                 <option value="Documents">Documents</option>
-                                <option value="Fragile">Fragile</option>
                             </select>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" name="IsFragile" id="editIsFragile" value="true">
+                                <label class="form-check-label text-warning small" for="editIsFragile"><i class="bi bi-exclamation-triangle me-1"></i> Fragile Item</label>
+                            </div>
                         </div>
                         <div class="col-md-3">
                             <label class="text-secondary x-small mb-1">Value (PHP)</label>
@@ -366,13 +375,16 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="text-secondary x-small mb-1">Item Category</label>
-                                <select name="ItemCategory" class="minimal-input w-100">
+                                <select name="ItemCategory" class="minimal-input w-100" id="manCategorySelect">
                                     <option value="General">General Merchandise</option>
                                     <option value="Electronics">Electronics</option>
                                     <option value="Apparel">Apparel</option>
                                     <option value="Documents">Documents</option>
-                                    <option value="Fragile">Fragile Items</option>
                                 </select>
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" name="isFragile" id="manIsFragile" value="true">
+                                    <label class="form-check-label text-warning small" for="manIsFragile"><i class="bi bi-exclamation-triangle me-1"></i> Fragile Item</label>
+                                </div>
                             </div>
                             <div class="col-12">
                                 <label class="text-secondary x-small mb-1">Payment Method</label>
@@ -386,10 +398,17 @@
                             <div class="col-12">
                                 <div class="p-3 rounded bg-dark border border-secondary border-opacity-10 d-flex justify-content-between align-items-center">
                                     <div class="form-check form-switch mb-0">
-                                        <input class="form-check-input" type="checkbox" name="availPacking" id="availPacking" value="true">
-                                        <label class="form-check-label text-white small" for="availPacking">Apply Packing Services</label>
+                                        <input class="form-check-input" type="checkbox" name="availPacking" id="manAvailPacking" value="true">
+                                        <label class="form-check-label text-white small" for="manAvailPacking">Apply Packing Services</label>
                                     </div>
-                                    <input type="number" name="packingFee" class="minimal-input text-end" style="width: 100px;" value="0" placeholder="Fee">
+                                    <input type="number" name="packingFee" id="manPackingFee" class="minimal-input text-end" style="width: 100px;" value="50" placeholder="Fee">
+                                </div>
+                            </div>
+                            <div class="col-12" id="manPriceEstimator" style="display:none;">
+                                <div class="p-3 rounded mt-2 border border-opacity-25" style="background: rgba(255,140,0,0.05); border-color: #ff8c00 !important;">
+                                    <div class="text-secondary x-small text-uppercase mb-1">Estimated Total</div>
+                                    <div class="fw-bold text-orange fs-5">₱<span id="manEstTotal">0.00</span></div>
+                                    <div class="text-white-50 x-small">Base + Weight + Zone + Packing</div>
                                 </div>
                             </div>
                         </div>
@@ -539,8 +558,10 @@
                 document.getElementById('editReceiverAddress').value = order.receiverAddress;
                 document.getElementById('editWeight').value = order.weight;
                 document.getElementById('editCategory').value = order.itemCategory;
+                document.getElementById('editIsFragile').checked = order.isFragile;
                 document.getElementById('editValue').value = order.declaredValue;
                 document.getElementById('editRegion').value = order.destinationRegion;
+                document.getElementById('editManualAmount').value = '';
                 document.getElementById('editPaymentMethod').value = order.payment?.method || 'Pending Hub Verification';
             });
     }
@@ -551,6 +572,34 @@
         document.getElementById('archiveTrackingIdInput').value = trackingId;
         modal.show();
     }
+
+    // Item 4: Dynamic price estimator for the Add Order modal
+    (function() {
+        const regionBaseRates = { NCR: { base: 100, perKg: 45, zone: 50 }, Luzon: { base: 100, perKg: 45, zone: 100 }, Visayas: { base: 100, perKg: 45, zone: 150 }, Mindanao: { base: 100, perKg: 45, zone: 200 } };
+        function calcManualOrder() {
+            const regionEl = document.querySelector('#manualOrderForm select[name="DestinationRegion"]');
+            const weightEl = document.querySelector('#manualOrderForm input[name="Weight"]');
+            const packingEl = document.getElementById('manAvailPacking');
+            const packFeeEl = document.getElementById('manPackingFee');
+            const estimatorEl = document.getElementById('manPriceEstimator');
+            const totalEl = document.getElementById('manEstTotal');
+            if (!regionEl || !weightEl) return;
+            const region = regionEl.value;
+            const weight = parseFloat(weightEl.value) || 0;
+            const packing = packingEl?.checked ? (parseFloat(packFeeEl?.value) || 0) : 0;
+            const r = regionBaseRates[region];
+            if (!r || weight <= 0) { estimatorEl.style.display = 'none'; return; }
+            const total = r.base + (weight * r.perKg) + r.zone + packing;
+            totalEl.textContent = total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            estimatorEl.style.display = 'block';
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('manualOrderForm');
+            if (!form) return;
+            form.addEventListener('input', calcManualOrder);
+            form.addEventListener('change', calcManualOrder);
+        });
+    })();
 </script>
 
 <style>

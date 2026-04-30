@@ -2,54 +2,109 @@
 @{
     Layout = "_WarehouseLayout";
     ViewData["Title"] = "Packing Line";
+    var currentHub = ViewBag.CurrentHub as string ?? "Hub";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="dashboard-title text-success"><i class="bi bi-box-seam-fill me-3"></i> Packing Line</h1>
+    <div>
+        <h1 class="dashboard-title text-success"><i class="bi bi-box-seam-fill me-3"></i> Packing Line</h1>
+        <p class="text-secondary small mb-0">Orders that require warehouse packing before dispatch — <strong class="text-warning">@currentHub</strong></p>
+    </div>
+    <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2">@Model.Count() orders</span>
 </div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success border-success bg-dark mb-4">@TempData["SuccessMessage"]</div>
+}
 
 <div class="module-toolbar">
     <div class="search-container">
         <i class="bi bi-search"></i>
-        <input type="text" placeholder="Search Packing Queue..." />
-    </div>
-    <div class="d-flex gap-2">
-        <a href="#" class="filter-btn"><i class="bi bi-funnel"></i> Filter</a>
+        <input type="text" id="packSearch" placeholder="Search Tracking ID or Receiver..." oninput="filterPack(this.value)" />
     </div>
 </div>
 
 <div class="table-container border-top border-success border-3">
-    <table class="table align-middle">
+    <table class="table table-dark table-hover mb-0 align-middle" id="packTable">
         <thead>
             <tr>
                 <th>Tracking ID</th>
-                <th>Items</th>
+                <th>Receiver</th>
+                <th>Package Details</th>
+                <th>Destination</th>
                 <th>Packing Status</th>
                 <th>Action</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model) {
+            @foreach (var item in Model)
+            {
                 <tr>
                     <td class="text-success fw-bold">#@item.TrackingId</td>
-                    <td>@item.ItemCategory</td>
-                    <td><span class="badge bg-success bg-opacity-10 text-success border border-success">Ready for Box</span></td>
+                    <td>
+                        <div class="fw-semibold text-white">@item.ReceiverName</div>
+                        <div class="small text-secondary">@item.ReceiverPhone</div>
+                    </td>
+                    <td>
+                        <div class="small text-white">@(item.ItemCategory ?? "General") &bull; @item.Weight kg</div>
+                        @if (item.IsFragile)
+                        {
+                            <span class="badge bg-warning text-dark" style="font-size:0.6rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>FRAGILE — Handle with Care</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary" style="font-size:0.6rem;">Standard</span>
+                        }
+                        @if (item.PackingFee > 0)
+                        {
+                            <div class="x-small text-warning mt-1">Packing Fee: ₱@item.PackingFee.ToString("N2")</div>
+                        }
+                    </td>
+                    <td>
+                        <div class="small text-white">@item.DestinationRegion</div>
+                        <div class="x-small text-secondary">@item.ReceiverAddress</div>
+                    </td>
+                    <td>
+                        @if (item.Status == "Pending")
+                        {
+                            <span class="badge bg-warning text-dark">Awaiting Pick</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-info text-dark">Picked — Ready to Pack</span>
+                        }
+                    </td>
                     <td>
                         <form asp-action="MarkPacked" method="post">
-                            <input type="hidden" name="trackingId" value="@item.TrackingId" />
-                            <button type="submit" class="btn btn-sm btn-success fw-bold px-4">Seal & Pack</button>
-                        </form>
+    <input type="hidden" name="trackingId" value="@item.TrackingId" />
+    <button type="submit" class="btn btn-sm btn-success fw-bold">
+        <i class="bi bi-box-seam me-1"></i>Seal &amp; Pack
+    </button>
+</form>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="6" class="text-center py-5 text-secondary">
+                        <i class="bi bi-box-seam" style="font-size:2rem;display:block;margin-bottom:8px;"></i>
+                        No orders requiring packing at <strong>@currentHub</strong>.
                     </td>
                 </tr>
             }
         </tbody>
     </table>
-    <div class="pagination-container">
-        <div class="page-info">Showing 1 to @Model.Count() of @Model.Count() entries</div>
-        <div class="btn-group">
-            <button class="btn btn-sm btn-outline-secondary disabled">Previous</button>
-            <button class="btn btn-sm btn-secondary">1</button>
-            <button class="btn btn-sm btn-outline-secondary disabled">Next</button>
-        </div>
-    </div>
 </div>
+
+@section Scripts {
+    <script>
+        function filterPack(query) {
+            const q = query.toLowerCase();
+            document.querySelectorAll('#packTable tbody tr').forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+            });
+        }
+    </script>
+}

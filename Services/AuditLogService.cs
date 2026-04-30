@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using SwiftFill.Data;
+using SwiftFill.Models;
 using System.ComponentModel.DataAnnotations;
 
 namespace SwiftFill.Services
@@ -89,6 +90,10 @@ namespace SwiftFill.Services
         public int Id { get; set; }
         public DateTime Timestamp { get; set; }
         public string Actor { get; set; } = "";        // Username or "System"
+
+        public string? UserId { get; set; }
+        public ApplicationUser? User { get; set; }
+
         public string Role { get; set; } = "";         // Role at time of action
         public string Action { get; set; } = "";       // e.g. "Login", "ArchiveOrder"
         public string Detail { get; set; } = "";       // e.g. "Order SF-2026-12345 archived"

@@ -173,6 +173,47 @@
             flex-shrink: 0;
             margin-top: auto;
         }
+
+        /* ===== SEARCH BAR STYLING (Remove White BG) ===== */
+        .module-toolbar {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 12px;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .search-container {
+            position: relative;
+            width: 100%;
+        }
+        .search-container i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+        .search-container input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px 15px 12px 45px;
+            color: #fff;
+            width: 100%;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        .search-container input:focus {
+            background: rgba(255, 140, 0, 0.05);
+            border-color: #ff8c00;
+            box-shadow: 0 0 15px rgba(255, 140, 0, 0.1);
+        }
+        .search-container input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -183,28 +224,31 @@
             <span class="brand-text ms-2">SwiftFill</span>
         </a>
 
-        @{ string action = ViewContext.RouteData.Values["Action"]?.ToString() ?? ""; }
+        @{ 
+            var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+            var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+        }
 
         <div class="pt-4 flex-grow-1">
             <ul class="nav flex-column nav-sidebar">
                 <li class="nav-item">
-                    <a class="nav-link @(action == "Index" ? "active" : "")" asp-controller="Rider" asp-action="Index">
+                    <a class="nav-link @(currentController == "Rider" && currentAction == "Index" ? "active" : "")" asp-controller="Rider" asp-action="Index">
                         <i class="bi bi-geo-alt-fill"></i> Delivery Route
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link @(action == "History" ? "active" : "")" asp-controller="Rider" asp-action="History">
+                    <a class="nav-link @(currentController == "Rider" && currentAction == "History" ? "active" : "")" asp-controller="Rider" asp-action="History">
                         <i class="bi bi-clock-history"></i> Completed
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link @(action == "Remittance" ? "active" : "")" asp-controller="Rider" asp-action="Remittance">
+                    <a class="nav-link @(currentController == "Rider" && currentAction == "Remittance" ? "active" : "")" asp-controller="Rider" asp-action="Remittance">
                         <i class="bi bi-currency-dollar"></i> Remittance
                     </a>
                 </li>
                 <div class="px-4 mt-4 mb-2 text-secondary text-uppercase x-small ls-1">Account</div>
                 <li class="nav-item">
-                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Account" && ViewContext.RouteData.Values["action"]?.ToString() == "Settings" ? "active" : "")" asp-controller="Account" asp-action="Settings">
+                    <a class="nav-link @(currentController == "Account" && currentAction == "Settings" ? "active" : "")" asp-controller="Account" asp-action="Settings">
                         <i class="bi bi-gear-fill"></i> Account Settings
                     </a>
                 </li>
@@ -254,15 +298,15 @@
 
     <!-- Bottom Navigation (Mobile) -->
     <nav class="bottom-nav">
-        <a class="bottom-nav-link @(action == "Index" ? "active" : "")" asp-controller="Rider" asp-action="Index">
+        <a class="bottom-nav-link @(currentController == "Rider" && currentAction == "Index" ? "active" : "")" asp-controller="Rider" asp-action="Index">
             <i class="bi bi-geo-alt"></i>
             <span>Route</span>
         </a>
-        <a class="bottom-nav-link @(action == "History" ? "active" : "")" asp-controller="Rider" asp-action="History">
+        <a class="bottom-nav-link @(currentController == "Rider" && currentAction == "History" ? "active" : "")" asp-controller="Rider" asp-action="History">
             <i class="bi bi-check2-circle"></i>
             <span>History</span>
         </a>
-        <a class="bottom-nav-link @(action == "Remittance" ? "active" : "")" asp-controller="Rider" asp-action="Remittance">
+        <a class="bottom-nav-link @(currentController == "Rider" && currentAction == "Remittance" ? "active" : "")" asp-controller="Rider" asp-action="Remittance">
             <i class="bi bi-wallet2"></i>
             <span>Cash</span>
         </a>

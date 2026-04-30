@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SwiftFill.Data;
 
@@ -11,9 +12,11 @@ using SwiftFill.Data;
 namespace SwiftFill.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260429111743_ConnectHubERD")]
+    partial class ConnectHubERD
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -356,9 +359,6 @@ namespace SwiftFill.Migrations
                     b.Property<string>("ManifestId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int?>("ManualRiderId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
 
@@ -433,8 +433,6 @@ namespace SwiftFill.Migrations
                     b.HasIndex("CurrentWarehouseId");
 
                     b.HasIndex("ManifestId");
-
-                    b.HasIndex("ManualRiderId");
 
                     b.HasIndex("ShippingRateId");
 
@@ -741,11 +739,6 @@ namespace SwiftFill.Migrations
                         .WithMany("Orders")
                         .HasForeignKey("ManifestId");
 
-                    b.HasOne("SwiftFill.Models.ManualRider", "ManualRider")
-                        .WithMany()
-                        .HasForeignKey("ManualRiderId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("SwiftFill.Models.ShippingRate", "ShippingRate")
                         .WithMany()
                         .HasForeignKey("ShippingRateId")
@@ -756,8 +749,6 @@ namespace SwiftFill.Migrations
                     b.Navigation("CurrentWarehouse");
 
                     b.Navigation("Manifest");
-
-                    b.Navigation("ManualRider");
 
                     b.Navigation("ShippingRate");
                 });

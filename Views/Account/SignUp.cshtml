@@ -146,6 +146,13 @@
                 <p class="text-secondary" style="font-size:0.95rem;">Create an account to start picking, packing, or tracking.</p>
             </div>
 
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger bg-danger bg-opacity-10 border-danger border-opacity-25 text-danger mb-4" style="font-size: 0.9rem;">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+                </div>
+            }
+
             <form method="post" action="/Account/SignUpAs">
                 
                 <div class="row g-3 mb-3">
@@ -163,7 +170,7 @@
                     <label class="form-label">Username</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-person"></i></span>
-                        <input type="text" name="username" class="form-control" placeholder="Choose a username" required>
+                        <input type="text" name="username" class="form-control" placeholder="Choose a username" required pattern="^[a-zA-Z]+$" title="Username cannot contain numbers">
                     </div>
                 </div>
 
@@ -175,11 +182,22 @@
                     </div>
                 </div>
                 
+                <div class="mb-3">
+                    <label class="form-label">Phone Number</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                        <input type="text" name="phoneNumber" class="form-control" placeholder="09XX XXX XXXX" required pattern="^\+?\d{10,12}$" title="Phone number must be 11 digits">
+                    </div>
+                </div>
+
                 <div class="mb-4">
                     <label class="form-label">Password</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                        <input type="password" class="form-control" placeholder="Create a strong password" required>
+                        <input type="password" name="password" class="form-control" placeholder="Create a strong password" required>
+                    </div>
+                    <div class="form-text text-secondary mt-2" style="font-size: 0.8rem;">
+                        <i class="bi bi-info-circle text-orange"></i> Password must be at least 12 characters and include an uppercase letter, lowercase letter, number, and symbol.
                     </div>
                 </div>
 
@@ -188,6 +206,13 @@
 
             <div class="text-center mt-4">
                 <span class="text-secondary" style="font-size:0.9rem;">Already have an account? <a href="/Account/Login" style="color:#ff8c00; text-decoration:none; font-weight:600;">Sign in</a></span>
+            </div>
+            <div class="text-center mt-2">
+                <span class="text-secondary" style="font-size:0.9rem;">
+                    Are you a delivery rider? <a href="/Account/RiderSignUp" style="color:#198754; text-decoration:none; font-weight:600;">
+                        <i class="bi bi-bicycle me-1"></i>Rider Sign Up
+                    </a>
+                </span>
             </div>
 
         </div>

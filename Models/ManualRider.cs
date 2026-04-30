@@ -19,6 +19,9 @@ namespace SwiftFill.Models
         [MaxLength(64), ValidateNever]
         public string Hub { get; set; } = string.Empty;
 
+        public int? WarehouseId { get; set; }
+        public Warehouse? Warehouse { get; set; }
+
         /// <summary>
         /// The route/area this rider covers (e.g. "Mabolo", "Lahug", "Carbon Market").
         /// Used to filter the rider list when assigning to a parcel based on receiver address.

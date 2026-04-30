@@ -1,0 +1,312 @@
+@{
+    ViewData["Title"] = "Rider Sign Up - SwiftFill";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="~/css/site.css" />
+    <style>
+        body {
+            background-color: #0d1117;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #ffffff;
+            padding: 40px 0;
+        }
+
+        .signup-wrapper {
+            width: 100%;
+            max-width: 520px;
+            padding: 20px;
+        }
+
+        .brand-logo {
+            text-align: center;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .rider-card {
+            background: #161b22;
+            border: 1px solid rgba(25, 135, 84, 0.3);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(25,135,84,0.1);
+        }
+
+        .rider-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(25, 135, 84, 0.1);
+            border: 1px solid rgba(25, 135, 84, 0.3);
+            color: #198754;
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 8px;
+        }
+
+        .input-group-text {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            color: #8b949e;
+            border-right: none;
+        }
+
+        .form-control {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-left: none;
+            color: #ffffff;
+            font-size: 0.95rem;
+            padding: 12px 15px 12px 0;
+        }
+
+        .form-control:focus {
+            background: #0d1117;
+            color: #ffffff;
+            box-shadow: none;
+            border-color: #198754;
+        }
+
+        .input-group:focus-within .input-group-text,
+        .input-group:focus-within .form-control {
+            border-color: #198754;
+        }
+
+        .form-control-solid {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            color: #ffffff;
+            font-size: 0.95rem;
+            padding: 12px 15px;
+            border-radius: 8px;
+        }
+
+        .form-control-solid:focus {
+            background: #0d1117;
+            color: #ffffff;
+            box-shadow: none;
+            border-color: #198754;
+            outline: none;
+        }
+
+        .btn-rider {
+            background: #198754;
+            color: #fff;
+            font-weight: 700;
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+            border: none;
+            margin-top: 8px;
+            font-size: 1rem;
+            transition: 0.2s;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-rider:hover {
+            background: #157347;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(25,135,84,0.35);
+        }
+
+        .info-box {
+            background: rgba(25, 135, 84, 0.06);
+            border: 1px solid rgba(25, 135, 84, 0.2);
+            border-radius: 10px;
+            padding: 14px 16px;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.6);
+            line-height: 1.6;
+        }
+
+        .info-box i { color: #198754; }
+
+        .back-link {
+            color: #8b949e;
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: block;
+            text-align: center;
+            margin-top: 28px;
+            transition: 0.2s;
+        }
+
+        .back-link:hover { color: #ffffff; }
+
+        .divider-text {
+            text-align: center;
+            color: rgba(255,255,255,0.25);
+            font-size: 0.8rem;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .divider-text::before,
+        .divider-text::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 38%;
+            height: 1px;
+            background: rgba(255,255,255,0.08);
+        }
+
+        .divider-text::before { left: 0; }
+        .divider-text::after  { right: 0; }
+    </style>
+</head>
+<body>
+
+    <div class="signup-wrapper animate-fade-up">
+        <!-- Brand -->
+        <div class="brand-logo" style="margin-bottom: 24px;">
+            <img src="~/images/logo.png" class="auth-logo" alt="SwiftFill" />
+            <span style="font-size: 2rem; font-weight: 800; color: #ffffff; font-family: 'Sora', sans-serif; letter-spacing: -0.5px;">SwiftFill</span>
+        </div>
+
+        <div class="rider-card">
+            <!-- Header -->
+            <div class="text-center mb-4">
+                <div class="rider-badge">
+                    <i class="bi bi-bicycle"></i> Delivery Rider Portal
+                </div>
+                <h3 class="fw-bold mb-2" style="font-size: 1.5rem;">Create Your Rider Account</h3>
+                <p class="text-secondary" style="font-size: 0.9rem; line-height: 1.6;">
+                    Your name must be pre-registered by your hub manager before you can sign up.
+                </p>
+            </div>
+
+            <!-- Alerts -->
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger bg-danger bg-opacity-10 border-danger border-opacity-25 text-danger mb-4" style="font-size: 0.9rem; border-radius: 10px;">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+                </div>
+            }
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success bg-success bg-opacity-10 border-success border-opacity-25 text-success mb-4" style="font-size: 0.9rem; border-radius: 10px;">
+                    <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+                </div>
+            }
+
+            <!-- Form -->
+            <form method="post" action="/Account/SignUpAsRider">
+
+                <!-- Name — MUST match ManualRider record -->
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label class="form-label">First Name</label>
+                        <input type="text" name="firstName" class="form-control-solid w-100"
+                               placeholder="Juan" required autocomplete="given-name">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" name="lastName" class="form-control-solid w-100"
+                               placeholder="Dela Cruz" required autocomplete="family-name">
+                    </div>
+                </div>
+
+                <div class="info-box mb-4">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    Enter your <strong style="color:#fff;">full legal name</strong> exactly as registered by your hub manager.
+                    The system will verify and assign your hub and delivery route automatically.
+                </div>
+
+                <div class="divider-text">account credentials</div>
+
+                <div class="mb-3">
+                    <label class="form-label">Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                        <input type="text" name="username" class="form-control"
+                               placeholder="Choose a username" required
+                               pattern="^[a-zA-Z]+$" title="Username cannot contain numbers">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                        <input type="email" name="email" class="form-control"
+                               placeholder="you@email.com" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Phone Number</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                        <input type="text" name="phoneNumber" class="form-control"
+                               placeholder="09XX XXX XXXX" required
+                               pattern="^\+?\d{10,12}$" title="Phone number must be 11 digits">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <input type="password" name="password" class="form-control"
+                               placeholder="Create a strong password" required>
+                    </div>
+                    <div class="mt-2" style="font-size: 0.78rem; color: rgba(255,255,255,0.35);">
+                        <i class="bi bi-shield-check me-1" style="color:#198754;"></i>
+                        At least 12 characters — uppercase, lowercase, number, and symbol.
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-rider">
+                    <i class="bi bi-bicycle me-2"></i>Register as Rider
+                </button>
+            </form>
+
+            <!-- Footer links -->
+            <div class="text-center mt-4">
+                <span class="text-secondary" style="font-size: 0.88rem;">
+                    Not a rider? <a href="/Account/SignUp" style="color:#ff8c00; text-decoration:none; font-weight:600;">Customer Sign Up</a>
+                </span>
+            </div>
+            <div class="text-center mt-2">
+                <span class="text-secondary" style="font-size: 0.88rem;">
+                    Already have an account? <a href="/Account/Login" style="color:#ff8c00; text-decoration:none; font-weight:600;">Sign In</a>
+                </span>
+            </div>
+        </div>
+
+        <a href="/" class="back-link">&larr; Back to home</a>
+    </div>
+
+</body>
+</html>

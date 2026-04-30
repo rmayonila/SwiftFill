@@ -34,6 +34,12 @@ namespace SwiftFill.Models
             public const string Edit = "Permissions.Users.Edit";
         }
 
+        public static class Delivery
+        {
+            public const string View = "Permissions.Delivery.View";
+            public const string Edit = "Permissions.Delivery.Edit";
+        }
+
         public static List<string> GetAll()
         {
             return new List<string>
@@ -42,7 +48,8 @@ namespace SwiftFill.Models
                 Inventory.View, Inventory.Edit,
                 Finance.View, Finance.Edit,
                 Hubs.View, Hubs.Edit,
-                Users.View, Users.Edit
+                Users.View, Users.Edit,
+                Delivery.View, Delivery.Edit
             };
         }
     }

@@ -1,17 +1,14 @@
 @model SwiftFill.Models.SettingsViewModel
 @{
-    ViewData["Title"] = "Account Settings";
-    string layout = "_AdminLayout";
-    if (User.IsInRole("WarehouseStaff") || User.IsInRole("WarehouseOperator")) layout = "_WarehouseLayout";
-    else if (User.IsInRole("DeliveryRider")) layout = "_RiderLayout";
-    Layout = layout;
+    ViewData["Title"] = "Warehouse Account Settings";
+    Layout = "_WarehouseLayout";
 }
 
 <div class="animate-fade-up container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-dark pb-3">
         <div>
-            <h2 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-person-gear text-orange me-3"></i>Account Settings</h2>
-            <p class="text-secondary mt-1">Manage your personal information and security preferences.</p>
+            <h2 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-person-gear text-orange me-3"></i>ACCOUNT SETTINGS WAREHOUSE</h2>
+            <p class="text-secondary mt-1">Manage your warehouse profile information and security preferences.</p>
         </div>
     </div>
 
@@ -110,11 +107,7 @@
                     </div>
                     <h5 class="text-white fw-bold mb-1">@User.Identity?.Name</h5>
                     <p class="text-secondary small mb-3">
-                        @if (User.IsInRole("SuperAdmin")) { <span class="badge bg-danger">Super Administrator</span> }
-                        else if (User.IsInRole("Admin")) { <span class="badge bg-orange">System Admin</span> }
-                        else if (User.IsInRole("WarehouseStaff")) { <span class="badge bg-info">Warehouse Personnel</span> }
-                        else if (User.IsInRole("DeliveryRider")) { <span class="badge bg-success">Delivery Rider</span> }
-                        else { <span class="badge bg-primary">Customer</span> }
+                        <span class="badge bg-info">Warehouse Personnel</span>
                     </p>
                     <div class="text-start mt-4">
                         <div class="d-flex align-items-center mb-2">

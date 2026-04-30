@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SwiftFill.Data;
 
@@ -11,9 +12,11 @@ using SwiftFill.Data;
 namespace SwiftFill.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260428100644_AddSuspensionAndCustomerTracking")]
+    partial class AddSuspensionAndCustomerTracking
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -212,9 +215,6 @@ namespace SwiftFill.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Route")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
@@ -296,12 +296,7 @@ namespace SwiftFill.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
-                    b.Property<int?>("WarehouseId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("WarehouseId");
 
                     b.ToTable("ManualRiders");
                 });
@@ -323,9 +318,6 @@ namespace SwiftFill.Migrations
                     b.Property<string>("CurrentLocation")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("CurrentWarehouseId")
-                        .HasColumnType("int");
 
                     b.Property<string>("CustomerId")
                         .HasColumnType("nvarchar(max)");
@@ -355,9 +347,6 @@ namespace SwiftFill.Migrations
 
                     b.Property<string>("ManifestId")
                         .HasColumnType("nvarchar(450)");
-
-                    b.Property<int?>("ManualRiderId")
-                        .HasColumnType("int");
 
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
@@ -407,9 +396,6 @@ namespace SwiftFill.Migrations
                     b.Property<decimal>("ShippingFee")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("ShippingRateId")
-                        .HasColumnType("int");
-
                     b.Property<string>("SortingStatus")
                         .HasColumnType("nvarchar(max)");
 
@@ -430,13 +416,7 @@ namespace SwiftFill.Migrations
 
                     b.HasIndex("AssignedRiderId");
 
-                    b.HasIndex("CurrentWarehouseId");
-
                     b.HasIndex("ManifestId");
-
-                    b.HasIndex("ManualRiderId");
-
-                    b.HasIndex("ShippingRateId");
 
                     b.ToTable("Orders");
                 });
@@ -465,9 +445,6 @@ namespace SwiftFill.Migrations
                     b.Property<DateTime?>("PaidAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("PaymentMethodId")
-                        .HasColumnType("int");
-
                     b.Property<string>("TrackingId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -475,8 +452,6 @@ namespace SwiftFill.Migrations
                     b.HasKey("PaymentId");
 
                     b.HasIndex("CollectedByUserId");
-
-                    b.HasIndex("PaymentMethodId");
 
                     b.HasIndex("TrackingId")
                         .IsUnique();
@@ -655,12 +630,7 @@ namespace SwiftFill.Migrations
                     b.Property<int>("Type")
                         .HasColumnType("int");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("AuditLogs");
                 });
@@ -716,50 +686,19 @@ namespace SwiftFill.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("SwiftFill.Models.ManualRider", b =>
-                {
-                    b.HasOne("SwiftFill.Models.Warehouse", "Warehouse")
-                        .WithMany("ManualRiders")
-                        .HasForeignKey("WarehouseId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Warehouse");
-                });
-
             modelBuilder.Entity("SwiftFill.Models.Order", b =>
                 {
                     b.HasOne("SwiftFill.Models.ApplicationUser", "AssignedRider")
                         .WithMany()
                         .HasForeignKey("AssignedRiderId");
 
-                    b.HasOne("SwiftFill.Models.Warehouse", "CurrentWarehouse")
-                        .WithMany("Orders")
-                        .HasForeignKey("CurrentWarehouseId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("SwiftFill.Models.Manifest", "Manifest")
                         .WithMany("Orders")
                         .HasForeignKey("ManifestId");
 
-                    b.HasOne("SwiftFill.Models.ManualRider", "ManualRider")
-                        .WithMany()
-                        .HasForeignKey("ManualRiderId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("SwiftFill.Models.ShippingRate", "ShippingRate")
-                        .WithMany()
-                        .HasForeignKey("ShippingRateId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.Navigation("AssignedRider");
 
-                    b.Navigation("CurrentWarehouse");
-
                     b.Navigation("Manifest");
-
-                    b.Navigation("ManualRider");
-
-                    b.Navigation("ShippingRate");
                 });
 
             modelBuilder.Entity("SwiftFill.Models.Payment", b =>
@@ -767,11 +706,6 @@ namespace SwiftFill.Migrations
                     b.HasOne("SwiftFill.Models.ApplicationUser", "CollectedByUser")
                         .WithMany()
                         .HasForeignKey("CollectedByUserId");
-
-                    b.HasOne("SwiftFill.Models.PaymentMethod", "PaymentMethod")
-                        .WithMany("Payments")
-                        .HasForeignKey("PaymentMethodId")
-                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("SwiftFill.Models.Order", "Order")
                         .WithOne("Payment")
@@ -782,8 +716,6 @@ namespace SwiftFill.Migrations
                     b.Navigation("CollectedByUser");
 
                     b.Navigation("Order");
-
-                    b.Navigation("PaymentMethod");
                 });
 
             modelBuilder.Entity("SwiftFill.Models.ReturnRequest", b =>
@@ -803,16 +735,6 @@ namespace SwiftFill.Migrations
                     b.Navigation("ReviewedByUser");
                 });
 
-            modelBuilder.Entity("SwiftFill.Services.AuditLogEntry", b =>
-                {
-                    b.HasOne("SwiftFill.Models.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("SwiftFill.Models.Manifest", b =>
                 {
                     b.Navigation("Orders");
@@ -823,18 +745,6 @@ namespace SwiftFill.Migrations
                     b.Navigation("Payment");
 
                     b.Navigation("ReturnRequest");
-                });
-
-            modelBuilder.Entity("SwiftFill.Models.PaymentMethod", b =>
-                {
-                    b.Navigation("Payments");
-                });
-
-            modelBuilder.Entity("SwiftFill.Models.Warehouse", b =>
-                {
-                    b.Navigation("ManualRiders");
-
-                    b.Navigation("Orders");
                 });
 #pragma warning restore 612, 618
         }

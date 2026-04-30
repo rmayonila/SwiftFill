@@ -28,6 +28,9 @@ namespace SwiftFill.Models
         
         [Required]
         public string DestinationRegion { get; set; } = string.Empty; 
+
+        public int? ShippingRateId { get; set; }
+        public ShippingRate? ShippingRate { get; set; }
         
         public string? ItemCategory { get; set; }
         public double DeclaredValue { get; set; }
@@ -54,6 +57,9 @@ namespace SwiftFill.Models
         
         [Required]
         public string CurrentLocation { get; set; } = "Davao Hub";
+
+        public int? CurrentWarehouseId { get; set; }
+        public Warehouse? CurrentWarehouse { get; set; }
         
         public bool IsArchived { get; set; } = false;
 
@@ -68,12 +74,17 @@ namespace SwiftFill.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        // --- RELATIONSHIPS ---
         public string? ManifestId { get; set; }
         public Manifest? Manifest { get; set; }
 
+        public string? CustomerId { get; set; }
+        public bool IsFragile { get; set; } = false;
+
         public string? AssignedRiderId { get; set; }
         public ApplicationUser? AssignedRider { get; set; }
+
+        public int? ManualRiderId { get; set; }
+        public ManualRider? ManualRider { get; set; }
 
         public Payment? Payment { get; set; }
         public ReturnRequest? ReturnRequest { get; set; }

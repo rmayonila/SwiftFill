@@ -14,35 +14,81 @@ namespace SwiftFill.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _environment;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly SwiftFill.Services.GoogleMapsService _mapsService;
 
-        public RiderController(ApplicationDbContext context, IWebHostEnvironment environment, SwiftFill.Services.GoogleMapsService mapsService)
+        public RiderController(ApplicationDbContext context, 
+                               IWebHostEnvironment environment, 
+                               UserManager<ApplicationUser> userManager,
+                               SwiftFill.Services.GoogleMapsService mapsService)
         {
             _context = context;
             _environment = environment;
+            _userManager = userManager;
             _mapsService = mapsService;
         }
 
-        // --- 1. ACTIVE TASKS (DASHBOARD) ---
+        // --- 1. ACTIVE TASKS & ROUTE-LOCKED JOB POOL ---
         public async Task<IActionResult> Index()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = _userManager.GetUserId(User);
+            var rider = await _userManager.FindByIdAsync(userId!);
+
+            Console.WriteLine($"[DEBUG] Rider Dashboard Access - User: {User.Identity?.Name}, ID: {userId}");
             
-            // Keeps orders in the list if they aren't Delivered/Returned AND haven't hit 3 attempts
+            if (rider == null) return RedirectToAction("Login", "Account");
+
+            string riderRoute = rider.Route ?? string.Empty;
             var riderOrders = await _context.Orders
                 .Include(o => o.Payment)
-                .Where(o => o.AssignedRiderId == userId && 
-                           o.Status != "Delivered" && 
-                           o.Status != "Returned" && 
-                           o.DeliveryAttempts < 3 && 
-                           !o.IsArchived)
-                .OrderByDescending(o => o.UpdatedAt)
+                .Include(o => o.AssignedRider)
+                .Where(o => !o.IsArchived && o.DeliveryAttempts < 3)
+                .Where(o => o.Status != "Delivered" && o.Status != "Returned")
                 .ToListAsync();
 
-            return View(riderOrders);
+            // Filter in memory for maximum reliability
+            var filteredOrders = riderOrders.Where(o => 
+            {
+                bool isDirect = o.AssignedRiderId != null && o.AssignedRiderId.Trim() == userId?.Trim();
+                
+                if (isDirect) Console.WriteLine($"[DEBUG] Direct Match Found: {o.TrackingId}");
+                
+                // Show in pool only if matching hub/route
+                bool isPool = o.AssignedRiderId == null && o.ManualRiderId == null &&
+                              o.CurrentLocation == rider.Hub && 
+                              !string.IsNullOrEmpty(riderRoute) && 
+                              o.ReceiverAddress.Contains(riderRoute, StringComparison.OrdinalIgnoreCase);
+
+                return isDirect || isPool;
+            }).ToList();
+
+            Console.WriteLine($"[DEBUG] Total Orders Found: {riderOrders.Count}, Filtered for Rider: {filteredOrders.Count}");
+
+            ViewBag.RiderRoute = rider.Route;
+            ViewBag.RiderHub = rider.Hub;
+            return View(filteredOrders);
         }
 
-        // --- 2. UPDATE STATUS (DELIVER/FAIL/RETURN) ---
+        // --- 2. ACCEPT TASK (For Unassigned Route Orders) ---
+        [HttpPost]
+        public async Task<IActionResult> AcceptTask(string trackingId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.TrackingId == trackingId);
+
+            if (order != null && order.AssignedRiderId == null)
+            {
+                order.AssignedRiderId = userId;
+                order.Status = "Out for Delivery"; // Automatic status update upon acceptance
+                order.UpdatedAt = DateTime.UtcNow;
+                
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Task #{trackingId} accepted successfully!";
+            }
+            return RedirectToAction(nameof(Index));
+        }
+
+        // --- 3. UPDATE STATUS (DELIVER/FAIL/RETURN) ---
         [HttpPost]
         public async Task<IActionResult> UpdateStatus(string trackingId, string status, string? failReason, IFormFile? proofPhoto)
         {
@@ -83,7 +129,6 @@ namespace SwiftFill.Controllers
                 order.DeliveryAttempts++;
                 order.Notes = $"Attempt {order.DeliveryAttempts}: {failReason}";
                 
-                // Auto-Return if 3 attempts reached
                 if (order.DeliveryAttempts >= 3) {
                     order.Status = "Returned";
                 }
@@ -96,6 +141,7 @@ namespace SwiftFill.Controllers
 
             order.UpdatedAt = DateTime.UtcNow;
 
+            // Handle Return Requests in DB
             if (order.Status == "Returned")
             {
                 var existingReturn = await _context.ReturnRequests.FirstOrDefaultAsync(r => r.TrackingId == trackingId);
@@ -116,7 +162,7 @@ namespace SwiftFill.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // --- 3. DELIVERY HISTORY ---
+        // --- 4. DELIVERY HISTORY ---
         public async Task<IActionResult> History()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -129,7 +175,7 @@ namespace SwiftFill.Controllers
             return View(completedOrders);
         }
 
-        // --- 4. CASH REMITTANCE ---
+        // --- 5. CASH REMITTANCE ---
         public async Task<IActionResult> Remittance()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -142,7 +188,20 @@ namespace SwiftFill.Controllers
             return View(totalCollected);
         }
 
-        // --- 5. AJAX DETAILS FOR MODAL ---
+        // --- 6. AJAX DETAILS FOR MODAL ---
+        [HttpGet]
+        public async Task<IActionResult> GetEta(string destination)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var rider = await _userManager.FindByIdAsync(userId!);
+            
+            // Start from the Hub location
+            string origin = rider?.Hub ?? "Davao Hub";
+            var result = await _mapsService.GetDistanceAndTimeAsync(origin, destination);
+            
+            return Json(new { eta = result });
+        }
+
         [HttpGet]
         public async Task<JsonResult> GetOrderDetails(string trackingId)
         {
@@ -159,17 +218,6 @@ namespace SwiftFill.Controllers
                 amount = order.Payment?.Amount.ToString("N2") ?? "0.00",
                 photo = order.ProofImagePath
             });
-        }
-
-        // --- 6. AJAX ETA (API 2: Distance Matrix) ---
-        [HttpGet]
-        public async Task<JsonResult> GetEta(string destination)
-        {
-            // Placeholder origin: In a real app, this would be the Rider's current GPS coord or Hub address
-            string origin = "Davao Hub, Philippines"; 
-            string eta = await _mapsService.GetDistanceAndTimeAsync(origin, destination);
-            
-            return Json(new { eta = eta });
         }
     }
 }

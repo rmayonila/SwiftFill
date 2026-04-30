@@ -65,6 +65,13 @@ namespace SwiftFill.Controllers
 
             foreach (var user in pagedUsers)
             {
+                // Auto-fix for existing users who might be stuck in "Pending" status
+                if (!user.EmailConfirmed)
+                {
+                    user.EmailConfirmed = true;
+                    await _userManager.UpdateAsync(user);
+                }
+
                 var roles = await _userManager.GetRolesAsync(user);
                 var claims = await _userManager.GetClaimsAsync(user);
                 
@@ -104,6 +111,10 @@ namespace SwiftFill.Controllers
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
+                    // Explicitly confirm email after creation to ensure it persists correctly
+                    user.EmailConfirmed = true;
+                    await _userManager.UpdateAsync(user);
+
                     await _userManager.AddToRoleAsync(user, model.Role);
                     
                     if (model.Permissions != null)

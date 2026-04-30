@@ -36,7 +36,7 @@
                             var dashboardUrl = "/Customer";
                             if (User.IsInRole("SuperAdmin")) dashboardUrl = "/SuperAdmin";
                             else if (User.IsInRole("Admin")) dashboardUrl = "/Admin";
-                            else if (User.IsInRole("WarehouseStaff")) dashboardUrl = "/Warehouse";
+                            else if (User.IsInRole("WarehouseStaff") || User.IsInRole("WarehouseOperator")) dashboardUrl = "/Warehouse";
                             else if (User.IsInRole("DeliveryRider")) dashboardUrl = "/Rider";
 
                             <li class="nav-item">

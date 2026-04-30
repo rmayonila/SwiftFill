@@ -1,56 +1,201 @@
 @model IEnumerable<SwiftFill.Models.Order>
+@using SwiftFill.Models
 @{
     Layout = "_WarehouseLayout";
     ViewData["Title"] = "Warehouse Queue";
+    var currentHub = ViewBag.CurrentHub as string ?? "Hub";
+    var hubs = ViewBag.Hubs as IEnumerable<string> ?? new List<string>();
 }
 
-<div class="main-content-inner">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="dashboard-title"><i class="bi bi-boxes me-3"></i> Warehouse Queue</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="dashboard-title"><i class="bi bi-boxes me-3"></i> Warehouse Queue</h1>
+        <p class="text-secondary small mb-0">Packed orders ready to be sorted to their destination hub — <strong class="text-warning">@currentHub</strong></p>
+    </div>
+    <span class="badge bg-warning text-dark px-3 py-2">@Model.Count() ready</span>
 </div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success border-success bg-dark mb-4">@TempData["SuccessMessage"]</div>
+}
 
 <div class="module-toolbar">
-    <div class="search-container">
+    <div class="search-container flex-grow-1">
         <i class="bi bi-search"></i>
-        <input type="text" id="queueSearch" placeholder="Search Master List..." />
-    </div>
-    <div class="d-flex gap-2">
-        <a href="#" class="filter-btn"><i class="bi bi-funnel"></i> Filter</a>
+        <input type="text" id="queueSearch" placeholder="Search Tracking ID, Receiver..." oninput="filterQueue(this.value)" />
     </div>
 </div>
 
-    <div class="table-container">
-        <table class="table table-hover">
-            <thead>
+<div class="table-container">
+    <table class="table table-dark table-hover mb-0 align-middle" id="queueTable">
+        <thead>
+            <tr>
+                <th>Tracking ID</th>
+                <th>Receiver &amp; Address</th>
+                <th>Package</th>
+                <th>Destination</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                var destHub = HubRegistry.ResolveDestinationHub(item.DestinationRegion);
+                var isSorted = item.Status == "Sorted for Transfer";
                 <tr>
-                    <th>Tracking ID</th>
-                    <th>Destination</th>
-                    <th>Current Status</th>
-                    <th>Last Updated</th>
+                    <td class="text-warning fw-bold">#@item.TrackingId</td>
+                    <td>
+                        <div class="fw-semibold text-white">@item.ReceiverName</div>
+                        <div class="small text-secondary">@item.ReceiverAddress</div>
+                    </td>
+                    <td>
+                        <div class="small text-white">@(item.ItemCategory ?? "General") &bull; @item.Weight kg</div>
+                        @if (item.IsFragile)
+                        {
+                            <span class="badge bg-warning text-dark" style="font-size:0.6rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>FRAGILE</span>
+                        }
+                    </td>
+                    <td>
+                        <div class="small text-white">@item.DestinationRegion</div>
+                        <div class="x-small text-orange">→ @destHub</div>
+                    </td>
+                    <td>
+                        @if (isSorted)
+                        {
+                            <span class="badge bg-info text-dark">Sorted for Transfer</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success text-dark">Packed in Warehouse</span>
+                        }
+                    </td>
+                    <td>
+                        @{
+                            var isFinalDest = destHub == currentHub;
+                            var isAssigned = item.AssignedRiderId != null || item.ManualRiderId != null;
+                            var canRider = isFinalDest && item.DeliveryType == "DoorToDoor" && !isAssigned;
+                            
+                            var manualRiders = ViewBag.ManualRiders as IEnumerable<SwiftFill.Models.ManualRider> ?? new List<SwiftFill.Models.ManualRider>();
+                            var userRiders = ViewBag.AvailableRiders as IEnumerable<SwiftFill.Models.ApplicationUser> ?? new List<SwiftFill.Models.ApplicationUser>();
+                        }
+
+                        @if (isAssigned)
+                        {
+                            string riderName = item.AssignedRider != null 
+                                ? $"{item.AssignedRider.FirstName} {item.AssignedRider.LastName}" 
+                                : item.ManualRider?.Name ?? "Assigned";
+                            <div class="badge bg-success p-2 w-100 mb-1">
+                                <i class="bi bi-truck me-1"></i>@riderName
+                            </div>
+                        }
+                        
+                                <div class="d-flex gap-1">
+                                    <select class="form-select form-select-sm bg-dark text-white border-secondary rider-select" id="rider-@item.TrackingId">
+                                        <option value="">@(isAssigned ? "Change" : "Select Rider")</option>
+                                        @foreach (var rider in userRiders)
+                                        {
+                                            bool isSelected = item.AssignedRiderId == rider.Id;
+                                            <option value="user_@rider.Id" selected="@isSelected">@rider.FirstName @rider.LastName [User]</option>
+                                        }
+                                        @foreach (var rider in manualRiders)
+                                        {
+                                            bool routeMatch = !string.IsNullOrEmpty(rider.Route) && item.ReceiverAddress.Contains(rider.Route, StringComparison.OrdinalIgnoreCase);
+                                            bool isSelected = item.ManualRiderId == rider.Id;
+                                            <option value="manual_@rider.Id" selected="@isSelected">
+                                                @rider.Name @(routeMatch ? "✓" : "") (@rider.Route)
+                                            </option>
+                                        }
+                                    </select>
+                                    <button class="btn btn-sm btn-warning fw-bold px-3" onclick="assignRider('@item.TrackingId')" title="@(isAssigned ? "Re-assign Rider" : "Assign Rider")">
+                                        <i class="bi @(isAssigned ? "bi-arrow-repeat" : "bi-person-plus-fill")"></i>
+                                    </button>
+                                </div>
+
+                        @if (!isSorted && !isFinalDest)
+                        {
+                            <form asp-action="MarkSortedForDestination" method="post">
+                                <input type="hidden" name="trackingId" value="@item.TrackingId" />
+                                <button type="submit" class="btn btn-sm btn-outline-info fw-bold w-100">
+                                    <i class="bi bi-filter-circle me-1"></i>Sort to @destHub
+                                </button>
+                            </form>
+                        }
+                        else if (isSorted && !isFinalDest)
+                        {
+                            <a asp-action="HubTransfers" class="btn btn-sm btn-outline-success w-100">
+                                <i class="bi bi-send me-1"></i>Move to Transfer
+                            </a>
+                        }
+                        else if (isFinalDest && item.DeliveryType == "BranchPickup")
+                        {
+                            <span class="badge bg-info text-dark w-100">Ready for Pickup</span>
+                        }
+                    </td>
                 </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model) {
-                    <tr>
-                        <td class="text-warning fw-bold">#@item.TrackingId</td>
-                        <td>@item.DestinationRegion</td>
-                        <td>
-                            <span class="badge @(item.Status == "Pending" ? "bg-warning text-dark" : "bg-secondary")">
-                                @item.Status
-                            </span>
-                        </td>
-                        <td class="text-white-50 small">@item.UpdatedAt.ToString("MMM dd, HH:mm")</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-        <div class="pagination-container">
-            <div class="page-info">Showing 1 to @Model.Count() of @Model.Count() entries</div>
-            <div class="btn-group">
-                <button class="btn btn-sm btn-outline-secondary disabled">Previous</button>
-                <button class="btn btn-sm btn-secondary">1</button>
-                <button class="btn btn-sm btn-outline-secondary disabled">Next</button>
-            </div>
-        </div>
-    </div>
+            }
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="6" class="text-center py-5 text-secondary">
+                        <i class="bi bi-boxes" style="font-size:2rem;display:block;margin-bottom:8px;"></i>
+                        No packed orders in the queue at <strong>@currentHub</strong>.
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 </div>
+
+@section Scripts {
+    @Html.AntiForgeryToken()
+    <script>
+        function assignRider(trackingId) {
+            const riderId = document.getElementById('rider-' + trackingId).value;
+            if (!riderId) {
+                alert('Please select a rider first');
+                return;
+            }
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/Warehouse/AssignRider';
+
+            const tid = document.createElement('input');
+            tid.type = 'hidden';
+            tid.name = 'trackingId';
+            tid.value = trackingId;
+
+            const rid = document.createElement('input');
+            rid.type = 'hidden';
+            rid.name = 'riderId';
+            rid.value = riderId;
+
+            const rvt = document.createElement('input');
+            rvt.type = 'hidden';
+            rvt.name = '__RequestVerificationToken';
+            rvt.value = token;
+
+            form.appendChild(tid);
+            form.appendChild(rid);
+            form.appendChild(rvt);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function filterQueue(query) {
+            const q = query.toLowerCase();
+            document.querySelectorAll('#queueTable tbody tr').forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+            });
+        }
+    </script>
+}
+
+<style>
+    .text-orange { color: #ff8c00; }
+    .x-small { font-size: 0.75rem; }
+</style>

@@ -6,7 +6,7 @@ using SwiftFill.Models;
 
 namespace SwiftFill.Controllers
 {
-    [Authorize(Roles = "WarehouseStaff,Admin,SuperAdmin")]
+    [Authorize(Roles = "WarehouseStaff,WarehouseOperator,Admin,SuperAdmin")]
     public class RiderInfoController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -44,9 +44,17 @@ namespace SwiftFill.Controllers
         [HttpPost]
         public async Task<IActionResult> AddRider(ManualRider rider)
         {
-            rider.Hub = GetCurrentHub();
+            var currentHub = GetCurrentHub();
+            rider.Hub = currentHub;
             rider.CreatedAt = DateTime.UtcNow;
             rider.IsActive = true;
+
+            // Link to Warehouse record if it exists
+            var warehouse = await _context.Warehouses.FirstOrDefaultAsync(w => w.Name == currentHub);
+            if (warehouse != null)
+            {
+                rider.WarehouseId = warehouse.Id;
+            }
 
             if (ModelState.IsValid)
             {
@@ -59,6 +67,34 @@ namespace SwiftFill.Controllers
                 TempData["ErrorMessage"] = "Failed to add rider. Please check the inputs.";
             }
 
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditRider(ManualRider rider)
+        {
+            var existing = await _context.ManualRiders.FindAsync(rider.Id);
+            if (existing != null && existing.Hub == GetCurrentHub())
+            {
+                existing.Name = rider.Name;
+                existing.Phone = rider.Phone;
+                existing.Route = rider.Route;
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Rider updated successfully.";
+            }
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ToggleStatus(int id)
+        {
+            var rider = await _context.ManualRiders.FindAsync(id);
+            if (rider != null && rider.Hub == GetCurrentHub())
+            {
+                rider.IsActive = !rider.IsActive;
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Rider {(rider.IsActive ? "Activated" : "Suspended")} successfully.";
+            }
             return RedirectToAction(nameof(Index));
         }
 

@@ -13,16 +13,24 @@ namespace SwiftFill.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly OrderService _orderService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public CustomerController(ApplicationDbContext context, OrderService orderService)
+        public CustomerController(ApplicationDbContext context, OrderService orderService, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _orderService = orderService;
+            _userManager = userManager;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var orders = _context.Orders.OrderByDescending(o => o.CreatedAt).ToList();
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToAction("Login", "Account");
+
+            var orders = await _context.Orders
+                .Where(o => o.CustomerId == user.Id)
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
             return View(orders);
         }
 
@@ -37,6 +45,11 @@ namespace SwiftFill.Controllers
         {
             if (ModelState.IsValid)
             {
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null) return RedirectToAction("Login", "Account");
+
+                order.CustomerId = user.Id;
+
                 // Attach landmarks dynamically without breaking schema
                 if (!string.IsNullOrWhiteSpace(ReceiverLandmark))
                     order.ReceiverAddress = $"{order.ReceiverAddress} | Landmark: {ReceiverLandmark.Trim()}";
@@ -61,10 +74,19 @@ namespace SwiftFill.Controllers
                     zoneFee = rates.ZoneSurcharge;
                 }
 
+                // Apply packing fee if they want SwiftFill to pack it
+                decimal packingFee = 0m;
+                if (order.AvailPacking)
+                {
+                    packingFee = 50m; // Flat 50 fee for packing
+                    order.PackingFee = packingFee;
+                    order.PackingLocation = "Store";
+                }
+
                 var expectedPayment = new Payment
                 {
                     TrackingId = order.TrackingId,
-                    Amount = baseFee + wgtFee + zoneFee,
+                    Amount = baseFee + wgtFee + zoneFee + packingFee,
                     Method = "Pending Hub Verification",
                     IsPaid = false
                 };

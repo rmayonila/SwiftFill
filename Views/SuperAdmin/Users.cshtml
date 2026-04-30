@@ -139,7 +139,7 @@
                                 <td class="pe-4 py-3 text-end">
                                     <div class="btn-group">
                                         <button class="btn btn-sm btn-dark border-secondary text-secondary hover-white" title="Manage Roles" 
-                                                onclick="openManageRolesModal('@user.Id', '@user.FirstName @user.LastName', '@item.Role', '@string.Join(",", item.Claims)')">
+                                                onclick="openManageRolesModal('@user.Id', '@user.FirstName @user.LastName', '@item.Role', '@string.Join(",", item.Claims)', '@(user.Hub ?? "None")')">
                                             <i class="bi bi-shield-lock"></i>
                                         </button>
                                         <button class="btn btn-sm btn-dark border-secondary text-secondary hover-white" title="Edit Profile" 
@@ -241,6 +241,7 @@
                         </select>
                     </div>
                     <div class="mb-3">
+                        <label class="form-label text-secondary small">ASSIGN HUB</label>
                         <select name="Hub" class="form-select bg-dark border-secondary text-white shadow-none">
                             <option value="">No Hub Assignment</option>
                             @foreach(var hub in (ViewBag.AllHubNames as List<string>) ?? SwiftFill.Models.HubRegistry.Names) {
@@ -300,6 +301,22 @@
                                     </div>
                                 </div>
                             </div>
+                            <!-- Delivery -->
+                            <div class="col-md-6">
+                                <div class="p-2 rounded border border-dark bg-black bg-opacity-50">
+                                    <div class="text-primary small fw-bold mb-2 text-uppercase" style="font-size:0.65rem;">Delivery Operations</div>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <div class="form-check small">
+                                            <input class="form-check-input" type="checkbox" name="Permissions" value="@Permissions.Delivery.View" id="p_d_v">
+                                            <label class="form-check-label text-secondary" for="p_d_v">View</label>
+                                        </div>
+                                        <div class="form-check small">
+                                            <input class="form-check-input" type="checkbox" name="Permissions" value="@Permissions.Delivery.Edit" id="p_d_e">
+                                            <label class="form-check-label text-secondary" for="p_d_e">Edit</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <!-- Settings -->
                             <div class="col-md-6">
                                 <div class="p-2 rounded border border-dark bg-black bg-opacity-50">
@@ -339,7 +356,10 @@
             <form asp-action="UpdateRoles" method="post">
                 <div class="modal-body text-center py-4">
                     <input type="hidden" name="userId" id="manage_userId" />
-                    <p class="mb-4">Adjusting permissions for <strong id="manage_userName" class="text-warning">User</strong></p>
+                    <div class="mb-4">
+                        <p class="mb-1">Adjusting permissions for <strong id="manage_userName" class="text-warning">User</strong></p>
+                        <p class="small text-secondary mb-0">Managing Access for Hub: <span id="manage_hubDisplay" class="text-info fw-bold">None</span></p>
+                    </div>
                     
                     <div class="text-start px-4">
                         <label class="form-label text-secondary small">Primary Role</label>
@@ -401,6 +421,22 @@
                                     </div>
                                 </div>
                             </div>
+                            <!-- Delivery -->
+                            <div class="col-md-6">
+                                <div class="p-2 rounded border border-dark bg-black bg-opacity-50">
+                                    <div class="text-primary small fw-bold mb-2 text-uppercase" style="font-size:0.65rem;">Delivery Operations</div>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <div class="form-check small">
+                                            <input class="form-check-input" type="checkbox" name="permissions" value="@Permissions.Delivery.View" id="e_d_v">
+                                            <label class="form-check-label text-secondary" for="e_d_v">View</label>
+                                        </div>
+                                        <div class="form-check small">
+                                            <input class="form-check-input" type="checkbox" name="permissions" value="@Permissions.Delivery.Edit" id="e_d_e">
+                                            <label class="form-check-label text-secondary" for="e_d_e">Edit</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <!-- Admin -->
                             <div class="col-md-6">
                                 <div class="p-2 rounded border border-dark bg-black bg-opacity-50">
@@ -456,6 +492,7 @@
                     <label class="form-label text-secondary small">Phone Number</label>
                     <input type="text" name="phoneNumber" id="edit_phoneNumber" class="form-control bg-dark border-secondary text-white mb-3" placeholder="+63 9XX XXX XXXX">
                     
+                    <label class="form-label text-secondary small">ASSIGN HUB</label>
                     <select name="hub" id="edit_hub" class="form-select bg-dark border-secondary text-white">
                         <option value="">None</option>
                         @foreach(var hub in (ViewBag.AllHubNames as List<string>) ?? SwiftFill.Models.HubRegistry.Names)
@@ -501,7 +538,7 @@
 <script>
     function updateDefaultPermissions(role) {
         // Reset all checkboxes in the registration modal
-        const ids = ['p_s_v', 'p_s_e', 'p_i_v', 'p_i_e', 'p_f_v', 'p_f_e', 'p_u_e', 'p_h_e'];
+        const ids = ['p_s_v', 'p_s_e', 'p_i_v', 'p_i_e', 'p_f_v', 'p_f_e', 'p_u_e', 'p_h_e', 'p_d_v', 'p_d_e'];
         ids.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.checked = false;
@@ -511,7 +548,7 @@
         const mapping = {
             'Admin': ['Permissions.Shipments.View', 'Permissions.Shipments.Edit', 'Permissions.Shipments.Create', 'Permissions.Inventory.View', 'Permissions.Inventory.Edit', 'Permissions.Finance.View'],
             'WarehouseStaff': ['Permissions.Shipments.View', 'Permissions.Shipments.Edit', 'Permissions.Inventory.View', 'Permissions.Inventory.Edit'],
-            'DeliveryRider': ['Permissions.Shipments.View'],
+            'DeliveryRider': ['Permissions.Shipments.View', 'Permissions.Delivery.View', 'Permissions.Delivery.Edit'],
             'Customer': []
         };
 
@@ -524,14 +561,15 @@
         });
     }
 
-    function openManageRolesModal(id, name, role, claims) {
+    function openManageRolesModal(id, name, role, claims, hub) {
         document.getElementById('manage_userId').value = id;
         document.getElementById('manage_userName').textContent = name;
         document.getElementById('manage_role').value = role;
+        document.getElementById('manage_hubDisplay').textContent = hub || 'None';
         
         // Reset all granular checkboxes
         const perms = claims.split(',');
-        const checkboxIds = ['e_s_v', 'e_s_e', 'e_i_v', 'e_i_e', 'e_f_v', 'e_f_e', 'e_u_e', 'e_h_e'];
+        const checkboxIds = ['e_s_v', 'e_s_e', 'e_i_v', 'e_i_e', 'e_f_v', 'e_f_e', 'e_u_e', 'e_h_e', 'e_d_v', 'e_d_e'];
         
         checkboxIds.forEach(id => {
             const checkbox = document.getElementById(id);

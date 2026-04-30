@@ -19,5 +19,7 @@ namespace SwiftFill.Models
         public bool IsOnline { get; set; } = false; // Whether it requires online verification
 
         public string? IconClass { get; set; } = "bi-cash";
+
+        public ICollection<Payment> Payments { get; set; } = new List<Payment>();
     }
 }

@@ -96,7 +96,17 @@
                 <div class="rider-card p-3 p-md-4">
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
-                            <span class="badge bg-dark border border-secondary text-secondary mb-2">#@order.TrackingId</span>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="badge bg-dark border border-secondary text-secondary">#@order.TrackingId</span>
+                                @if (order.AssignedRiderId != null)
+                                {
+                                    <span class="badge bg-orange text-white fw-bold" style="font-size: 0.65rem;">DIRECTLY ASSIGNED</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary text-white fw-bold" style="font-size: 0.65rem;">IN POOL</span>
+                                }
+                            </div>
                             <h5 class="text-white fw-bold mb-1">@order.ReceiverName</h5>
                             <p class="text-secondary small mb-0"><i class="bi bi-geo-alt-fill text-orange me-1"></i> @order.ReceiverAddress</p>
                         </div>
@@ -121,44 +131,56 @@
                     <hr class="border-secondary opacity-10">
 
                     <!-- Proof of Delivery Form -->
-                    <form asp-action="UpdateStatus" method="post" enctype="multipart/form-data" id="form-@order.TrackingId">
-                        <input type="hidden" name="trackingId" value="@order.TrackingId" />
-                        
-                        <div class="row align-items-end g-3">
-                            <div class="col-12">
-                                <label class="text-secondary smaller fw-bold text-uppercase mb-2 d-block">Proof of Delivery (Required for Success)</label>
-                                <div class="d-flex align-items-center gap-3">
-                                    <label for="file-@order.TrackingId" class="btn btn-outline-orange btn-sm px-3 py-2 rounded-3">
-                                        <i class="bi bi-camera-fill me-2"></i> Capture/Attach
-                                    </label>
-                                    <input type="file" id="file-@order.TrackingId" name="proofPhoto" class="d-none" accept="image/*" 
-                                           onchange="handlePhotoUpload('@order.TrackingId')">
-                                    <span id="label-@order.TrackingId" class="text-secondary smaller">No image attached</span>
+                    @if (order.AssignedRiderId != null)
+                    {
+                        <form asp-action="UpdateStatus" method="post" enctype="multipart/form-data" id="form-@order.TrackingId">
+                            <input type="hidden" name="trackingId" value="@order.TrackingId" />
+                            
+                            <div class="row align-items-end g-3">
+                                <div class="col-12">
+                                    <label class="text-secondary smaller fw-bold text-uppercase mb-2 d-block">Proof of Delivery (Required for Success)</label>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <label for="file-@order.TrackingId" class="btn btn-outline-orange btn-sm px-3 py-2 rounded-3">
+                                            <i class="bi bi-camera-fill me-2"></i> Capture/Attach
+                                        </label>
+                                        <input type="file" id="file-@order.TrackingId" name="proofPhoto" class="d-none" accept="image/*" 
+                                               onchange="handlePhotoUpload('@order.TrackingId')">
+                                        <span id="label-@order.TrackingId" class="text-secondary smaller">No image attached</span>
+                                    </div>
+                                    <img id="preview-@order.TrackingId" class="pod-preview" src="#" alt="Preview" />
                                 </div>
-                                <img id="preview-@order.TrackingId" class="pod-preview" src="#" alt="Preview" />
-                            </div>
 
-                            <div class="col-12 mt-3">
-                                <div class="btn-group w-100">
-                                    <button type="submit" name="status" value="Delivered" id="btn-deliver-@order.TrackingId" 
-                                            class="btn btn-success py-3 fw-bold flex-grow-1" disabled>
-                                        COMPLETE DELIVERY
-                                    </button>
-                                    <button type="button" class="btn btn-dark border-secondary px-3" data-bs-toggle="dropdown">
-                                        <i class="bi bi-three-dots-vertical"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end border-secondary shadow">
-                                        <li><a class="dropdown-item text-warning" href="#" onclick="showStatusModal('@order.TrackingId', 'Failed')">
-                                            <i class="bi bi-exclamation-triangle-fill me-2"></i> Mark as Failed
-                                        </a></li>
-                                        <li><a class="dropdown-item text-danger" href="#" onclick="showStatusModal('@order.TrackingId', 'Returned')">
-                                            <i class="bi bi-arrow-return-left me-2"></i> Return to Hub
-                                        </a></li>
-                                    </ul>
+                                <div class="col-12 mt-3">
+                                    <div class="btn-group w-100">
+                                        <button type="submit" name="status" value="Delivered" id="btn-deliver-@order.TrackingId" 
+                                                class="btn btn-success py-3 fw-bold flex-grow-1" disabled>
+                                            COMPLETE DELIVERY
+                                        </button>
+                                        <button type="button" class="btn btn-dark border-secondary px-3" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end border-secondary shadow">
+                                            <li><a class="dropdown-item text-warning" href="#" onclick="showStatusModal('@order.TrackingId', 'Failed')">
+                                                <i class="bi bi-exclamation-triangle-fill me-2"></i> Mark as Failed
+                                            </a></li>
+                                            <li><a class="dropdown-item text-danger" href="#" onclick="showStatusModal('@order.TrackingId', 'Returned')">
+                                                <i class="bi bi-arrow-return-left me-2"></i> Return to Hub
+                                            </a></li>
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </form>
+                        </form>
+                    }
+                    else
+                    {
+                        <form asp-action="AcceptTask" method="post">
+                            <input type="hidden" name="trackingId" value="@order.TrackingId" />
+                            <button type="submit" class="btn btn-orange w-100 py-3 fw-bold rounded-3">
+                                <i class="bi bi-check2-circle me-2"></i> ACCEPT THIS TASK
+                            </button>
+                        </form>
+                    }
                 </div>
             </div>
         }

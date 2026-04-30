@@ -1,68 +1,257 @@
 @model IEnumerable<SwiftFill.Models.Order>
+@using SwiftFill.Models
 @{
     Layout = "_WarehouseLayout";
     ViewData["Title"] = "Hub Transfers";
+    var currentHub = ViewBag.CurrentHub as string ?? "Hub";
+    var hubs = (ViewBag.Hubs as IEnumerable<string> ?? new List<string>()).ToList();
+    var outbound = ViewBag.Outbound as IEnumerable<SwiftFill.Models.Order> ?? new List<SwiftFill.Models.Order>();
+    var inTransit = ViewBag.InTransit as IEnumerable<SwiftFill.Models.Order> ?? new List<SwiftFill.Models.Order>();
+    var inbound = ViewBag.InboundParcels as IEnumerable<SwiftFill.Models.Order> ?? new List<SwiftFill.Models.Order>();
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="dashboard-title text-info"><i class="bi bi-map-fill me-3"></i> Hub Transfers</h1>
-</div>
-
-<div class="module-toolbar">
-    <div class="search-container">
-        <i class="bi bi-search"></i>
-        <input type="text" placeholder="Search Transfer Records..." />
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+        <h1 class="dashboard-title text-info"><i class="bi bi-map-fill me-3"></i> Hub Transfers</h1>
+        <p class="text-secondary small mb-0">Inter-hub shipment manifest for <strong class="text-info">@currentHub</strong></p>
     </div>
-    <div class="d-flex gap-2">
-        <a href="#" class="filter-btn"><i class="bi bi-funnel"></i> Filter</a>
+    <div class="d-flex gap-2 flex-wrap">
+        <span class="badge bg-warning text-dark px-3 py-2">@outbound.Count() Outbound</span>
+        <span class="badge bg-success text-dark px-3 py-2">@inbound.Count() Inbound</span>
+        <span class="badge bg-info text-dark px-3 py-2">@inTransit.Count() In Transit</span>
     </div>
 </div>
 
-<div class="table-container border-top border-info border-3">
-    <div class="alert alert-dark border-secondary small">
-        <i class="bi bi-info-circle-fill me-2 text-info"></i> 
-        Showing orders labeled for **Inter-Island** transit (Outbound from Davao).
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success border-success bg-dark mb-4">
+        <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
     </div>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Tracking ID</th>
-                <th>Target Hub</th>
-                <th>Package Weight</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model) {
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger border-danger bg-dark mb-4">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+    </div>
+}
+
+<!-- ═══════════════════════════════════════════════
+     SECTION 1 — INBOUND PARCELS (Arriving Here)
+     ═══════════════════════════════════════════════ -->
+<div class="mb-5">
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <span class="badge bg-success text-dark px-3">INBOUND</span>
+        <h5 class="text-white mb-0">Arriving at @currentHub</h5>
+        <span class="text-secondary small">— parcels dispatched from other hubs heading here</span>
+    </div>
+
+    <div class="table-container border-top border-3" style="border-color: #198754 !important;">
+        <table class="table table-dark table-hover mb-0 align-middle">
+            <thead>
                 <tr>
-                    <td class="text-info fw-bold">#@item.TrackingId</td>
-                    <td>@item.DestinationRegion</td>
-                    <td>@item.Weight kg</td>
-                    <td>
-                        <form asp-action="MarkShipped" method="post" class="d-flex gap-2">
-                            <input type="hidden" name="trackingId" value="@item.TrackingId" />
-                            <select name="targetHub" class="form-select form-select-sm bg-dark text-white border-secondary" style="width: 150px;" required>
-                                <option value="">Next Hub</option>
-                                @foreach(var h in (ViewBag.Hubs as List<string> ?? new List<string>()).Where(x => x != ViewBag.CurrentHub))
-                                {
-                                    <option value="@h">@h</option>
-                                }
-                            </select>
-                            <button type="submit" class="btn btn-sm btn-success">
-                                <i class="bi bi-send-fill me-1"></i>Ship Out
-                            </button>
-                        </form>
-                    </td>
+                    <th>Tracking ID</th>
+                    <th>Sender Hub</th>
+                    <th>Receiver</th>
+                    <th>Package</th>
+                    <th>Final Destination</th>
+                    <th>Action</th>
                 </tr>
-            }
-        </tbody>
-    </table>
-    <div class="pagination-container">
-        <div class="page-info">Showing 1 to @Model.Count() of @Model.Count() entries</div>
-        <div class="btn-group">
-            <button class="btn btn-sm btn-outline-secondary disabled">Previous</button>
-            <button class="btn btn-sm btn-secondary">1</button>
-            <button class="btn btn-sm btn-outline-secondary disabled">Next</button>
-        </div>
+            </thead>
+            <tbody>
+                @foreach (var item in inbound)
+                {
+                    // Resolve the final destination hub from the order's destination region
+                    var finalDestHub = HubRegistry.ResolveDestinationHub(item.DestinationRegion);
+                    var isFinalDest = finalDestHub == currentHub;
+
+                    <tr>
+                        <td class="text-success fw-bold">#@item.TrackingId</td>
+                        <td>
+                            <span class="badge bg-secondary">
+                                <i class="bi bi-geo-alt me-1"></i>@item.OriginHub
+                            </span>
+                        </td>
+                        <td>
+                            <div class="fw-semibold text-white">@item.ReceiverName</div>
+                            <div class="small text-secondary">@item.ReceiverAddress</div>
+                        </td>
+                        <td>
+                            <div class="small text-white">@(item.ItemCategory ?? "General") &bull; @item.Weight kg</div>
+                            @if (item.IsFragile)
+                            {
+                                <span class="badge bg-warning text-dark" style="font-size:0.6rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>FRAGILE</span>
+                            }
+                        </td>
+                        <td>
+                            <div class="small text-white">@item.DestinationRegion</div>
+                            @if (isFinalDest)
+                            {
+                                <span class="badge bg-success bg-opacity-10 border border-success text-success" style="font-size:0.65rem;">
+                                    <i class="bi bi-check-circle me-1"></i>Final Stop — @currentHub
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-info bg-opacity-10 border border-info text-info" style="font-size:0.65rem;">
+                                    <i class="bi bi-arrow-right me-1"></i>Passing Through
+                                </span>
+                            }
+                        </td>
+                        <td>
+                            <form asp-action="MarkReceived" asp-controller="Warehouse" method="post">
+    <input type="hidden" name="trackingId" value="@item.TrackingId" />
+    <button type="submit" class="btn btn-success">
+        <i class="bi bi-box-arrow-in-down me-1"></i> Receive
+    </button>
+</form>
+                        </td>
+                    </tr>
+                }
+                @if (!inbound.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-secondary">
+                            <i class="bi bi-inbox" style="font-size:1.5rem; display:block; margin-bottom:6px;"></i>
+                            No parcels currently in transit to <strong>@currentHub</strong>.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 </div>
+
+<!-- ═══════════════════════════════════════════════
+     SECTION 2 — OUTBOUND (Ship Out)
+     ═══════════════════════════════════════════════ -->
+<div class="mb-5">
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <span class="badge bg-warning text-dark px-3">OUTBOUND</span>
+        <h5 class="text-white mb-0">Ready to Ship Out</h5>
+        <span class="text-secondary small">— sorted and waiting to be dispatched to destination hub</span>
+    </div>
+
+    <div class="table-container border-top border-warning border-3">
+        <table class="table table-dark table-hover mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Tracking ID</th>
+                    <th>Receiver</th>
+                    <th>Package</th>
+                    <th>Destination Region</th>
+                    <th>Target Hub</th>
+                    <th>Action — Ship Out</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in outbound)
+                {
+                    var destHub = HubRegistry.ResolveDestinationHub(item.DestinationRegion);
+                    <tr>
+                        <td class="text-warning fw-bold">#@item.TrackingId</td>
+                        <td>
+                            <div class="fw-semibold text-white">@item.ReceiverName</div>
+                            <div class="small text-secondary">@item.ReceiverAddress</div>
+                        </td>
+                        <td>
+                            <div class="small text-white">@(item.ItemCategory ?? "General") &bull; @item.Weight kg</div>
+                            @if (item.IsFragile)
+                            {
+                                <span class="badge bg-warning text-dark" style="font-size:0.6rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>FRAGILE</span>
+                            }
+                        </td>
+                        <td><span class="badge bg-secondary">@item.DestinationRegion</span></td>
+                        <td>
+                            <span class="text-info fw-bold"><i class="bi bi-geo-alt me-1"></i>@destHub</span>
+                        </td>
+                        <td>
+                            <form asp-action="MarkShipped" method="post" class="d-flex gap-2 align-items-center">
+                                <input type="hidden" name="trackingId" value="@item.TrackingId" />
+                                <select name="targetHub" class="form-select form-select-sm bg-dark text-white border-secondary" style="width: 160px;" required>
+                                    <option value="@destHub" selected>@destHub (Recommended)</option>
+                                    @foreach (var h in hubs.Where(x => x != currentHub && x != destHub))
+                                    {
+                                        <option value="@h">@h</option>
+                                    }
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-warning fw-bold">
+                                    <i class="bi bi-send-fill me-1"></i>Ship
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                @if (!outbound.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-secondary">
+                            No outbound parcels sorted yet.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SECTION 3 — IN TRANSIT (Already Dispatched)
+     ═══════════════════════════════════════════════ -->
+<div>
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <span class="badge bg-info text-dark px-3">IN TRANSIT</span>
+        <h5 class="text-white mb-0">Already Dispatched</h5>
+        <span class="text-secondary small">— en route from @currentHub to destination hub</span>
+    </div>
+
+    <div class="table-container border-top border-info border-3">
+        <table class="table table-dark table-hover mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Tracking ID</th>
+                    <th>Receiver</th>
+                    <th>Package</th>
+                    <th>Heading To</th>
+                    <th>Status</th>
+                    <th>Last Updated</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in inTransit)
+                {
+                    <tr>
+                        <td class="text-info fw-bold">#@item.TrackingId</td>
+                        <td>
+                            <div class="fw-semibold text-white">@item.ReceiverName</div>
+                            <div class="small text-secondary">@item.DestinationRegion</div>
+                        </td>
+                        <td>
+                            <div class="small text-white">@(item.ItemCategory ?? "General") &bull; @item.Weight kg</div>
+                            @if (item.IsFragile)
+                            {
+                                <span class="badge bg-warning text-dark" style="font-size:0.6rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>FRAGILE</span>
+                            }
+                        </td>
+                        <td>
+                            <span class="text-info"><i class="bi bi-arrow-right me-1"></i>@item.Status.Replace("In Transit to ", "")</span>
+                        </td>
+                        <td><span class="badge bg-info text-dark">In Transit</span></td>
+                        <td class="text-white-50 small">@item.UpdatedAt.ToString("MMM dd, HH:mm")</td>
+                    </tr>
+                }
+                @if (!inTransit.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-secondary">
+                            No parcels currently in transit from @currentHub.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .x-small { font-size: 0.75rem; }
+</style>

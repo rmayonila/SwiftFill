@@ -26,5 +26,8 @@ namespace SwiftFill.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public bool IsArchived { get; set; } = false;
+
+        public ICollection<ManualRider> ManualRiders { get; set; } = new List<ManualRider>();
+        public ICollection<Order> Orders { get; set; } = new List<Order>();
     }
 }

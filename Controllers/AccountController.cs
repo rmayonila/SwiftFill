@@ -33,8 +33,29 @@ namespace SwiftFill.Controllers
         public IActionResult SignUp() => View();
 
         [HttpPost]
-        public async Task<IActionResult> SignUpAs(string username, string email, string firstName, string lastName, string password)
+        public async Task<IActionResult> SignUpAs(string username, string email, string firstName, string lastName, string password, string phoneNumber)
         {
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(firstName) || 
+                string.IsNullOrWhiteSpace(lastName) || string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(phoneNumber))
+            {
+                TempData["ErrorMessage"] = "All fields are required. Please fill in all input boxes.";
+                return RedirectToAction("SignUp");
+            }
+
+            if (System.Text.RegularExpressions.Regex.IsMatch(username, @"\d"))
+            {
+                TempData["ErrorMessage"] = "Username cannot contain numbers.";
+                return RedirectToAction("SignUp");
+            }
+
+            // Remove typical formatting chars to check length
+            var cleanPhone = new string(phoneNumber.Where(char.IsDigit).ToArray());
+            if (cleanPhone.Length < 10 || cleanPhone.Length > 12)
+            {
+                TempData["ErrorMessage"] = "Phone number is too short or too long. It must be exactly 11 digits.";
+                return RedirectToAction("SignUp");
+            }
+
             if (ModelState.IsValid)
             {
                 var user = new ApplicationUser
@@ -43,12 +64,16 @@ namespace SwiftFill.Controllers
                     Email = email,
                     FirstName = firstName,
                     LastName = lastName,
+                    PhoneNumber = phoneNumber,
+                    EmailConfirmed = true,
                     CreatedAt = DateTime.UtcNow
                 };
 
                 var result = await _userManager.CreateAsync(user, password);
                 if (result.Succeeded)
                 {
+                    user.EmailConfirmed = true;
+                    await _userManager.UpdateAsync(user);
                     await _userManager.AddToRoleAsync(user, "Customer");
                     await _signInManager.SignInAsync(user, isPersistent: false);
                     
@@ -60,6 +85,87 @@ namespace SwiftFill.Controllers
                 TempData["ErrorMessage"] = string.Join(" ", result.Errors.Select(e => e.Description));
             }
             return RedirectToAction("SignUp");
+        }
+
+        // ─── RIDER SIGN-UP ────────────────────────────────────────────────────────
+
+        [HttpGet]
+        public IActionResult RiderSignUp() => View();
+
+        [HttpPost]
+        public async Task<IActionResult> SignUpAsRider(
+            string username, string email,
+            string firstName, string lastName,
+            string password, string phoneNumber)
+        {
+            // Validate required fields
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email) ||
+                string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName) ||
+                string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(phoneNumber))
+            {
+                TempData["ErrorMessage"] = "All fields are required.";
+                return RedirectToAction("RiderSignUp");
+            }
+
+            if (System.Text.RegularExpressions.Regex.IsMatch(username, @"\d"))
+            {
+                TempData["ErrorMessage"] = "Username cannot contain numbers.";
+                return RedirectToAction("RiderSignUp");
+            }
+
+            var cleanPhone = new string(phoneNumber.Where(char.IsDigit).ToArray());
+            if (cleanPhone.Length < 10 || cleanPhone.Length > 12)
+            {
+                TempData["ErrorMessage"] = "Phone number must be exactly 11 digits.";
+                return RedirectToAction("RiderSignUp");
+            }
+
+            // ── Core check: full name must exist in ManualRiders table ──
+            var fullName = $"{firstName.Trim()} {lastName.Trim()}";
+            var manualRider = await _context.ManualRiders
+                .FirstOrDefaultAsync(r =>
+                    r.Name.ToLower() == fullName.ToLower() && r.IsActive);
+
+            if (manualRider == null)
+            {
+                TempData["ErrorMessage"] =
+                    $"Your name \"{fullName}\" is not registered as a rider in our system. " +
+                    "Please contact your hub manager to be added to the rider list first.";
+                return RedirectToAction("RiderSignUp");
+            }
+
+            // ── Create account and assign role + hub + route from ManualRider record ──
+            var user = new ApplicationUser
+            {
+                UserName = username,
+                Email = email,
+                FirstName = firstName,
+                LastName = lastName,
+                PhoneNumber = phoneNumber,
+                Hub = manualRider.Hub,
+                Route = manualRider.Route,
+                EmailConfirmed = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            var result = await _userManager.CreateAsync(user, password);
+            if (result.Succeeded)
+            {
+                user.EmailConfirmed = true;
+                await _userManager.UpdateAsync(user);
+                await _userManager.AddToRoleAsync(user, "DeliveryRider");
+                await _signInManager.SignInAsync(user, isPersistent: false);
+
+                _audit.Log(username, "DeliveryRider", "Registration",
+                    $"Rider {fullName} registered for {manualRider.Hub} — route: {manualRider.Route}.",
+                    AuditLogType.Security);
+
+                TempData["SuccessMessage"] = $"Welcome, {firstName}! You're registered as a rider for {manualRider.Hub}.";
+                return RedirectToAction("Index", "Rider");
+            }
+
+            TempData["ErrorMessage"] = string.Join(" ", result.Errors.Select(e => e.Description));
+            return RedirectToAction("RiderSignUp");
         }
 
         [HttpGet]
@@ -81,24 +187,35 @@ namespace SwiftFill.Controllers
         [HttpPost]
         public async Task<IActionResult> LoginAction(string username, string password, bool rememberMe)
         {
-            // First, try to find the user by username or email to get the canonical UserName
             var user = await _userManager.FindByNameAsync(username) ?? await _userManager.FindByEmailAsync(username);
             
-            // If user exists, use their actual UserName for the sign-in attempt
+            if (user != null && user.IsSuspended)
+            {
+                TempData["ErrorMessage"] = "Your account has been suspended due to 10 failed login attempts. Please contact the Super Admin to unsuspend your account.";
+                return RedirectToAction("Login");
+            }
+
             var loginName = user?.UserName ?? username;
 
-            var result = await _signInManager.PasswordSignInAsync(loginName, password, isPersistent: rememberMe, lockoutOnFailure: false);
+            var result = await _signInManager.PasswordSignInAsync(loginName, password, isPersistent: rememberMe, lockoutOnFailure: true);
+            
             if (result.Succeeded)
             {
                 if (user == null) user = await _userManager.FindByNameAsync(loginName);
                 if (user == null) return Unauthorized();
+
+                // Reset failed logins on success
+                if (user.TotalFailedLogins > 0)
+                {
+                    user.TotalFailedLogins = 0;
+                    await _userManager.UpdateAsync(user);
+                }
 
                 var roles = await _userManager.GetRolesAsync(user);
                 var roleName = roles.FirstOrDefault() ?? "User";
                 var displayName = $"{user.FirstName} {user.LastName}".Trim();
                 if (string.IsNullOrWhiteSpace(displayName)) displayName = user.Email ?? user.UserName ?? "Unknown";
 
-                // ── Security log: successful login ──
                 _audit.Log(
                     actor: displayName,
                     role: roleName,
@@ -113,20 +230,41 @@ namespace SwiftFill.Controllers
                 }
 
                 if (roles.Contains("SuperAdmin")) return RedirectToAction("Index", "SuperAdmin");
-                if (roles.Contains("Admin")) return RedirectToAction("Index", "Admin");
-                if (roles.Contains("WarehouseStaff"))
+                
+                if (roles.Contains("WarehouseStaff") || roles.Contains("Staff") || roles.Contains("WarehouseOperator") || user.UserName?.ToLower() == "staff")
                 {
                     if (!string.IsNullOrEmpty(user.Hub))
                     {
                         HttpContext.Session.SetString("UserHub", user.Hub);
                     }
-                    return RedirectToAction("Index", "Warehouse");
+                    return RedirectToAction("Dashboard", "Warehouse");
                 }
+                
+                if (roles.Contains("Admin")) return RedirectToAction("Dashboard", "Admin");
                 if (roles.Contains("DeliveryRider")) return RedirectToAction("Index", "Rider");
                 return RedirectToAction("Index", "Customer");
             }
 
-            // ── Security log: failed login ──
+            if (result.IsLockedOut)
+            {
+                TempData["ErrorMessage"] = "You have failed to login 5 times. Your account is temporarily locked for 5 minutes. Please pause and try again later.";
+                return RedirectToAction("Login");
+            }
+
+            // Handle incrementing total failed logins
+            if (user != null)
+            {
+                user.TotalFailedLogins++;
+                if (user.TotalFailedLogins >= 10)
+                {
+                    user.IsSuspended = true;
+                    await _userManager.UpdateAsync(user);
+                    TempData["ErrorMessage"] = "Your account has been suspended due to 10 failed login attempts. Please contact the Super Admin to unsuspend your account.";
+                    return RedirectToAction("Login");
+                }
+                await _userManager.UpdateAsync(user);
+            }
+
             _audit.Log(
                 actor: username,
                 role: "Unknown",
@@ -135,7 +273,7 @@ namespace SwiftFill.Controllers
                 type: AuditLogType.Security
             );
 
-            TempData["ErrorMessage"] = "Invalid login attempt. Please check your username and password.";
+            TempData["ErrorMessage"] = "Incorrect username or password. Please try again.";
             return RedirectToAction("Login");
         }
 
@@ -154,6 +292,25 @@ namespace SwiftFill.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+        private IActionResult GetSettingsView(SettingsViewModel model)
+        {
+            var userName = User.Identity?.Name?.ToLower();
+            
+            // Explicit username overrides to fix local db role issues
+            if (userName == "superadmin") return View("SuperAdminSettings", model);
+            if (userName == "admin") return View("AdminSettings", model);
+            if (userName == "staff") return View("WarehouseSettings", model);
+            if (userName == "customer") return View("CustomerSettings", model);
+            
+            // Standard role checks
+            if (User.IsInRole("SuperAdmin")) return View("SuperAdminSettings", model);
+            if (User.IsInRole("Admin")) return View("AdminSettings", model);
+            if (User.IsInRole("WarehouseStaff") || User.IsInRole("WarehouseOperator")) return View("WarehouseSettings", model);
+            if (User.IsInRole("Customer")) return View("CustomerSettings", model);
+                
+            return View("CustomerSettings", model); // Provide Customer as the ultimate fallback for standard users
+        }
+
         [HttpGet]
         public async Task<IActionResult> Settings()
         {
@@ -169,7 +326,7 @@ namespace SwiftFill.Controllers
                 Hub = user.Hub
             };
 
-            return View(model);
+            return GetSettingsView(model);
         }
 
         [HttpPost]
@@ -188,7 +345,7 @@ namespace SwiftFill.Controllers
                 if (!result.Succeeded)
                 {
                     TempData["ErrorMessage"] = "Failed to update profile information.";
-                    return View(model);
+                    return GetSettingsView(model);
                 }
 
                 if (!string.IsNullOrEmpty(model.NewPassword))
@@ -196,14 +353,14 @@ namespace SwiftFill.Controllers
                     if (string.IsNullOrEmpty(model.CurrentPassword))
                     {
                         TempData["ErrorMessage"] = "Current password is required to set a new password.";
-                        return View(model);
+                        return GetSettingsView(model);
                     }
 
                     var changePasswordResult = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
                     if (!changePasswordResult.Succeeded)
                     {
                         TempData["ErrorMessage"] = string.Join(" ", changePasswordResult.Errors.Select(e => e.Description));
-                        return View(model);
+                        return GetSettingsView(model);
                     }
                 }
 
@@ -212,7 +369,7 @@ namespace SwiftFill.Controllers
                 return RedirectToAction("Settings");
             }
 
-            return View(model);
+            return GetSettingsView(model);
         }
 
         [HttpGet]

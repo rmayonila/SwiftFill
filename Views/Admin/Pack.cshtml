@@ -43,6 +43,7 @@
                 <tr>
                     <th>Tracking ID</th>
                     <th>Receiver</th>
+                    <th>Package Details</th>
                     <th>Destination</th>
                     <th>Status</th>
                     <th>Packing Action</th>
@@ -56,6 +57,17 @@
                         <td>
                             <div class="fw-bold">@order.ReceiverName</div>
                             <div class="small text-secondary">@order.ReceiverPhone</div>
+                        </td>
+                        <td>
+                            <div class="small text-white">@(order.ItemCategory ?? "General") &bull; @order.Weight kg</div>
+                            @if (order.IsFragile)
+                            {
+                                <span class="badge bg-warning text-dark" style="font-size:0.6rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>FRAGILE</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary" style="font-size:0.6rem;">Non-Fragile</span>
+                            }
                         </td>
                         <td>@order.DestinationRegion</td>
                         <td>
@@ -109,6 +121,17 @@
                         <div class="text-secondary x-small text-uppercase mb-1">Target Shipment</div>
                         <div class="fw-bold text-white fs-5" id="displayTrackingId">#—</div>
                         <div class="text-secondary small" id="displayReceiver">—</div>
+                        <div class="mt-2 d-flex align-items-center gap-2">
+                            <span class="badge bg-secondary x-small" id="displayCategory">—</span>
+                            <span class="badge x-small" id="displayFragile">—</span>
+                            <span class="text-secondary x-small" id="displayWeight">—</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small text-uppercase ls-1">Final Measured Weight (kg)</label>
+                        <input type="number" name="finalWeight" id="packFinalWeight" class="form-control bg-dark border-secondary text-white shadow-none" step="0.01" placeholder="Enter actual weighed kg">
+                        <div class="form-text text-secondary x-small">Leave blank to keep the original estimated weight.</div>
                     </div>
 
                     <div class="mb-3">
@@ -160,15 +183,28 @@
         function openPackModal(trackingId) {
             currentTargetRow = event.target.closest('tr');
             const modal = new bootstrap.Modal(document.getElementById('packModal'));
-            
+
             // Reset fields while loading
             document.getElementById('displayTrackingId').textContent = '#' + trackingId;
             document.getElementById('packTrackingId').value = trackingId;
-            
+            document.getElementById('packFinalWeight').value = '';
+
             fetch(`/Admin/GetOrderJson?trackingId=${trackingId}`)
                 .then(r => r.json())
                 .then(order => {
                     document.getElementById('displayReceiver').textContent = order.receiverName;
+                    document.getElementById('displayCategory').textContent = order.itemCategory || 'General';
+
+                    const fragileEl = document.getElementById('displayFragile');
+                    if (order.isFragile) {
+                        fragileEl.textContent = '⚠ FRAGILE';
+                        fragileEl.className = 'badge bg-warning text-dark x-small';
+                    } else {
+                        fragileEl.textContent = 'Non-Fragile';
+                        fragileEl.className = 'badge bg-secondary x-small';
+                    }
+
+                    document.getElementById('displayWeight').textContent = `Est. ${order.weight} kg`;
                     document.getElementById('availPacking').checked = order.availPacking;
                     document.getElementById('packFee').value = order.packingFee;
                     document.getElementById('packLocation').value = order.packingLocation || 'Store';
@@ -200,9 +236,9 @@
                     if (currentTargetRow) {
                         const statusBadge = currentTargetRow.querySelector('.badge');
                         statusBadge.className = 'badge bg-success';
-                        statusBadge.textContent = 'Packed';
+                        statusBadge.textContent = 'Packed in Warehouse';
                         const actionCell = currentTargetRow.querySelector('td:last-child');
-                        actionCell.innerHTML = '<span class="text-success small fw-bold"><i class="bi bi-check-circle me-1"></i> Completed</span>';
+                        actionCell.innerHTML = `<span class="text-success small fw-bold"><i class="bi bi-check-circle me-1"></i>Packed ₱${(result.newTotal||0).toLocaleString('en-US', {minimumFractionDigits:2})}</span>`;
                     }
                 } else {
                     alert('Error: ' + result.message);

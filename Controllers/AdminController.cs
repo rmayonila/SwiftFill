@@ -17,12 +17,14 @@ namespace SwiftFill.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly AuditLogService _audit;
+        private readonly OrderService _orderService;
 
-        public AdminController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, AuditLogService audit)
+        public AdminController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, AuditLogService audit, OrderService orderService)
         {
             _context = context;
             _userManager = userManager;
             _audit = audit;
+            _orderService = orderService;
         }
 
         public IActionResult Index() => RedirectToAction(nameof(Dashboard));
@@ -197,47 +199,40 @@ namespace SwiftFill.Controllers
                 order.Weight = model.Weight;
                 order.DestinationRegion = model.DestinationRegion;
                 order.ItemCategory = model.ItemCategory;
+                order.IsFragile = model.IsFragile;
                 order.DeclaredValue = model.DeclaredValue;
                 order.UpdatedAt = DateTime.UtcNow;
 
-                // Handle transaction mapping for Drop-offs
                 if (!string.IsNullOrEmpty(PaymentMethod))
                 {
-                    // Automatic pricing based on DB rates
-                    var rates = await _context.ShippingRates.FirstOrDefaultAsync(r => r.DestinationRegion == order.DestinationRegion);
-                    decimal totalAmount = 150 + (decimal)(order.Weight * 45); // Fallback
-                    if (rates != null)
+                    if (order.Payment == null)
                     {
-                        totalAmount = rates.Calculate(order.Weight);
-                    }
-
-                    if (order.Payment == null) 
-                    {
-                        order.Payment = new Payment { TrackingId = order.TrackingId, Amount = totalAmount };
+                        order.Payment = new Payment { TrackingId = order.TrackingId };
                         _context.Payments.Add(order.Payment);
                     }
-                    else
-                    {
-                        order.Payment.Amount = totalAmount; // Auto-update price on weight/region change
-                    }
-                    
+
+                    // Always auto-calculate from DB shipping rates + existing packing fee
+                    var rates = await _context.ShippingRates.FirstOrDefaultAsync(r => r.DestinationRegion == order.DestinationRegion);
+                    decimal totalAmount = 150 + (decimal)(order.Weight * 45) + order.PackingFee; // fallback
+                    if (rates != null) totalAmount = rates.Calculate(order.Weight) + order.PackingFee;
+
+                    // Keep Payment and Order records in sync
+                    order.Payment.Amount = totalAmount;
+                    order.ShippingFee = totalAmount;
+
                     order.Payment.Method = PaymentMethod;
-                    if (PaymentMethod == "Cash" || PaymentMethod == "Bank Transfer" || PaymentMethod == "Prepaid") {
-                        if (!order.Payment.IsPaid) {
-                            order.Payment.IsPaid = true;
-                            order.Payment.PaidAt = DateTime.UtcNow;
-                        }
-                    } else {
-                        order.Payment.IsPaid = false;
-                        order.Payment.PaidAt = null;
+                    if (PaymentMethod == "Cash" || PaymentMethod == "Bank Transfer" || PaymentMethod == "Prepaid")
+                    {
+                        if (!order.Payment.IsPaid) { order.Payment.IsPaid = true; order.Payment.PaidAt = DateTime.UtcNow; }
                     }
+                    else { order.Payment.IsPaid = false; order.Payment.PaidAt = null; }
                 }
-                
+
                 await _context.SaveChangesAsync();
                 _audit.Log(User.Identity?.Name ?? "Admin", "Admin", "Edit Order",
-                    $"Order {model.TrackingId} edited — Receiver: {model.ReceiverName}, Region: {model.DestinationRegion}.",
+                    $"Order {model.TrackingId} edited — Receiver: {model.ReceiverName}, Region: {model.DestinationRegion}, Amount: ₱{order.Payment?.Amount:N2}.",
                     AuditLogType.System);
-                TempData["SuccessMessage"] = $"Order {model.TrackingId} and Payment verified.";
+                TempData["SuccessMessage"] = $"Order {model.TrackingId} updated successfully.";
                 return RedirectToAction(nameof(Shipments));
             }
             return View(model);
@@ -246,7 +241,8 @@ namespace SwiftFill.Controllers
         public async Task<IActionResult> Pack(string search, string status, int page = 1)
         {
             int pageSize = 10;
-            var query = _context.Orders.Where(o => !o.IsArchived).AsQueryable();
+            // Item 6: Only show orders where the customer availed packing service
+            var query = _context.Orders.Where(o => !o.IsArchived && o.AvailPacking).AsQueryable();
 
             if (!string.IsNullOrEmpty(status) && status != "All")
             {
@@ -275,17 +271,27 @@ namespace SwiftFill.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdatePacking(string trackingId, bool availPacking, decimal packingFee, string packingLocation, string sortingStatus)
+        public async Task<IActionResult> UpdatePacking(string trackingId, bool availPacking, decimal packingFee, string packingLocation, string sortingStatus, double? finalWeight)
         {
-            try 
+            try
             {
                 var order = await _context.Orders.Include(o => o.Payment).FirstOrDefaultAsync(o => o.TrackingId == trackingId);
                 if (order == null) return Json(new { success = false, message = "Order not found." });
 
-                // Update payment if fee changed - subtract old fee, add new fee
+                // Item 8: Update order weight if the admin provides a final measured weight
+                if (finalWeight.HasValue && finalWeight.Value > 0)
+                {
+                    order.Weight = finalWeight.Value;
+                }
+
+                // Item 8: Recalculate total based on final weight + final packing fee
                 if (order.Payment != null)
                 {
-                    order.Payment.Amount = order.Payment.Amount - order.PackingFee + packingFee;
+                    var rates = await _context.ShippingRates.FirstOrDefaultAsync(r => r.DestinationRegion == order.DestinationRegion);
+                    decimal shippingAmount = 150 + (decimal)(order.Weight * 45); // fallback
+                    if (rates != null) shippingAmount = rates.Calculate(order.Weight);
+                    order.Payment.Amount = shippingAmount + packingFee;
+                    order.ShippingFee = order.Payment.Amount;
                 }
 
                 order.AvailPacking = availPacking;
@@ -293,16 +299,17 @@ namespace SwiftFill.Controllers
                 order.PackingLocation = packingLocation;
                 order.SortingStatus = sortingStatus;
                 order.PackedByStaffId = _userManager.GetUserId(User);
-                order.Status = "Packed"; 
+                // Item 9: Explicit warehouse pack status
+                order.Status = "Packed in Warehouse";
                 order.UpdatedAt = DateTime.UtcNow;
 
                 await _context.SaveChangesAsync();
 
                 _audit.Log(User.Identity?.Name ?? "Admin", "Admin", "Packing Update",
-                    $"Order {trackingId} packed at {packingLocation} by {User.Identity?.Name}.",
+                    $"Order {trackingId} packed in warehouse by {User.Identity?.Name}. Final weight: {order.Weight}kg. Total: ₱{order.Payment?.Amount}.",
                     AuditLogType.Inventory);
 
-                return Json(new { success = true, trackingId = trackingId });
+                return Json(new { success = true, trackingId = trackingId, newTotal = order.Payment?.Amount ?? 0 });
             }
             catch (Exception ex)
             {
@@ -350,15 +357,15 @@ namespace SwiftFill.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateManualOrder(Order model, string paymentMethod, string deliveryType = "DoorToDoor", string originHub = "Davao Hub", bool availPacking = false, decimal packingFee = 0)
+        public async Task<IActionResult> CreateManualOrder(Order model, string paymentMethod, string deliveryType = "DoorToDoor", string originHub = "Davao Hub", bool availPacking = false, decimal packingFee = 0, bool isFragile = false)
         {
             // Guard: originHub must be a real hub
             if (!SwiftFill.Models.HubRegistry.Names.Contains(originHub))
                 originHub = SwiftFill.Models.HubRegistry.All[0].Name;
 
-            // Generate Tracking ID: 10 unique digits (as requested)
-            string randomSuffix = Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper();
-            model.TrackingId = randomSuffix;
+            // Item 5: Consistent SF-prefixed tracking ID using the shared service
+            model.TrackingId = _orderService.GenerateTrackingId();
+            model.IsFragile = isFragile;
             model.Status = "Pending";
             model.DeliveryType = deliveryType;    // "DoorToDoor" or "BranchPickup"
             model.OriginHub = originHub;

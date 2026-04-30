@@ -22,6 +22,9 @@ namespace SwiftFill.Models
         [Required]
         public string Method { get; set; } = "COD"; // COD, Prepaid
 
+        public int? PaymentMethodId { get; set; }
+        public PaymentMethod? PaymentMethod { get; set; }
+
         public bool IsPaid { get; set; } = false;
 
         public string? CollectedByUserId { get; set; }

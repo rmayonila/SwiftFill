@@ -60,6 +60,44 @@ namespace SwiftFill.Data
                 .WithMany()
                 .HasForeignKey(o => o.AssignedRiderId);
 
+            // Warehouse Relationships
+            builder.Entity<ManualRider>()
+                .HasOne(m => m.Warehouse)
+                .WithMany(w => w.ManualRiders)
+                .HasForeignKey(m => m.WarehouseId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<Order>()
+                .HasOne(o => o.CurrentWarehouse)
+                .WithMany(w => w.Orders)
+                .HasForeignKey(o => o.CurrentWarehouseId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<Order>()
+                .HasOne(o => o.ShippingRate)
+                .WithMany()
+                .HasForeignKey(o => o.ShippingRateId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<Order>()
+                .HasOne(o => o.ManualRider)
+                .WithMany()
+                .HasForeignKey(o => o.ManualRiderId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Payment Relationships
+            builder.Entity<Payment>()
+                .HasOne(p => p.PaymentMethod)
+                .WithMany(pm => pm.Payments)
+                .HasForeignKey(p => p.PaymentMethodId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<SwiftFill.Services.AuditLogEntry>()
+                .HasOne(a => a.User)
+                .WithMany()
+                .HasForeignKey(a => a.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // Configure Decimal Precisions
             builder.Entity<Order>(entity => {
                 entity.Property(e => e.PackingFee).HasColumnType("decimal(18,2)");
