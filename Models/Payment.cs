@@ -31,5 +31,6 @@ namespace SwiftFill.Models
         public ApplicationUser? CollectedByUser { get; set; }
 
         public DateTime? PaidAt { get; set; }
+        public bool IsArchived { get; set; } = false;
     }
 }

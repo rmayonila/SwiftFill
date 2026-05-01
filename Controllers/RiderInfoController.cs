@@ -28,16 +28,29 @@ namespace SwiftFill.Controllers
             return hub ?? "Davao Hub";
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string search, int page = 1)
         {
+            int pageSize = 10;
             var currentHub = GetCurrentHub();
 
-            var riders = await _context.ManualRiders
+            var query = _context.ManualRiders
                 .Where(r => r.Hub == currentHub)
-                .OrderBy(r => r.Route)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+                query = query.Where(r => r.Name.Contains(search) || r.Route.Contains(search));
+
+            var totalItems = await query.CountAsync();
+            var riders = await query.OrderBy(r => r.Route)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
             ViewBag.CurrentHub = currentHub;
+            ViewBag.Search = search;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
             return View(riders);
         }
 

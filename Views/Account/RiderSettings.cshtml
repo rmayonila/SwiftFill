@@ -1,0 +1,146 @@
+@model SwiftFill.Models.SettingsViewModel
+@{
+    ViewData["Title"] = "Rider Account Settings";
+    Layout = "_RiderLayout";
+}
+
+<div class="animate-fade-up container-fluid py-2">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary border-opacity-10 pb-3">
+        <div>
+            <h2 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-person-gear text-orange me-3"></i>ACCOUNT SETTINGS</h2>
+            <p class="text-secondary small mt-1">Manage your delivery profile information and security preferences.</p>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success bg-success bg-opacity-10 border-success border-opacity-25 text-success alert-dismissible fade show mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger bg-danger bg-opacity-10 border-danger border-opacity-25 text-danger alert-dismissible fade show mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-lg overflow-hidden" style="background: rgba(22, 27, 34, 0.4); backdrop-filter: blur(14px); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05) !important;">
+                <div class="card-header bg-transparent border-bottom border-secondary border-opacity-10 py-3 px-4">
+                    <h6 class="mb-0 fw-bold text-white">Profile Information</h6>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Settings" method="post">
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="FirstName" class="form-label text-secondary small fw-bold">First Name</label>
+                                <input asp-for="FirstName" class="form-control bg-dark-soft border-secondary border-opacity-25 text-white shadow-none py-2" style="background: rgba(0,0,0,0.2); border-radius: 8px;" />
+                                <span asp-validation-for="FirstName" class="text-danger x-small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="LastName" class="form-label text-secondary small fw-bold">Last Name</label>
+                                <input asp-for="LastName" class="form-control bg-dark-soft border-secondary border-opacity-25 text-white shadow-none py-2" style="background: rgba(0,0,0,0.2); border-radius: 8px;" />
+                                <span asp-validation-for="LastName" class="text-danger x-small"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Email" class="form-label text-secondary small fw-bold">Email Address</label>
+                            <input asp-for="Email" class="form-control bg-dark border-secondary border-opacity-25 text-secondary shadow-none py-2" style="background: rgba(0,0,0,0.1);" readonly />
+                            <div class="form-text text-muted x-small">Primary identification email cannot be changed.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="PhoneNumber" class="form-label text-secondary small fw-bold">Phone Number</label>
+                            <input asp-for="PhoneNumber" class="form-control bg-dark-soft border-secondary border-opacity-25 text-white shadow-none py-2" style="background: rgba(0,0,0,0.2); border-radius: 8px;" placeholder="0917XXXXXXX" />
+                            <span asp-validation-for="PhoneNumber" class="text-danger x-small"></span>
+                        </div>
+
+                        <hr class="border-secondary border-opacity-10 my-5" />
+
+                        <h6 class="mb-4 fw-bold text-white"><i class="bi bi-shield-lock me-2 text-orange"></i>Security & Password</h6>
+                        
+                        <div class="mb-3">
+                            <label asp-for="CurrentPassword" class="form-label text-secondary small fw-bold">Current Password</label>
+                            <input asp-for="CurrentPassword" type="password" class="form-control bg-dark-soft border-secondary border-opacity-25 text-white shadow-none py-2" style="background: rgba(0,0,0,0.2); border-radius: 8px;" />
+                            <span asp-validation-for="CurrentPassword" class="text-danger x-small"></span>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="NewPassword" class="form-label text-secondary small fw-bold">New Password</label>
+                                <input asp-for="NewPassword" type="password" class="form-control bg-dark-soft border-secondary border-opacity-25 text-white shadow-none py-2" style="background: rgba(0,0,0,0.2); border-radius: 8px;" />
+                                <span asp-validation-for="NewPassword" class="text-danger x-small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="ConfirmPassword" class="form-label text-secondary small fw-bold">Confirm New Password</label>
+                                <input asp-for="ConfirmPassword" type="password" class="form-control bg-dark-soft border-secondary border-opacity-25 text-white shadow-none py-2" style="background: rgba(0,0,0,0.2); border-radius: 8px;" />
+                                <span asp-validation-for="ConfirmPassword" class="text-danger x-small"></span>
+                            </div>
+                        </div>
+
+                        <div class="mt-5">
+                            <button type="submit" class="btn btn-orange px-5 fw-bold py-2 shadow-sm" style="border-radius: 8px;">
+                                <i class="bi bi-save me-2"></i> Update Profile
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm overflow-hidden" style="background: rgba(255, 140, 0, 0.03); border: 1px solid rgba(255, 140, 0, 0.1) !important; border-radius: 16px;">
+                <div class="card-body p-4 text-center">
+                    <div class="rounded-circle d-flex justify-content-center align-items-center mx-auto mb-3 fw-bold shadow-sm" style="width: 80px; height: 80px; background: #ff8c00; color: #000; font-size: 2rem;">
+                        @((User.Identity?.Name ?? "R").Substring(0,1).ToUpper())
+                    </div>
+                    <h5 class="text-white fw-bold mb-1">@User.Identity?.Name</h5>
+                    <p class="mb-3">
+                        <span class="badge bg-orange bg-opacity-20 text-orange border border-orange border-opacity-25 px-3">Delivery Rider</span>
+                    </p>
+                    
+                    <div class="text-start mt-4 pt-3 border-top border-secondary border-opacity-10">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-geo-alt text-orange me-3"></i>
+                            <span class="text-secondary small">Base Hub: <strong class="text-white">@Model.Hub</strong></span>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-shield-check text-orange me-3"></i>
+                            <span class="text-secondary small">Status: <strong class="text-success">Verified Partner</strong></span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-calendar-check text-orange me-3"></i>
+                            <span class="text-secondary small">Active Since: <strong class="text-white">2024</strong></span>
+                        </div>
+                    </div>
+
+                    <div class="alert bg-dark border-secondary border-opacity-25 mt-4 p-3 text-start" style="border-radius: 12px;">
+                        <i class="bi bi-info-circle text-orange me-2"></i>
+                        <span class="text-secondary x-small">Changes to your assigned hub or route must be requested via your local manager.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+<style>
+    .x-small { font-size: 0.75rem; }
+    .btn-orange { background: #ff8c00; color: #000; }
+    .btn-orange:hover { background: #e67e00; color: #000; }
+    .form-control:focus {
+        background-color: rgba(0,0,0,0.3) !important;
+        border-color: #ff8c00 !important;
+        color: #fff !important;
+    }
+</style>

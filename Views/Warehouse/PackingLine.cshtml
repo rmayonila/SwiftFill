@@ -5,106 +5,254 @@
     var currentHub = ViewBag.CurrentHub as string ?? "Hub";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h1 class="dashboard-title text-success"><i class="bi bi-box-seam-fill me-3"></i> Packing Line</h1>
-        <p class="text-secondary small mb-0">Orders that require warehouse packing before dispatch — <strong class="text-warning">@currentHub</strong></p>
+<div class="animate-fade-up">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-box-seam-fill text-orange me-2"></i> Packing Line</h2>
+        <div class="text-secondary small">Hub: <span class="text-orange fw-bold">@currentHub</span></div>
     </div>
-    <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2">@Model.Count() orders</span>
-</div>
 
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success border-success bg-dark mb-4">@TempData["SuccessMessage"]</div>
-}
-
-<div class="module-toolbar">
-    <div class="search-container">
-        <i class="bi bi-search"></i>
-        <input type="text" id="packSearch" placeholder="Search Tracking ID or Receiver..." oninput="filterPack(this.value)" />
+    <!-- Integrated Filter Bar -->
+    <div class="d-flex justify-content-between align-items-center mb-4 gap-3 bg-dark-soft p-2 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+        <div class="d-flex align-items-center flex-grow-1 gap-3">
+            <form method="get" class="d-flex align-items-center flex-grow-1">
+                <div class="search-wrapper flex-grow-1" style="max-width: 400px; position: relative;">
+                    <i class="bi bi-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #6c757d;"></i>
+                    <input type="text" name="search" value="@ViewBag.Search" class="minimal-input w-100" 
+                           style="background: #111; border: 1px solid #222; border-radius: 8px; padding: 10px 15px 10px 40px; color: #fff; outline: none;"
+                           placeholder="Search Tracking ID, Receiver...">
+                </div>
+            </form>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+             <span class="badge bg-warning text-dark px-3 py-2 fw-bold">@Model.Count() PENDING</span>
+        </div>
     </div>
-</div>
 
-<div class="table-container border-top border-success border-3">
-    <table class="table table-dark table-hover mb-0 align-middle" id="packTable">
-        <thead>
-            <tr>
-                <th>Tracking ID</th>
-                <th>Receiver</th>
-                <th>Package Details</th>
-                <th>Destination</th>
-                <th>Packing Status</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
-                <tr>
-                    <td class="text-success fw-bold">#@item.TrackingId</td>
-                    <td>
-                        <div class="fw-semibold text-white">@item.ReceiverName</div>
-                        <div class="small text-secondary">@item.ReceiverPhone</div>
-                    </td>
-                    <td>
-                        <div class="small text-white">@(item.ItemCategory ?? "General") &bull; @item.Weight kg</div>
-                        @if (item.IsFragile)
-                        {
-                            <span class="badge bg-warning text-dark" style="font-size:0.6rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>FRAGILE — Handle with Care</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-secondary" style="font-size:0.6rem;">Standard</span>
-                        }
-                        @if (item.PackingFee > 0)
-                        {
-                            <div class="x-small text-warning mt-1">Packing Fee: ₱@item.PackingFee.ToString("N2")</div>
-                        }
-                    </td>
-                    <td>
-                        <div class="small text-white">@item.DestinationRegion</div>
-                        <div class="x-small text-secondary">@item.ReceiverAddress</div>
-                    </td>
-                    <td>
-                        @if (item.Status == "Pending")
-                        {
-                            <span class="badge bg-warning text-dark">Awaiting Pick</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-info text-dark">Picked — Ready to Pack</span>
-                        }
-                    </td>
-                    <td>
-                        <form asp-action="MarkPacked" method="post">
-    <input type="hidden" name="trackingId" value="@item.TrackingId" />
-    <button type="submit" class="btn btn-sm btn-success fw-bold">
-        <i class="bi bi-box-seam me-1"></i>Seal &amp; Pack
-    </button>
-</form>
-                    </td>
-                </tr>
-            }
-            @if (!Model.Any())
-            {
-                <tr>
-                    <td colspan="6" class="text-center py-5 text-secondary">
-                        <i class="bi bi-box-seam" style="font-size:2rem;display:block;margin-bottom:8px;"></i>
-                        No orders requiring packing at <strong>@currentHub</strong>.
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <div class="glass-card p-0 overflow-hidden" style="background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.05);">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0">
+                <thead style="background: rgba(255,140,0,0.03);">
+                    <tr class="text-secondary small text-uppercase">
+                        <th class="ps-4 py-3">Shipment Identity</th>
+                        <th class="py-3">Package Details</th>
+                        <th class="py-3">Status</th>
+                        <th class="py-3 pe-4 text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
+                            <td class="ps-4 py-3">
+                                <code class="text-orange fw-bold d-block">#@item.TrackingId</code>
+                                <div class="text-white small">@item.ReceiverName</div>
+                                <div class="text-secondary x-small"><i class="bi bi-geo-alt me-1"></i>@item.ReceiverAddress</div>
+                            </td>
+                            <td class="py-3">
+                                <div class="text-white small">@(item.ItemCategory ?? "General") • @item.Weight kg</div>
+                                @if (item.IsFragile)
+                                {
+                                    <span class="badge border border-warning text-warning mt-1" style="font-size: 0.6rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>FRAGILE</span>
+                                }
+                            </td>
+                            <td class="py-3">
+                                @{
+                                    var statusClass = item.Status == "Pending" ? "border-warning text-warning" : 
+                                                     (item.Status == "Sent to Warehouse Packing" ? "border-primary text-primary" : "border-info text-info");
+                                }
+                                <span class="badge border bg-transparent px-2 py-1 @statusClass" style="font-size: 0.65rem;">
+                                    @item.Status
+                                </span>
+                            </td>
+                            <td class="py-3 pe-4 text-end">
+                                <div class="d-flex justify-content-end align-items-center gap-3">
+                                    @if (item.AssignedRiderId != null || item.ManualRiderId != null)
+                                    {
+                                        <div class="text-success x-small fw-bold border-end border-secondary border-opacity-25 pe-3 d-none d-md-block">
+                                            <i class="bi bi-truck me-1"></i>Assigned
+                                        </div>
+                                    }
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-link text-info p-0 action-icon" onclick="openPackingModal('@item.TrackingId', '@item.Status')" title="Packing Control">
+                                            <i class="bi bi-lightning-charge-fill"></i>
+                                        </button>
+                                        <button class="btn btn-link text-warning p-0 action-icon" onclick="openAssignModal('@item.TrackingId')" title="Assign Rider">
+                                            <i class="bi bi-person-badge-fill"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center py-5 text-secondary border-0">
+                                <i class="bi bi-check2-circle fs-2 d-block mb-2 text-success"></i>
+                                Packing line is clear.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="mt-4">
+            <ul class="pagination pagination-sm justify-content-center">
+                <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                    <a class="page-link bg-dark border-0 text-secondary px-3" href="?page=@(ViewBag.CurrentPage - 1)&search=@ViewBag.Search">Previous</a>
+                </li>
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
+                        <a class="page-link @(ViewBag.CurrentPage == i ? "bg-orange border-0" : "bg-dark border-0 text-secondary") mx-1 rounded" href="?page=@i&search=@ViewBag.Search">@i</a>
+                    </li>
+                }
+                <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                    <a class="page-link bg-dark border-0 text-secondary px-3" href="?page=@(ViewBag.CurrentPage + 1)&search=@ViewBag.Search">Next</a>
+                </li>
+            </ul>
+        </div>
+    }
 </div>
 
 @section Scripts {
     <script>
-        function filterPack(query) {
-            const q = query.toLowerCase();
-            document.querySelectorAll('#packTable tbody tr').forEach(row => {
-                row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
-            });
+        function openPackingModal(trackingId, status) {
+            const modal = new bootstrap.Modal(document.getElementById('packingModal'));
+            document.getElementById('packTrackingId').textContent = '#' + trackingId;
+            document.getElementById('packFormTrackingId').value = trackingId;
+            document.getElementById('pickFormTrackingId').value = trackingId;
+            
+            const isPending = (status === 'Pending' || status === 'Packed in Store');
+            const isPicked = (status === 'Picked' || status === 'Sent to Warehouse Packing');
+            
+            document.getElementById('pickSection').style.display = isPending ? 'block' : 'none';
+            document.getElementById('packSection').style.display = isPicked ? 'block' : 'none';
+            
+            modal.show();
+        }
+
+        function openAssignModal(trackingId) {
+            const modal = new bootstrap.Modal(document.getElementById('assignModal'));
+            document.getElementById('assignTrackingId').textContent = '#' + trackingId;
+            document.getElementById('assignFormTrackingId').value = trackingId;
+            modal.show();
+        }
+
+        function assignRider() {
+            const riderId = document.getElementById('assignRiderSelect').value;
+            if (!riderId) { alert('Please select a rider first'); return; }
+            document.getElementById('assignRiderForm').submit();
         }
     </script>
 }
+
+<style>
+    .bg-orange { background-color: #ff8c00; color: #000; }
+    .x-small { font-size: 0.75rem; }
+    .action-icon { font-size: 1.25rem; transition: transform 0.2s; }
+    .action-icon:hover { transform: scale(1.2); }
+    .square-modal .modal-content {
+        background: #0f0f0f;
+        border: 1px solid rgba(255,140,0,0.2) !important;
+        border-radius: 20px;
+        max-width: 320px;
+        margin: auto;
+    }
+    .minimal-btn {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.05);
+        color: #fff;
+        padding: 12px;
+        border-radius: 12px;
+        width: 100%;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: all 0.2s;
+    }
+    .minimal-btn:hover {
+        background: rgba(255,140,0,0.1);
+        border-color: #ff8c00;
+        color: #ff8c00;
+    }
+</style>
+
+<!-- Packing Control Modal -->
+<div class="modal fade" id="packingModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered square-modal">
+        <div class="modal-content">
+            <div class="modal-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <div class="text-secondary x-small text-uppercase ls-1">Packing Control</div>
+                        <div class="fw-bold text-white fs-5" id="packTrackingId">#—</div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div id="pickSection" class="mb-2">
+                    <form asp-action="MarkPicked" method="post">
+                        <input type="hidden" name="trackingId" id="pickFormTrackingId" />
+                        <button type="submit" class="minimal-btn">
+                            <i class="bi bi-hand-index-thumb text-warning"></i>
+                            <span>Confirm Pick-up</span>
+                        </button>
+                    </form>
+                </div>
+
+                <div id="packSection" class="mb-2">
+                    <form asp-action="MarkPacked" method="post">
+                        <input type="hidden" name="trackingId" id="packFormTrackingId" />
+                        <button type="submit" class="minimal-btn">
+                            <i class="bi bi-box-seam text-info"></i>
+                            <span>Complete Packing</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assign Rider Modal -->
+<div class="modal fade" id="assignModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered square-modal">
+        <div class="modal-content">
+            <div class="modal-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <div class="text-secondary x-small text-uppercase ls-1">Assign Delivery</div>
+                        <div class="fw-bold text-white fs-5" id="assignTrackingId">#—</div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <form asp-action="AssignRider" method="post" id="assignRiderForm">
+                    <input type="hidden" name="trackingId" id="assignFormTrackingId" />
+                    <div class="mb-3">
+                        <label class="text-secondary x-small mb-2 d-block">Select Available Rider</label>
+                        <select name="riderId" id="assignRiderSelect" class="form-select bg-dark text-white border-secondary border-opacity-25" style="border-radius: 10px;">
+                            <option value="">Choose Rider...</option>
+                            @foreach (var r in (ViewBag.AvailableRiders as IEnumerable<SwiftFill.Models.ApplicationUser> ?? new List<SwiftFill.Models.ApplicationUser>())) {
+                                <option value="user_@r.Id">@r.FirstName @r.LastName</option>
+                            }
+                            @foreach (var r in (ViewBag.ManualRiders as IEnumerable<SwiftFill.Models.ManualRider> ?? new List<SwiftFill.Models.ManualRider>())) {
+                                <option value="manual_@r.Id">@r.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-warning w-100 fw-bold py-3" style="border-radius: 12px;" onclick="assignRider()">
+                        <i class="bi bi-person-check-fill me-2"></i> Assign Now
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -156,15 +156,22 @@
         }
 
         .profile-btn {
-            background: rgba(255, 140, 0, 0.1);
-            border: 1px solid rgba(255, 140, 0, 0.2);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             color: #fff;
-            padding: 4px 12px;
-            border-radius: 20px;
+            padding: 5px 6px 5px 16px;
+            border-radius: 30px;
             font-size: 0.85rem;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .profile-btn:hover {
+            background: rgba(255, 140, 0, 0.08);
+            border-color: rgba(255, 140, 0, 0.2);
         }
 
         .sidebar-logout {
@@ -232,6 +239,9 @@
         <div class="pt-4 flex-grow-1">
             <ul class="nav flex-column nav-sidebar">
                 <li class="nav-item">
+                    <div class="px-4 mt-3 mb-2 text-secondary text-uppercase x-small ls-1">Main Menu</div>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link @(currentController == "Rider" && currentAction == "Index" ? "active" : "")" asp-controller="Rider" asp-action="Index">
                         <i class="bi bi-geo-alt-fill"></i> Delivery Route
                     </a>
@@ -246,7 +256,9 @@
                         <i class="bi bi-currency-dollar"></i> Remittance
                     </a>
                 </li>
-                <div class="px-4 mt-4 mb-2 text-secondary text-uppercase x-small ls-1">Account</div>
+                <li class="nav-item">
+                    <div class="px-4 mt-4 mb-2 text-secondary text-uppercase x-small ls-1">Account</div>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link @(currentController == "Account" && currentAction == "Settings" ? "active" : "")" asp-controller="Account" asp-action="Settings">
                         <i class="bi bi-gear-fill"></i> Account Settings
@@ -273,7 +285,7 @@
                     <i class="bi bi-list"></i>
                 </button>
                 <div class="d-none d-md-block">
-                    <h5 class="m-0 fw-bold">Rider Terminal</h5>
+                    <h5 class="m-0 fw-bold">Rider Dashboard</h5>
                 </div>
                 <div class="d-md-none">
                     <img src="~/images/logo.png" style="height:28px;" alt="Logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/709/709790.png'" />
@@ -281,17 +293,29 @@
             </div>
             
             <div class="d-flex align-items-center gap-3">
-                <a asp-controller="Account" asp-action="Settings" class="text-secondary" style="font-size: 1.2rem; cursor: pointer; text-decoration: none;" title="Account Settings">
-                    <i class="bi bi-gear"></i>
-                </a>
-                <div class="profile-btn">
-                    <span class="d-none d-sm-inline">@User.Identity?.Name</span>
-                    <div class="rounded-circle bg-orange text-dark fw-bold d-flex align-items-center justify-content-center" style="width:24px; height:24px; font-size: 0.7rem;">
+                <a asp-controller="Account" asp-action="Settings" class="d-flex align-items-center text-decoration-none" title="Account Settings">
+                    <div class="rounded-circle d-flex justify-content-center align-items-center fw-bold shadow-sm" style="width:32px; height:32px; background: #ff8c00; color: #000; font-size: 0.8rem;">
                          @((User.Identity?.Name ?? "R").Substring(0,1).ToUpper())
                     </div>
-                </div>
+                    <span class="ms-2 fw-semibold text-white small">@User.Identity?.Name</span>
+                </a>
             </div>
         </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show bg-dark text-success border-success mb-4 mx-4" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show bg-dark text-danger border-danger mb-4 mx-4" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
 
         @RenderBody()
     </div>

@@ -1,160 +1,166 @@
 @model IEnumerable<SwiftFill.Models.ManualRider>
 @{
-    ViewData["Title"] = "Rider Information — SwiftFill";
+    ViewData["Title"] = "Rider List — SwiftFill";
     Layout = "_WarehouseLayout";
-    var hub = ViewBag.CurrentHub as string;
+    var hub = ViewBag.CurrentHub as string ?? "Hub";
 }
 
 <div class="animate-fade-up">
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-        <h1 class="dashboard-title">
-            <i class="bi bi-person-badge-fill me-3"></i> Rider Information
-        </h1>
-        <div class="d-flex align-items-center gap-3 flex-wrap">
-            <div style="background: rgba(255,140,0,0.08); border: 1px solid rgba(255,140,0,0.25); border-radius: 10px; padding: 8px 16px;">
-                <div style="font-size: 0.65rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px;">Your Hub</div>
-                <div style="font-size: 0.9rem; font-weight: 700; color: #ff8c00;">
-                    <i class="bi bi-geo-alt-fill me-1"></i>@hub
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-people-fill text-orange me-2"></i> Rider List</h2>
+        <div class="text-secondary small">Hub: <span class="text-orange fw-bold">@hub</span></div>
+    </div>
+
+    <!-- Integrated Filter Bar -->
+    <div class="d-flex justify-content-between align-items-center mb-4 gap-3 bg-dark-soft p-2 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+        <div class="d-flex align-items-center flex-grow-1 gap-3">
+            <form method="get" class="d-flex align-items-center flex-grow-1">
+                <div class="search-wrapper flex-grow-1" style="max-width: 400px; position: relative;">
+                    <i class="bi bi-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #6c757d;"></i>
+                    <input type="text" name="search" value="@ViewBag.Search" class="minimal-input w-100" 
+                           style="background: #111; border: 1px solid #222; border-radius: 8px; padding: 10px 15px 10px 40px; color: #fff; outline: none;"
+                           placeholder="Search Rider Name or Route...">
                 </div>
-            </div>
-            <button class="btn btn-warning fw-bold px-4" data-bs-toggle="modal" data-bs-target="#addRiderModal">
-                <i class="bi bi-plus-circle me-2"></i> Add Rider
+            </form>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-primary px-4 py-2 shadow-sm border-0 d-flex align-items-center" 
+                    style="background: #FF8C00; border-radius: 8px; font-weight: 600; font-size: 0.85rem;" 
+                    data-bs-toggle="modal" data-bs-target="#addRiderModal">
+                <i class="bi bi-person-plus-fill me-2"></i> Add Rider
             </button>
         </div>
     </div>
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert border-success border-opacity-50 text-success bg-transparent rounded-3 mb-4">
-            <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
-        </div>
-    }
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert border-danger border-opacity-50 text-danger bg-transparent rounded-3 mb-4">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
-        </div>
-    }
-
-    <div class="table-container">
-        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-            <h5 class="m-0 fw-bold">Rider Roster — @hub</h5>
-            <span class="badge bg-dark border border-secondary text-secondary">@Model.Count() riders</span>
-        </div>
-
-        <table class="table table-dark table-hover mb-0 align-middle" id="riderTable">
-            <thead>
-                <tr>
-                    <th>Rider Name</th>
-                    <th>Contact Number</th>
-                    <th>Assigned Route</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var rider in Model)
-                {
-                    <tr>
-                        <td class="text-white fw-bold">@rider.Name</td>
-                        <td class="text-secondary">@rider.Phone</td>
-                        <td>
-                            <span class="badge" style="background: rgba(255,140,0,0.1); color: #ff8c00; border: 1px solid rgba(255,140,0,0.3);">
-                                <i class="bi bi-map me-1"></i>@rider.Route
-                            </span>
-                        </td>
-                        <td>
-                            @if (rider.IsActive)
-                            {
-                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 py-2 px-3">
-                                    <i class="bi bi-circle-fill me-1" style="font-size:6px;"></i> Active
-                                </span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-opacity-10 py-2 px-3" style="background: rgba(255, 140, 0, 0.1); color: #ff8c00; border: 1px solid rgba(255, 140, 0, 0.3);">
-                                    <i class="bi bi-pause-circle me-1"></i> Suspended
-                                </span>
-                            }
-                        </td>
-                        <td>
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-sm btn-dark border-secondary text-info hover-white" 
-                                        title="EDIT"
-                                        onclick="openEditModal('@rider.Id', '@rider.Name', '@rider.Phone', '@rider.Route')">
-                                    <i class="bi bi-pencil-square"></i>
-                                </button>
-                                
-                                <form asp-action="ToggleStatus" method="post" class="d-inline">
-                                    <input type="hidden" name="id" value="@rider.Id" />
-                                    <button type="submit" class="btn btn-sm btn-dark border-warning text-warning hover-white" 
-                                            title="@(rider.IsActive ? "SUSPEND" : "ACTIVATE")">
-                                        <i class="bi @(rider.IsActive ? "bi-person-x-fill" : "bi-person-check-fill")"></i>
-                                    </button>
-                                </form>
-
-                                <form asp-action="DeleteRider" method="post" onsubmit="return confirm('Remove this rider?');" class="d-inline">
-                                    <input type="hidden" name="id" value="@rider.Id" />
-                                    <button type="submit" class="btn btn-sm btn-dark border-danger text-danger hover-white" title="DELETE">
-                                        <i class="bi bi-trash-fill"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
+    <div class="glass-card p-0 overflow-hidden" style="background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.05);">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0">
+                <thead style="background: rgba(255,140,0,0.03);">
+                    <tr class="text-secondary small text-uppercase">
+                        <th class="ps-4 py-3">Rider Identity</th>
+                        <th class="py-3">Contact Info</th>
+                        <th class="py-3">Assigned Route</th>
+                        <th class="py-3">Status</th>
+                        <th class="py-3 pe-4 text-end">Action</th>
                     </tr>
-                }
-                @if (!Model.Any())
-                {
-                    <tr>
-                        <td colspan="5" class="text-center py-5 text-secondary">
-                            <i class="bi bi-person-slash" style="font-size:2rem; display:block; margin-bottom:8px;"></i>
-                            No riders added yet for <strong>@hub</strong>.
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var rider in Model)
+                    {
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
+                            <td class="ps-4 py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle bg-dark border border-secondary border-opacity-25 d-flex align-items-center justify-content-center me-3" style="width: 35px; height: 35px;">
+                                        <i class="bi bi-person text-secondary"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-white fw-bold">@rider.Name</div>
+                                        <div class="text-secondary x-small">Manual Entry</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-3">
+                                <div class="text-white small">@rider.Phone</div>
+                            </td>
+                            <td class="py-3">
+                                <span class="badge border border-warning border-opacity-25 text-warning x-small px-2">
+                                    <i class="bi bi-geo-alt me-1"></i>@rider.Route
+                                </span>
+                            </td>
+                            <td class="py-3">
+                                @if (rider.IsActive)
+                                {
+                                    <span class="badge border border-success text-success px-2 py-1" style="font-size: 0.65rem;">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge border border-secondary text-secondary px-2 py-1" style="font-size: 0.65rem;">Suspended</span>
+                                }
+                            </td>
+                            <td class="py-3 pe-4 text-end">
+                                <div class="d-flex justify-content-end gap-1">
+                                    <button class="btn btn-sm btn-outline-info border-0 p-1" title="Edit"
+                                            onclick="openEditModal('@rider.Id', '@rider.Name', '@rider.Phone', '@rider.Route')">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                    <form asp-action="ToggleStatus" method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="@rider.Id" />
+                                        <button type="submit" class="btn btn-sm @(rider.IsActive ? "btn-outline-warning" : "btn-outline-success") border-0 p-1" 
+                                                title="@(rider.IsActive ? "Suspend" : "Activate")">
+                                            <i class="bi @(rider.IsActive ? "bi-pause-circle" : "bi-play-circle")"></i>
+                                        </button>
+                                    </form>
+                                    <form asp-action="DeleteRider" method="post" onsubmit="return confirm('Remove this rider?');" class="d-inline">
+                                        <input type="hidden" name="id" value="@rider.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger border-0 p-1" title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-secondary border-0">
+                                <i class="bi bi-people fs-2 d-block mb-2"></i>
+                                No riders registered in this hub.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
+
+    <!-- Pagination -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="mt-4">
+            <ul class="pagination pagination-sm justify-content-center">
+                <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                    <a class="page-link bg-dark border-0 text-secondary px-3" href="?page=@(ViewBag.CurrentPage - 1)&search=@ViewBag.Search">Previous</a>
+                </li>
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
+                        <a class="page-link @(ViewBag.CurrentPage == i ? "bg-orange border-0" : "bg-dark border-0 text-secondary") mx-1 rounded" href="?page=@i&search=@ViewBag.Search">@i</a>
+                    </li>
+                }
+                <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                    <a class="page-link bg-dark border-0 text-secondary px-3" href="?page=@(ViewBag.CurrentPage + 1)&search=@ViewBag.Search">Next</a>
+                </li>
+            </ul>
+        </div>
+    }
 </div>
 
-<!-- Add Rider Modal -->
+<!-- Modals kept functional but styled minimally -->
 <div class="modal fade" id="addRiderModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="background: #0f0f0f; border: 1px solid rgba(255,140,0,0.2); border-radius: 16px;">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title text-white fw-bold">
-                    <i class="bi bi-person-badge-fill text-warning me-2"></i> Add manual rider info
-                </h5>
+        <div class="modal-content border-0 shadow-lg" style="background: #0f0f0f; border-radius: 16px; border: 1px solid rgba(255,140,0,0.1) !important;">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-white fw-bold"><i class="bi bi-person-plus text-orange me-2"></i> Add New Rider</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body pt-3">
-                <p class="text-secondary small mb-4">
-                    Manually add a rider to the database for this specific hub branch.
-                    These riders are assigned to specific delivery routes.
-                </p>
+            <div class="modal-body pt-0">
                 <form asp-action="AddRider" method="post">
                     <div class="mb-3">
-                        <label class="text-secondary small mb-1 text-uppercase" style="letter-spacing:1px;">Rider Full Name</label>
-                        <input type="text" name="Name" class="form-control bg-dark text-white border-secondary" required placeholder="e.g. Juan De La Cruz" />
+                        <label class="text-secondary x-small mb-1">Full Name</label>
+                        <input type="text" name="Name" class="minimal-input w-100" required placeholder="Juan De La Cruz" />
                     </div>
                     <div class="mb-3">
-                        <label class="text-secondary small mb-1 text-uppercase" style="letter-spacing:1px;">Contact Number</label>
-                        <input type="text" name="Phone" class="form-control bg-dark text-white border-secondary" required placeholder="0917-XXX-XXXX" />
+                        <label class="text-secondary x-small mb-1">Phone Number</label>
+                        <input type="text" name="Phone" class="minimal-input w-100" required placeholder="0917XXXXXXX" />
                     </div>
                     <div class="mb-4">
-                        <label class="text-secondary small mb-1 text-uppercase" style="letter-spacing:1px;">Route Area (Filter Keyword)</label>
-                        <input type="text" name="Route" class="form-control bg-dark text-white border-secondary" required placeholder="e.g. Mabolo, Lahug, etc." />
-                        <div class="text-secondary mt-1" style="font-size:0.72rem;">
-                            <i class="bi bi-info-circle me-1"></i> Staff will see this rider if the parcel address contains this keyword.
-                        </div>
+                        <label class="text-secondary x-small mb-1">Assigned Route Area</label>
+                        <input type="text" name="Route" class="minimal-input w-100" required placeholder="e.g. Mabolo, Lahug" />
                     </div>
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-warning fw-bold flex-fill">
-                            <i class="bi bi-person-plus-fill me-2"></i> Register Rider
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary border-secondary" data-bs-dismiss="modal">
-                            Cancel
-                        </button>
+                        <button type="submit" class="btn btn-primary fw-bold flex-fill" style="background: #FF8C00;">Register Rider</button>
+                        <button type="button" class="btn btn-dark flex-fill" data-bs-dismiss="modal">Cancel</button>
                     </div>
                 </form>
             </div>
@@ -162,38 +168,31 @@
     </div>
 </div>
 
-<!-- Edit Rider Modal -->
 <div class="modal fade" id="editRiderModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="background: #0f0f0f; border: 1px solid rgba(13,202,240,0.3); border-radius: 16px;">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title text-white fw-bold">
-                    <i class="bi bi-pencil-square text-info me-2"></i> Edit Rider Info
-                </h5>
+        <div class="modal-content border-0 shadow-lg" style="background: #0f0f0f; border-radius: 16px; border: 1px solid rgba(13,202,240,0.1) !important;">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-white fw-bold"><i class="bi bi-pencil-square text-info me-2"></i> Edit Rider Details</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body pt-3">
+            <div class="modal-body pt-0">
                 <form asp-action="EditRider" method="post">
                     <input type="hidden" name="Id" id="editRiderId" />
                     <div class="mb-3">
-                        <label class="text-secondary small mb-1 text-uppercase" style="letter-spacing:1px;">Rider Full Name</label>
-                        <input type="text" name="Name" id="editRiderName" class="form-control bg-dark text-white border-secondary" required />
+                        <label class="text-secondary x-small mb-1">Full Name</label>
+                        <input type="text" name="Name" id="editRiderName" class="minimal-input w-100" required />
                     </div>
                     <div class="mb-3">
-                        <label class="text-secondary small mb-1 text-uppercase" style="letter-spacing:1px;">Contact Number</label>
-                        <input type="text" name="Phone" id="editRiderPhone" class="form-control bg-dark text-white border-secondary" required />
+                        <label class="text-secondary x-small mb-1">Phone Number</label>
+                        <input type="text" name="Phone" id="editRiderPhone" class="minimal-input w-100" required />
                     </div>
                     <div class="mb-4">
-                        <label class="text-secondary small mb-1 text-uppercase" style="letter-spacing:1px;">Route Area (Filter Keyword)</label>
-                        <input type="text" name="Route" id="editRiderRoute" class="form-control bg-dark text-white border-secondary" required />
+                        <label class="text-secondary x-small mb-1">Assigned Route Area</label>
+                        <input type="text" name="Route" id="editRiderRoute" class="minimal-input w-100" required />
                     </div>
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-info text-white fw-bold flex-fill">
-                            <i class="bi bi-check-circle me-2"></i> Update Details
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary border-secondary" data-bs-dismiss="modal">
-                            Cancel
-                        </button>
+                        <button type="submit" class="btn btn-info text-white fw-bold flex-fill">Update Rider</button>
+                        <button type="button" class="btn btn-dark flex-fill" data-bs-dismiss="modal">Cancel</button>
                     </div>
                 </form>
             </div>
@@ -202,11 +201,10 @@
 </div>
 
 <style>
-    .table thead th { color: rgba(255,255,255,0.45); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.8px; border-bottom: 1px solid rgba(255,255,255,0.07); padding: 10px 16px; }
-    .table tbody td { color: rgba(255,255,255,0.7); border-bottom: 1px solid rgba(255,255,255,0.04); padding: 14px 16px; vertical-align: middle; }
-    .table tbody tr:hover { background: rgba(255,140,0,0.03); }
-    .table-container { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 15px; padding: 20px; }
-    .hover-white:hover { color: #ffffff !important; background: #30363d !important; }
+    .x-small { font-size: 0.75rem; }
+    .bg-orange { background-color: #ff8c00; color: #000; }
+    .minimal-input { background: #111; border: 1px solid #222; border-radius: 8px; padding: 10px 15px; color: #fff; outline: none; }
+    .minimal-input:focus { border-color: #ff8c00 !important; }
 </style>
 
 @section Scripts {

@@ -101,17 +101,7 @@ namespace SwiftFill.Controllers
             return View(order);
         }
 
-        [HttpGet]
-        public IActionResult Track(string trackingId)
-        {
-            if (string.IsNullOrEmpty(trackingId))
-            {
-                return View();
-            }
 
-            var order = _context.Orders.FirstOrDefault(o => o.TrackingId == trackingId);
-            return View(order);
-        }
 
         public IActionResult Returns()
         {
@@ -126,10 +116,21 @@ namespace SwiftFill.Controllers
 
             var returnReq = await _context.ReturnRequests.FirstOrDefaultAsync(r => r.TrackingId == trackingId);
 
+            var timeline = TrackingLogic.GetPublicTimeline(order).Select(e => new {
+                title = e.Title,
+                description = e.Description,
+                date = e.Date?.ToString("MMM dd yyyy, HH:mm") ?? "",
+                isCompleted = e.IsCompleted,
+                isActive = e.IsActive,
+                icon = e.Icon
+            });
+
             return Json(new {
                 success = true,
                 trackingId = order.TrackingId,
                 status = order.Status,
+                sender = order.SenderName,
+                receiver = order.ReceiverName,
                 destination = order.DestinationRegion,
                 itemCategory = order.ItemCategory ?? "General",
                 weight = order.Weight,
@@ -137,7 +138,8 @@ namespace SwiftFill.Controllers
                 notes = order.Notes ?? "",
                 deliveryType = order.DeliveryType,
                 pickupBranch = order.PickupBranchAddress ?? "",
-                returnReason = returnReq != null ? returnReq.Description ?? returnReq.Reason : ""
+                returnReason = returnReq != null ? returnReq.Description ?? returnReq.Reason : "",
+                timeline = timeline
             });
         }
 

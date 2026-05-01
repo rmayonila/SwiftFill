@@ -402,7 +402,60 @@ namespace SwiftFill.Controllers
             return View(logs);
         }
 
-        public IActionResult Branding() => View();
+        public async Task<IActionResult> Branding()
+        {
+            var settings = await _context.BrandingSettings.FirstOrDefaultAsync();
+            if (settings == null)
+            {
+                settings = new BrandingSettings();
+                _context.BrandingSettings.Add(settings);
+                await _context.SaveChangesAsync();
+            }
+            return View(settings);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveBranding(BrandingSettings model, IFormFile? logoUpload)
+        {
+            var settings = await _context.BrandingSettings.FirstOrDefaultAsync();
+            if (settings == null)
+            {
+                settings = new BrandingSettings();
+                _context.BrandingSettings.Add(settings);
+            }
+
+            if (logoUpload != null && logoUpload.Length > 0)
+            {
+                var fileName = "brand_logo" + Path.GetExtension(logoUpload.FileName);
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", fileName);
+                
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await logoUpload.CopyToAsync(stream);
+                }
+                settings.LogoUrl = "/images/" + fileName;
+            }
+
+            settings.TintedLogoUrl = model.TintedLogoUrl;
+            settings.BrandName = model.BrandName;
+            settings.LogoLayout = model.LogoLayout;
+            settings.LogoHeight = model.LogoHeight;
+            settings.BrandFontSize = model.BrandFontSize;
+            settings.PrimaryColor = model.PrimaryColor;
+            settings.BackgroundColor = model.BackgroundColor;
+            settings.BrandNameColor = model.BrandNameColor;
+            settings.SidebarColor = model.SidebarColor;
+            settings.IsDarkMode = model.IsDarkMode;
+            settings.UseGlassmorphism = model.UseGlassmorphism;
+
+            await _context.SaveChangesAsync();
+            
+            _audit.Log(User.Identity?.Name ?? "SuperAdmin", "SuperAdmin", "Branding Update", 
+                "System visual identity updated.", AuditLogType.System);
+
+            TempData["SuccessMessage"] = "Branding settings updated successfully.";
+            return RedirectToAction(nameof(Branding));
+        }
 
     }
 }

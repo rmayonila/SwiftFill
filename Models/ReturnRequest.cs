@@ -26,5 +26,6 @@ namespace SwiftFill.Models
         
         public string? ReviewedByUserId { get; set; }
         public ApplicationUser? ReviewedByUser { get; set; }
+        public bool IsArchived { get; set; } = false;
     }
 }

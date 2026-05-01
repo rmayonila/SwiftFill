@@ -46,4 +46,13 @@ public class HomeController : Controller
 
         return View(order);
     }
+
+    [HttpPost]
+    public IActionResult Contact(string name, string email, string subject, string message)
+    {
+        // In a real app, you would send an email or save to DB here.
+        // For now, we'll just show a success message.
+        TempData["SuccessMessage"] = $"Thank you, {name}! Your message regarding \"{subject}\" has been sent. We will get back to you at {email} soon.";
+        return RedirectToAction("Index");
+    }
 }

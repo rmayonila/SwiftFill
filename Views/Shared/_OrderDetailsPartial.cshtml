@@ -1,0 +1,73 @@
+@model SwiftFill.Models.Order
+@using SwiftFill.Models
+
+<div class="animate-fade-in">
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <div class="text-secondary x-small text-uppercase ls-1">Tracking ID</div>
+            <h4 class="text-white fw-bold mb-0">#@Model.TrackingId</h4>
+        </div>
+        <div class="text-end">
+            <div class="text-secondary x-small text-uppercase ls-1">Current Status</div>
+            <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-3 py-1 rounded-pill" style="font-size: 0.7rem;">
+                @Model.Status.ToUpper()
+            </span>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                <div class="text-secondary x-small text-uppercase mb-2"><i class="bi bi-person-fill me-1"></i> Sender</div>
+                <div class="text-white fw-bold small">@Model.SenderName</div>
+                <div class="text-white-50 x-small mt-1">@Model.SenderPhone</div>
+                <div class="text-secondary x-small mt-1">@Model.SenderAddress</div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                <div class="text-secondary x-small text-uppercase mb-2"><i class="bi bi-geo-alt-fill me-1"></i> Receiver</div>
+                <div class="text-white fw-bold small">@Model.ReceiverName</div>
+                <div class="text-white-50 x-small mt-1">@Model.ReceiverPhone</div>
+                <div class="text-secondary x-small mt-1">@Model.ReceiverAddress</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="text-secondary x-small">Weight</div>
+            <div class="text-white small">@Model.Weight kg</div>
+        </div>
+        <div class="col-md-4">
+            <div class="text-secondary x-small">Category</div>
+            <div class="text-white small">@(Model.ItemCategory ?? "General")</div>
+        </div>
+        <div class="col-md-4">
+            <div class="text-secondary x-small">Origin Hub</div>
+            <div class="text-white small">@(Model.OriginHub ?? "Davao Hub")</div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.ProofImagePath))
+    {
+        <div class="mt-4 pt-3 border-top border-white border-opacity-5">
+            <div class="text-success x-small text-uppercase mb-3 fw-bold ls-1"><i class="bi bi-camera-fill me-1"></i> Proof of Delivery (POD)</div>
+            <div class="rounded-3 overflow-hidden shadow-lg border border-success border-opacity-25" style="background: #000;">
+                <img src="@Model.ProofImagePath" class="img-fluid w-100" style="max-height: 400px; object-fit: contain;" alt="POD Image" />
+            </div>
+            <div class="text-secondary x-small mt-2 italic text-center">Successfully delivered on @Model.UpdatedAt.ToString("MMM dd, yyyy HH:mm")</div>
+        </div>
+    }
+
+    <div class="mt-4 pt-3 border-top border-white border-opacity-5">
+        <div class="text-secondary x-small text-uppercase mb-2">Internal Notes</div>
+        <div class="text-white-50 small italic">@(Model.Notes ?? "No additional notes provided.")</div>
+    </div>
+</div>
+
+<style>
+    .x-small { font-size: 0.7rem; }
+    .ls-1 { letter-spacing: 1px; }
+    .italic { font-style: italic; }
+</style>

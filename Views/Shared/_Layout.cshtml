@@ -1,3 +1,7 @@
+@inject SwiftFill.Data.ApplicationDbContext _context
+@{
+    var brand = _context.BrandingSettings.FirstOrDefault() ?? new SwiftFill.Models.BrandingSettings();
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,14 +14,21 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        :root {
+            --brand-primary: @brand.PrimaryColor;
+        }
+        .navbar-brand img { height: 40px; }
+        .btn-get-started { background: var(--brand-primary) !important; }
+    </style>
 </head>
 <body>
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm fixed-top">
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
-                    <img src="~/images/logo.png" class="brand-logo-img" alt="SwiftFill" />
-                    <span class="brand-text">SwiftFill</span>
+                <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
+                    <img src="@(brand.TintedLogoUrl ?? brand.LogoUrl ?? "/images/logo.png")" class="brand-logo-img me-2" alt="SwiftFill" />
+                    <span class="brand-text text-white">@(string.IsNullOrEmpty(brand.BrandName) ? "SwiftFill" : brand.BrandName)</span>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
                     <span class="navbar-toggler-icon"></span>
@@ -60,6 +71,7 @@
 
     <div class="content-wrapper">
         <main role="main">
+
             @RenderBody()
         </main>
     </div>
@@ -68,7 +80,7 @@
         <div class="container">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <img src="~/images/logo.png" style="height:24px; margin-right:8px;" alt="SwiftFill" /> <strong>SwiftFill</strong>
+                    <img src="@(brand.TintedLogoUrl ?? brand.LogoUrl ?? "/images/logo.png")" style="height:24px; margin-right:8px;" alt="SwiftFill" /> <strong class="text-white">@(string.IsNullOrEmpty(brand.BrandName) ? "SwiftFill" : brand.BrandName)</strong>
                 </div>
                 <div>
                     &copy; 2026 SwiftFill. All rights reserved.

@@ -78,35 +78,37 @@
 
     /* Feature Cards - Centered Content */
     .glass-card {
-        background: var(--glass-bg);
-        border: 1px solid var(--glass-border);
-        border-radius: 24px;
-        padding: 40px;
-        transition: all 0.4s ease;
-        backdrop-filter: blur(10px);
+        background: #111111;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 32px;
+        padding: 50px 40px;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         text-align: center;
         display: flex;
         flex-direction: column;
         align-items: center;
+        height: 100%;
     }
 
     .glass-card:hover {
-        transform: translateY(-10px);
-        border-color: var(--swift-orange);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        transform: translateY(-12px);
+        border-color: rgba(255, 140, 0, 0.3);
+        background: #151515;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.6);
     }
 
     .icon-wrapper {
-        font-size: 2.5rem;
+        font-size: 2.2rem;
         color: var(--swift-orange);
-        margin-bottom: 20px;
-        background: rgba(255, 140, 0, 0.1);
-        width: 70px;
-        height: 70px;
+        margin-bottom: 30px;
+        background: rgba(255, 140, 0, 0.08);
+        width: 85px;
+        height: 85px;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 15px;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 140, 0, 0.15);
     }
 
     /* Button Styles */
@@ -195,7 +197,7 @@ section {
         
         <div class="mt-4 animate-fade-up delay-200">
             <a href="/Account/SignUp" class="btn-primary-custom me-2">Get Started Now &rarr;</a>
-            <a href="#features" class="btn-outline-custom">Explore Modules</a>
+            <a href="#modules" class="btn-outline-custom">Explore Modules</a>
         </div>
     </div>
 </section>
@@ -225,7 +227,42 @@ section {
     </div>
 </section>
 
+<!-- Features Section -->
 <section id="features" class="py-5 mt-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3">Powerful <span class="text-orange">Features</span></h2>
+            <p class="hero-subtitle">Everything you need to scale your logistics operations.</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="glass-card">
+                    <div class="icon-wrapper"><i class="bi bi-geo-alt"></i></div>
+                    <h3 class="fw-bold text-white mb-3" style="font-size: 1.75rem;">Nationwide Hubs</h3>
+                    <p class="text-white-50 px-3" style="font-size: 1.05rem; line-height: 1.6;">Strategic logistics management across NCR, Luzon, Visayas, and Mindanao hubs.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="glass-card">
+                    <div class="icon-wrapper"><i class="bi bi-search"></i></div>
+                    <h3 class="fw-bold text-white mb-3" style="font-size: 1.75rem;">Live Tracking</h3>
+                    <p class="text-white-50 px-3" style="font-size: 1.05rem; line-height: 1.6;">End-to-end visibility with real-time status updates for both customers and staff.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="glass-card">
+                    <div class="icon-wrapper"><i class="bi bi-shield-lock"></i></div>
+                    <h3 class="fw-bold text-white mb-3" style="font-size: 1.75rem;">Secure Audit Logs</h3>
+                    <p class="text-white-50 px-3" style="font-size: 1.05rem; line-height: 1.6;">Comprehensive activity tracking and financial reconciliation for full accountability.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Modules Section -->
+<section id="modules" class="py-5 mt-5">
     <div class="container">
         <div class="text-center mb-5">
             <h2 class="display-5 fw-bold mb-3">Core <span class="text-orange">Modules</span></h2>
@@ -234,24 +271,140 @@ section {
         
         <div class="row g-4 justify-content-center">
             <div class="col-lg-4 col-md-6">
-                <div class="glass-card h-100">
-                    <div class="icon-wrapper"><i class="bi bi-shield-check"></i></div>
-                    <h3 class="h4 mb-3">Admin Command</h3>
-                    <p class="text-white-50">Complete oversight of revenue, hub performance, and nationwide logistics audit logs.</p>
-                </div>
+                <a href="/Account/Login" class="text-decoration-none">
+                    <div class="glass-card h-100">
+                        <div class="icon-wrapper"><i class="bi bi-shield-check"></i></div>
+                        <h3 class="h4 mb-3 text-white">Admin Command</h3>
+                        <p class="text-white-50">Complete oversight of revenue, hub performance, and nationwide logistics audit logs.</p>
+                        <span class="text-orange mt-3">Learn More &rarr;</span>
+                    </div>
+                </a>
             </div>
             <div class="col-lg-4 col-md-6">
-                <div class="glass-card h-100">
-                    <div class="icon-wrapper"><i class="bi bi-box-seam"></i></div>
-                    <h3 class="h4 mb-3">Fulfillment Staff</h3>
-                    <p class="text-white-50">Streamlined "Pick-Pack-Ship" interfaces optimized for high-speed warehouse sorting.</p>
-                </div>
+                <a href="/Account/Login" class="text-decoration-none">
+                    <div class="glass-card h-100">
+                        <div class="icon-wrapper"><i class="bi bi-box-seam"></i></div>
+                        <h3 class="h4 mb-3 text-white">Fulfillment Staff</h3>
+                        <p class="text-white-50">Streamlined "Pick-Pack-Ship" interfaces optimized for high-speed warehouse sorting.</p>
+                        <span class="text-orange mt-3">Learn More &rarr;</span>
+                    </div>
+                </a>
             </div>
             <div class="col-lg-4 col-md-6">
-                <div class="glass-card h-100">
-                    <div class="icon-wrapper"><i class="bi bi-truck"></i></div>
-                    <h3 class="h4 mb-3">Rider Dispatch</h3>
-                    <p class="text-white-50">Real-time last-mile delivery management with integrated COD and status tracking.</p>
+                <a href="/Account/Login" class="text-decoration-none">
+                    <div class="glass-card h-100">
+                        <div class="icon-wrapper"><i class="bi bi-truck"></i></div>
+                        <h3 class="h4 mb-3 text-white">Rider Dispatch</h3>
+                        <p class="text-white-50">Real-time last-mile delivery management with integrated COD and status tracking.</p>
+                        <span class="text-orange mt-3">Learn More &rarr;</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing Section -->
+<section id="pricing" class="py-5 mt-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3">Murang <span class="text-orange">Shipping</span></h2>
+            <p class="hero-subtitle">Mura at mabilis na padala saan man sa Pilipinas.</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="glass-card h-100 border-0" style="background: rgba(255,255,255,0.02);">
+                    <h4 class="mb-3 text-white">Small Pouch</h4>
+                    <p class="text-white-50 mb-4">(Maliit na Padala)</p>
+                    <div class="display-6 fw-bold mb-4 text-white">₱95<span class="fs-6 text-white-50">/up</span></div>
+                    <ul class="list-unstyled text-start mb-5 text-white-50">
+                        <li class="mb-3"><i class="bi bi-check2 text-orange me-2"></i> Para sa Dokumento</li>
+                        <li class="mb-3"><i class="bi bi-check2 text-orange me-2"></i> Small gadgets (Phones)</li>
+                        <li class="mb-3"><i class="bi bi-check2 text-orange me-2"></i> Up to 1kg weight</li>
+                    </ul>
+                    <a href="/Customer/Book" class="btn-outline-custom w-100">Padala Na</a>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="glass-card h-100 border-orange" style="background: rgba(255, 140, 0, 0.05); border: 2px solid var(--swift-orange);">
+                    <div class="badge bg-warning text-dark rounded-pill px-3 py-1 mb-3 position-absolute top-0 start-50 translate-middle">SULIT</div>
+                    <h4 class="mb-3 text-white">Medium Box</h4>
+                    <p class="text-white-50 mb-4">(Sakto sa Damit at Gamit)</p>
+                    <div class="display-6 fw-bold mb-4 text-white">₱245<span class="fs-6 text-white-50">/up</span></div>
+                    <ul class="list-unstyled text-start mb-5 text-white-50">
+                        <li class="mb-3"><i class="bi bi-check2 text-orange me-2"></i> Pang-Damit o Sapatos</li>
+                        <li class="mb-3"><i class="bi bi-check2 text-orange me-2"></i> Bulk orders ng items</li>
+                        <li class="mb-3"><i class="bi bi-check2 text-orange me-2"></i> Up to 5kg weight</li>
+                    </ul>
+                    <a href="/Customer/Book" class="btn-primary-custom w-100">Book Order</a>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="glass-card h-100 border-0" style="background: rgba(255,255,255,0.02);">
+                    <h4 class="mb-3 text-white">Large Cargo</h4>
+                    <p class="text-white-50 mb-4">(Pang-Negosyo o Balikbayan)</p>
+                    <div class="display-6 fw-bold mb-4 text-white">₱850<span class="fs-6 text-white-50">/up</span></div>
+                    <ul class="list-unstyled text-start mb-5 text-white-50">
+                        <li class="mb-3"><i class="bi bi-check2 text-orange me-2"></i> Appliances o TV</li>
+                        <li class="mb-3"><i class="bi bi-check2 text-orange me-2"></i> Extra heavy boxes</li>
+                        <li class="mb-3"><i class="bi bi-check2 text-orange me-2"></i> Nationwide Shipping</li>
+                    </ul>
+                    <a href="#contact" class="btn-outline-custom w-100">Get a Quote</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Section -->
+<section id="contact" class="py-5 mt-5 mb-5">
+    <div class="container">
+        <div class="row g-5 align-items-center">
+            <div class="col-lg-6">
+                <h2 class="display-5 fw-bold mb-4">Ready to <span class="text-orange">SwiftFill</span>?</h2>
+                <p class="hero-subtitle text-start mb-5">Join hundreds of hubs across the country optimizing their fulfillment today.</p>
+                
+                <div class="d-flex mb-4">
+                    <div class="icon-wrapper me-3" style="width: 50px; height: 50px; font-size: 1.5rem;"><i class="bi bi-geo-alt"></i></div>
+                    <div>
+                        <h5 class="mb-1 text-white">Visit Us</h5>
+                        <p class="text-white-50">Davao City, Philippines</p>
+                    </div>
+                </div>
+                <div class="d-flex mb-4">
+                    <div class="icon-wrapper me-3" style="width: 50px; height: 50px; font-size: 1.5rem;"><i class="bi bi-envelope"></i></div>
+                    <div>
+                        <h5 class="mb-1 text-white">Email Us</h5>
+                        <p class="text-white-50">hello@swiftfill.ph</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="glass-card p-5">
+                    <form action="/Home/Contact" method="post">
+                        <div class="row g-3">
+                            <div class="col-md-6 text-start">
+                                <label class="form-label text-white-50 small">Full Name</label>
+                                <input type="text" name="name" class="form-control bg-transparent border-secondary text-white" placeholder="John Doe" required>
+                            </div>
+                            <div class="col-md-6 text-start">
+                                <label class="form-label text-white-50 small">Email Address</label>
+                                <input type="email" name="email" class="form-control bg-transparent border-secondary text-white" placeholder="john@example.com" required>
+                            </div>
+                            <div class="col-12 text-start">
+                                <label class="form-label text-white-50 small">Subject</label>
+                                <input type="text" name="subject" class="form-control bg-transparent border-secondary text-white" placeholder="Inquiry about Enterprise" required>
+                            </div>
+                            <div class="col-12 text-start">
+                                <label class="form-label text-white-50 small">Message</label>
+                                <textarea name="message" rows="4" class="form-control bg-transparent border-secondary text-white" placeholder="How can we help you?" required></textarea>
+                            </div>
+                            <div class="col-12 mt-4">
+                                <button type="submit" class="btn-primary-custom w-100 border-0">Send Message</button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

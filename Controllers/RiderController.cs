@@ -15,17 +15,20 @@ namespace SwiftFill.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _environment;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SwiftFill.Services.GoogleMapsService _mapsService;
+        private readonly SwiftFill.Services.JawgMapsService _mapsService;
+        private readonly SwiftFill.Services.CloudinaryService _cloudinaryService;
 
         public RiderController(ApplicationDbContext context, 
                                IWebHostEnvironment environment, 
                                UserManager<ApplicationUser> userManager,
-                               SwiftFill.Services.GoogleMapsService mapsService)
+                               SwiftFill.Services.JawgMapsService mapsService,
+                               SwiftFill.Services.CloudinaryService cloudinaryService)
         {
             _context = context;
             _environment = environment;
             _userManager = userManager;
             _mapsService = mapsService;
+            _cloudinaryService = cloudinaryService;
         }
 
         // --- 1. ACTIVE TASKS & ROUTE-LOCKED JOB POOL ---
@@ -97,20 +100,14 @@ namespace SwiftFill.Controllers
             
             if (order == null) return NotFound();
 
-            // Handle Photo Upload
+            // Handle Photo Upload via Cloudinary
             if (proofPhoto != null && proofPhoto.Length > 0)
             {
-                string uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads/proofs");
-                if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
-
-                string fileName = $"{trackingId}_{DateTime.Now.Ticks}{Path.GetExtension(proofPhoto.FileName)}";
-                string filePath = Path.Combine(uploadsFolder, fileName);
-
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                var imageUrl = await _cloudinaryService.UploadImageAsync(proofPhoto);
+                if (imageUrl != null)
                 {
-                    await proofPhoto.CopyToAsync(fileStream);
+                    order.ProofImagePath = imageUrl;
                 }
-                order.ProofImagePath = "/uploads/proofs/" + fileName;
             }
 
             if (status == "Delivered")
@@ -181,11 +178,13 @@ namespace SwiftFill.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var today = DateTime.UtcNow.Date;
 
-            var totalCollected = await _context.Payments
+            var pendingPayments = await _context.Payments
+                .Include(p => p.Order)
                 .Where(p => p.CollectedByUserId == userId && p.PaidAt >= today && p.Method == "COD")
-                .SumAsync(p => p.Amount);
+                .OrderByDescending(p => p.PaidAt)
+                .ToListAsync();
 
-            return View(totalCollected);
+            return View(pendingPayments);
         }
 
         // --- 6. AJAX DETAILS FOR MODAL ---

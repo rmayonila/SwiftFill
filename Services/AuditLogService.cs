@@ -39,6 +39,23 @@ namespace SwiftFill.Services
 
                 context.AuditLogs.Add(entry);
                 context.SaveChanges();
+
+                // Point 4: Limit to 100 activity. If exceeded or after 1 week, trim to 50.
+                var totalCount = context.AuditLogs.Count();
+                var oneWeekAgo = DateTime.Now.AddDays(-7);
+                var oldLogs = context.AuditLogs.Where(l => l.Timestamp < oneWeekAgo).ToList();
+
+                if (totalCount > 100 || oldLogs.Any())
+                {
+                    // Dispose the first 50 (oldest) or all old logs
+                    var logsToRemove = context.AuditLogs
+                        .OrderBy(l => l.Timestamp)
+                        .Take(totalCount > 100 ? 50 : oldLogs.Count)
+                        .ToList();
+
+                    context.AuditLogs.RemoveRange(logsToRemove);
+                    context.SaveChanges();
+                }
             }
         }
 

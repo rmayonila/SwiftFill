@@ -64,7 +64,7 @@
                         <th class="ps-4 py-3">Shipment Identity</th>
                         <th class="py-3">Logistics Detail</th>
                         <th class="py-3">Handling</th>
-                        <th class="py-3">Status & Action</th>
+                        <th class="py-3">Status</th>
                         <th class="py-3 pe-4 text-end">Actions</th>
                     </tr>
                 </thead>
@@ -112,32 +112,9 @@
                                 </div>
                             </td>
                             <td class="py-3">
-                                <div class="d-flex align-items-center gap-3">
-                                    <span class="badge border bg-transparent px-2 py-1 @(order.Status == "Delivered" ? "border-success text-success" : (order.Status.Contains("Arrived") ? "border-primary text-primary" : (order.Status.Contains("Transit") ? "border-info text-info" : "border-warning text-warning")))" style="font-size: 0.65rem;">
-                                        @order.Status
-                                    </span>
-                                    
-                                    <div class="d-flex gap-1">
-                                        @if (order.Status == "Packed" && order.CurrentLocation != order.DestinationRegion)
-                                        {
-                                            <form asp-action="DispatchToHub" method="post" class="m-0">
-                                                <input type="hidden" name="trackingId" value="@order.TrackingId" />
-                                                <button type="submit" class="btn btn-sm btn-outline-info border-0 p-0 x-small text-uppercase fw-bold" title="Dispatch to Hub">
-                                                    Dispatch <i class="bi bi-arrow-right"></i>
-                                                </button>
-                                            </form>
-                                        }
-                                        else if (order.Status.Contains("In Transit"))
-                                        {
-                                            <form asp-action="ArriveAtHub" method="post" class="m-0">
-                                                <input type="hidden" name="trackingId" value="@order.TrackingId" />
-                                                <button type="submit" class="btn btn-sm btn-outline-success border-0 p-0 x-small text-uppercase fw-bold" title="Receive at Hub">
-                                                    Receive <i class="bi bi-check-lg"></i>
-                                                </button>
-                                            </form>
-                                        }
-                                    </div>
-                                </div>
+                                <span class="badge border bg-transparent px-2 py-1 @(order.Status == "Delivered" ? "border-success text-success" : (order.Status.Contains("Arrived") ? "border-primary text-primary" : (order.Status.Contains("Transit") ? "border-info text-info" : "border-warning text-warning")))" style="font-size: 0.65rem;">
+                                    @order.Status
+                                </span>
                             </td>
                             <td class="py-3 pe-4 text-end">
                                 <div class="d-flex justify-content-end gap-1">
@@ -159,8 +136,28 @@
             </table>
         </div>
     </div>
-
 </div>
+
+    <!-- Pagination -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="mt-4">
+            <ul class="pagination pagination-sm justify-content-center">
+                <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                    <a class="page-link bg-dark border-0 text-secondary px-3" href="?page=@(ViewBag.CurrentPage - 1)&search=@ViewBag.Search&status=@ViewBag.Status&region=@ViewBag.Region">Previous</a>
+                </li>
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
+                        <a class="page-link @(ViewBag.CurrentPage == i ? "bg-orange border-0" : "bg-dark border-0 text-secondary") mx-1 rounded" href="?page=@i&search=@ViewBag.Search&status=@ViewBag.Status&region=@ViewBag.Region">@i</a>
+                    </li>
+                }
+                <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                    <a class="page-link bg-dark border-0 text-secondary px-3" href="?page=@(ViewBag.CurrentPage + 1)&search=@ViewBag.Search&status=@ViewBag.Status&region=@ViewBag.Region">Next</a>
+                </li>
+            </ul>
+        </div>
+    }
 
 <!-- View Order Details Modal -->
 <div class="modal fade" id="orderDetailsModal" tabindex="-1">
@@ -225,27 +222,42 @@
                                 <label class="form-check-label text-warning small" for="editIsFragile"><i class="bi bi-exclamation-triangle me-1"></i> Fragile Item</label>
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <label class="text-secondary x-small mb-1">Value (PHP)</label>
-                            <input type="number" name="DeclaredValue" id="editValue" class="minimal-input w-100" required>
-                        </div>
+                        @* Removed Value (PHP) as per request *@
                         <div class="col-md-3">
                             <label class="text-secondary x-small mb-1">Destination</label>
-                            <select name="DestinationRegion" id="editRegion" class="minimal-input w-100" required>
+                            <select name="DestinationRegion" id="editRegion" class="minimal-input w-100" required onchange="calculateEditPrice()">
                                 <option value="NCR">Metro Manila</option>
                                 <option value="Luzon">Luzon</option>
                                 <option value="Visayas">Visayas</option>
                                 <option value="Mindanao">Mindanao</option>
                             </select>
                         </div>
+                        <div class="col-md-3">
+                            <label class="text-secondary x-small mb-1">Packing Services</label>
+                            <div class="p-2 rounded bg-dark border border-secondary border-opacity-10">
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input" type="checkbox" name="AvailPacking" id="editAvailPacking" value="true" onchange="calculateEditPrice()">
+                                    <label class="form-check-label text-white-50 x-small" for="editAvailPacking">Apply Packing</label>
+                                </div>
+                                <input type="number" name="PackingFee" id="editPackingFee" class="minimal-input text-end w-100 mt-2" style="font-size: 0.75rem;" value="0" oninput="calculateEditPrice()">
+                            </div>
+                        </div>
                         <div class="col-12 mt-4">
-                            <label class="text-secondary x-small mb-1">Update Payment Mode</label>
-                            <select name="PaymentMethod" id="editPaymentMethod" class="minimal-input w-100 text-orange fw-bold">
-                                @foreach (var method in (List<SwiftFill.Models.PaymentMethod>)(ViewBag.PaymentMethods ?? new List<SwiftFill.Models.PaymentMethod>()))
-                                {
-                                    <option value="@method.Name">@method.Name</option>
-                                }
-                            </select>
+                            <div class="d-flex justify-content-between align-items-center p-3 rounded" style="background: rgba(255,140,0,0.05); border: 1px solid rgba(255,140,0,0.2);">
+                                <div>
+                                    <label class="text-secondary x-small mb-1 d-block">Calculated Shipping Fee</label>
+                                    <div class="fw-bold text-orange fs-5" id="editCalculatedPrice">₱0.00</div>
+                                </div>
+                                <div style="width: 250px;">
+                                    <label class="text-secondary x-small mb-1">Payment Mode</label>
+                                    <select name="PaymentMethod" id="editPaymentMethod" class="minimal-input w-100 text-orange fw-bold">
+                                        @foreach (var method in (List<SwiftFill.Models.PaymentMethod>)(ViewBag.PaymentMethods ?? new List<SwiftFill.Models.PaymentMethod>()))
+                                        {
+                                            <option value="@method.Name">@method.Name</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -310,11 +322,8 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="text-secondary x-small mb-2 d-block">Origin Hub</label>
-                                <select name="originHub" class="minimal-input w-100">
-                                    @foreach(var hub in SwiftFill.Models.HubRegistry.Names) {
-                                        <option value="@hub">@hub</option>
-                                    }
-                                </select>
+                                <input type="text" class="minimal-input w-100" value="Davao Hub" readonly style="background: rgba(255,255,255,0.03); cursor: not-allowed; border-color: rgba(255,140,0,0.2);">
+                                <input type="hidden" name="originHub" value="Davao Hub">
                             </div>
                             <div class="col-md-6">
                                 <label class="text-secondary x-small mb-2 d-block">Destination Region</label>
@@ -362,7 +371,8 @@
                         <h6 class="text-white mb-3"><i class="bi bi-3-circle text-orange me-2"></i> Receiver Information</h6>
                         <input type="text" name="ReceiverName" class="minimal-input w-100 mb-3" placeholder="Full Name" required>
                         <input type="text" name="ReceiverPhone" class="minimal-input w-100 mb-3" placeholder="Contact Number (+63...)" required>
-                        <textarea name="ReceiverAddress" class="minimal-input w-100" placeholder="Complete Delivery Address" rows="3" required></textarea>
+                        <textarea name="ReceiverAddress" class="minimal-input w-100 mb-3" placeholder="Complete Delivery Address" rows="3" required></textarea>
+                        <input type="text" name="ReceiverLandmark" class="minimal-input w-100" placeholder="Landmark (e.g. Near City Hall)" required>
                     </div>
 
                     <!-- Step 4: Package & Payment -->
@@ -503,21 +513,17 @@
                     <div class="p-3 rounded bg-dark border border-secondary border-opacity-10 mb-4">
                         <label class="text-secondary x-small text-uppercase ls-1 d-block mb-3">Package Telemetry</label>
                         <div class="row text-center">
-                            <div class="col-3">
+                            <div class="col-4">
                                 <div class="text-secondary x-small">Weight</div>
                                 <div class="fw-bold text-white">${order.weight} kg</div>
                             </div>
-                            <div class="col-3">
+                            <div class="col-4">
                                 <div class="text-secondary x-small">Category</div>
                                 <div class="fw-bold text-white">${order.itemCategory || 'General'}</div>
                             </div>
-                            <div class="col-3">
+                            <div class="col-4">
                                 <div class="text-secondary x-small">Hub Origin</div>
                                 <div class="fw-bold text-white">${order.originHub}</div>
-                            </div>
-                            <div class="col-3">
-                                <div class="text-secondary x-small">Status</div>
-                                <div class="fw-bold text-orange">${order.status}</div>
                             </div>
                         </div>
                     </div>
@@ -527,7 +533,7 @@
                             <div class="fw-bold text-warning fs-4">₱${(order.payment?.amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
                         </div>
                         <div class="text-end">
-                            <div class="text-secondary x-small text-uppercase">Method & Status</div>
+                            <div class="text-secondary x-small text-uppercase">Payment Method</div>
                             <div class="fw-bold text-white">${order.payment?.method || 'Unspecified'}</div>
                             <span class="badge ${order.payment?.isPaid ? 'bg-success' : 'bg-danger'} p-1 px-2" style="font-size:0.6rem">
                                 ${order.payment?.isPaid ? 'PAID' : 'UNPAID'}
@@ -559,12 +565,55 @@
                 document.getElementById('editWeight').value = order.weight;
                 document.getElementById('editCategory').value = order.itemCategory;
                 document.getElementById('editIsFragile').checked = order.isFragile;
-                document.getElementById('editValue').value = order.declaredValue;
+                document.getElementById('editAvailPacking').checked = order.availPacking;
+                // document.getElementById('editValue').value = order.declaredValue;
                 document.getElementById('editRegion').value = order.destinationRegion;
-                document.getElementById('editManualAmount').value = '';
-                document.getElementById('editPaymentMethod').value = order.payment?.method || 'Pending Hub Verification';
+                 document.getElementById('editPaymentMethod').value = order.payment?.method || 'Pending Hub Verification';
+                 document.getElementById('editPackingFee').value = order.packingFee || 0;
+                 calculateEditPrice();
             });
     }
+
+    let dbShippingRates = {};
+
+    function loadShippingRates() {
+        fetch('/Admin/GetShippingRatesJson')
+            .then(r => r.json())
+            .then(rates => {
+                rates.forEach(r => {
+                    dbShippingRates[r.destinationRegion] = {
+                        base: r.baseRate,
+                        perKg: r.pricePerKg,
+                        zone: r.zoneSurcharge
+                    };
+                });
+            });
+    }
+
+    function calculateEditPrice() {
+        const weightEl = document.getElementById('editWeight');
+        const regionEl = document.getElementById('editRegion');
+        const priceEl = document.getElementById('editCalculatedPrice');
+        const packingFeeEl = document.getElementById('editPackingFee');
+        if (!weightEl || !regionEl || !priceEl || !packingFeeEl) return;
+
+        const weight = parseFloat(weightEl.value) || 0;
+        const region = regionEl.value;
+        const isPackingChecked = document.getElementById('editAvailPacking').checked;
+        const packingFee = isPackingChecked ? (parseFloat(packingFeeEl.value) || 0) : 0;
+        const rate = dbShippingRates[region];
+        
+        if (rate) {
+            const total = rate.base + (weight * rate.perKg) + rate.zone + packingFee;
+            priceEl.textContent = '₱' + total.toLocaleString('en-US', { minimumFractionDigits: 2 });
+        } else {
+            // Fallback estimate if rates haven't loaded yet
+            const fallback = 150 + (weight * 45) + packingFee;
+            priceEl.textContent = '₱' + fallback.toLocaleString('en-US', { minimumFractionDigits: 2 });
+        }
+    }
+
+    // Event listener moved to DOMContentLoaded block below
 
     function confirmArchive(trackingId) {
         const modal = new bootstrap.Modal(document.getElementById('archiveModal'));
@@ -594,10 +643,18 @@
             estimatorEl.style.display = 'block';
         }
         document.addEventListener('DOMContentLoaded', function() {
+            loadShippingRates(); // Fetch actual rates from DB
+            
             const form = document.getElementById('manualOrderForm');
-            if (!form) return;
-            form.addEventListener('input', calcManualOrder);
-            form.addEventListener('change', calcManualOrder);
+            if (form) {
+                form.addEventListener('input', calcManualOrder);
+                form.addEventListener('change', calcManualOrder);
+            }
+
+            const editWeight = document.getElementById('editWeight');
+            if (editWeight) {
+                editWeight.addEventListener('input', calculateEditPrice);
+            }
         });
     })();
 </script>

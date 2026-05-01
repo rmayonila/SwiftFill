@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SwiftFill")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ea03a3c0f398fde3a626be288bdd9dd59e588c13")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bf48e0585c90daef3c974cf7684ae49027ee3613")]
 [assembly: System.Reflection.AssemblyProductAttribute("SwiftFill")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SwiftFill")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

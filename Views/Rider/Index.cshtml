@@ -3,227 +3,268 @@
 @{
     ViewData["Title"] = "My Route";
     Layout = "_RiderLayout";
+    var jawgToken = Configuration["JAWG_ACCESS_TOKEN"] ?? "";
 }
 
+<!-- Leaflet CSS/JS for Jawg Maps -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <style>
-    .rider-card {
-        background: rgba(255, 255, 255, 0.03);
+    .glass-card {
+        background: rgba(255, 255, 255, 0.02);
         border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 20px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        overflow: hidden;
+        border-radius: 16px;
     }
-    .rider-card:hover {
-        background: rgba(255, 255, 255, 0.05);
-        border-color: rgba(255, 140, 0, 0.3);
-        transform: translateY(-4px);
-    }
-    .action-btn {
-        width: 45px;
-        height: 45px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-decoration: none;
-        transition: all 0.2s;
-        font-size: 1.2rem;
-    }
-    .btn-call { background: rgba(25, 135, 84, 0.1); color: #198754; border: 1px solid rgba(25, 135, 84, 0.2); }
-    .btn-call:hover { background: #198754; color: #fff; }
     
-    .btn-nav { background: rgba(13, 110, 253, 0.1); color: #0d6efd; border: 1px solid rgba(13, 110, 253, 0.2); }
-    .btn-nav:hover { background: #0d6efd; color: #fff; }
-
-    .pod-preview {
+    .pod-preview-mini { border-radius: 8px; border: 2px solid #ff8c00; box-shadow: 0 0 15px rgba(255,140,0,0.3); }
+    #map { width: 100%; height: 100%; min-height: 400px; background: #000; border-radius: 0 0 24px 24px; }
+    .modal-content { border: 1px solid rgba(255,140,0,0.5) !important; box-shadow: 0 0 30px rgba(0,0,0,0.5) !important; }
+    
+    /* Admin Table Style Copy */
+    .admin-style-table {
         width: 100%;
-        height: 200px;
-        object-fit: cover;
-        border-radius: 12px;
-        display: none;
-        margin-top: 10px;
-        border: 2px solid #ff8c00;
+        color: #fff;
+        border-collapse: collapse;
+    }
+    .admin-style-table thead {
+        background: rgba(255, 140, 0, 0.03);
+    }
+    .admin-style-table th {
+        padding: 14px 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.4);
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .admin-style-table td {
+        padding: 16px 20px;
+        vertical-align: middle;
+        border-bottom: 1px solid rgba(255,255,255,0.02);
+    }
+    .admin-style-table tr:hover {
+        background: rgba(255, 255, 255, 0.02);
     }
 
-    .eta-badge {
-        background: rgba(255, 140, 0, 0.1);
-        color: #ff8c00;
-        padding: 4px 12px;
-        border-radius: 8px;
-        font-weight: 700;
-        font-size: 0.8rem;
+    /* Camera Modal Styles */
+    #cameraView { width: 100%; border-radius: 12px; background: #000; }
+    .camera-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        border: 2px dashed rgba(255, 140, 0, 0.5);
+        width: 80%;
+        height: 60%;
+        pointer-events: none;
     }
+    .shutter-btn {
+        width: 60px; height: 60px; border-radius: 50%; border: 5px solid #fff; background: #ff8c00; transition: all 0.2s;
+    }
+    .shutter-btn:active { transform: scale(0.9); background: #e67e00; }
+
+    .stat-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-value { font-family: 'Sora', sans-serif; font-weight: 800; }
 </style>
 
 <div class="animate-fade-up">
-    <!-- Daily Summary -->
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
-            <div class="glass-card p-3 h-100 border-0 border-start border-orange border-4" style="background: rgba(255, 140, 0, 0.05);">
-                <div class="text-secondary smaller fw-bold text-uppercase ls-1">Remaining</div>
-                <div class="text-white h3 mb-0 fw-bold">@Model.Count()</div>
+    <!-- Daily Summary (Admin Cards Copy) -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="glass-card p-3 border-0 border-start border-warning border-4 d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-label text-orange">Remaining</div>
+                    <div class="text-secondary x-small">Active Parcels</div>
+                </div>
+                <div class="stat-value text-white h2 mb-0">@Model.Count()</div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="glass-card p-3 h-100" style="background: rgba(25, 135, 84, 0.05);">
-                <div class="text-secondary smaller fw-bold text-uppercase ls-1">Collected</div>
-                <div class="text-white h3 mb-0 fw-bold">₱@Model.Where(o => o.Payment?.Method == "COD").Sum(o => o.Payment?.Amount ?? 0).ToString("N0")</div>
+        <div class="col-md-3">
+            <div class="glass-card p-3 border-0 border-start border-success border-4 d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-label text-success">Collected</div>
+                    <div class="text-secondary x-small">Total COD</div>
+                </div>
+                <div class="stat-value text-white h3 mb-0">₱@Model.Where(o => o.Payment?.Method == "COD").Sum(o => o.Payment?.Amount ?? 0).ToString("N0")</div>
             </div>
         </div>
-        <div class="col-12 col-md-6 d-none d-md-block">
+        <div class="col-md-6 d-none d-md-block">
             <div class="glass-card p-3 h-100 d-flex align-items-center">
-                <i class="bi bi-info-circle text-orange me-3 fs-4"></i>
-                <div class="text-secondary small">
-                    Always capture a clear photo of the parcel at the customer's door or with the recipient.
+                <i class="bi bi-info-circle text-info me-3 fs-4"></i>
+                <div class="text-secondary smaller">
+                    <b>Rider Note:</b> Capture a clear POD photo for each successful delivery. <br/>
+                    Ensure the parcel and recipient are visible if possible.
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Search & Filter -->
-    <div class="module-toolbar mb-4">
-        <div class="search-container flex-grow-1">
-            <i class="bi bi-search"></i>
-            <input type="text" id="routeSearch" placeholder="Search customer or address..." onkeyup="filterRoute()" />
+    <!-- Title and Table -->
+    <div class="d-flex justify-content-between align-items-end mb-4">
+        <h5 class="text-white fw-bold mb-0 text-uppercase ls-1">
+            <i class="bi bi-truck text-orange me-2"></i> ASSIGN DELIVERY
+        </h5>
+        <div class="search-container" style="max-width: 300px;">
+             <input type="text" id="routeSearch" placeholder="Search manifest..." onkeyup="filterTable()" 
+                    style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 15px; color: #fff; font-size: 0.85rem;" />
         </div>
     </div>
 
-    <!-- Route List -->
-    <div class="row g-4" id="routeList">
-        @foreach (var order in Model)
-        {
-            <div class="col-12 route-item" data-search="@order.ReceiverName @order.ReceiverAddress @order.TrackingId">
-                <div class="rider-card p-3 p-md-4">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div>
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <span class="badge bg-dark border border-secondary text-secondary">#@order.TrackingId</span>
-                                @if (order.AssignedRiderId != null)
-                                {
-                                    <span class="badge bg-orange text-white fw-bold" style="font-size: 0.65rem;">DIRECTLY ASSIGNED</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary text-white fw-bold" style="font-size: 0.65rem;">IN POOL</span>
-                                }
+    <div class="glass-card p-0 overflow-hidden border-secondary border-opacity-10">
+        <table class="admin-style-table">
+            <thead>
+                <tr>
+                    <th style="width: 20%">Identity & Address</th>
+                    <th style="width: 15%">Payment</th>
+                    <th style="width: 10%">Attempt</th>
+                    <th style="width: 8%">Contact</th>
+                    <th style="width: 8%">Map</th>
+                    <th style="width: 12%">POD Proof</th>
+                    <th style="width: 27%">Controls</th>
+                </tr>
+            </thead>
+            <tbody id="routeTable">
+                @foreach (var order in Model)
+                {
+                    <tr class="route-row" data-search="@order.ReceiverName @order.ReceiverAddress @order.TrackingId">
+                        <td>
+                            <code class="text-orange fw-bold d-block mb-1" style="font-size: 0.75rem;">@order.TrackingId</code>
+                            <div class="text-white fw-bold">@order.ReceiverName</div>
+                            <div class="text-secondary x-small">
+                                <i class="bi bi-geo-alt me-1"></i> @order.ReceiverAddress
                             </div>
-                            <h5 class="text-white fw-bold mb-1">@order.ReceiverName</h5>
-                            <p class="text-secondary small mb-0"><i class="bi bi-geo-alt-fill text-orange me-1"></i> @order.ReceiverAddress</p>
-                        </div>
-                        <div class="text-end">
-                            <div class="text-orange fw-bold h4 mb-1">₱@order.Payment?.Amount.ToString("N2")</div>
-                            <span class="badge bg-dark text-orange border border-orange">@order.Payment?.Method</span>
-                        </div>
-                    </div>
-
-                    <div class="d-flex gap-2 mb-4">
-                        <a href="tel:@order.ReceiverPhone" class="action-btn btn-call" title="Call Customer">
-                            <i class="bi bi-telephone-fill"></i>
-                        </a>
-                        <a href="https://www.google.com/maps/search/?api=1&query=@Uri.EscapeDataString(order.ReceiverAddress)" target="_blank" class="action-btn btn-nav" title="Navigate">
-                            <i class="bi bi-cursor-fill"></i>
-                        </a>
-                        <button class="btn btn-dark border-secondary flex-grow-1 fw-bold rounded-3" onclick="showMapModal('@order.ReceiverAddress')">
-                            <i class="bi bi-map me-2"></i> View on Map
-                        </button>
-                    </div>
-
-                    <hr class="border-secondary opacity-10">
-
-                    <!-- Proof of Delivery Form -->
-                    @if (order.AssignedRiderId != null)
-                    {
-                        <form asp-action="UpdateStatus" method="post" enctype="multipart/form-data" id="form-@order.TrackingId">
-                            <input type="hidden" name="trackingId" value="@order.TrackingId" />
-                            
-                            <div class="row align-items-end g-3">
-                                <div class="col-12">
-                                    <label class="text-secondary smaller fw-bold text-uppercase mb-2 d-block">Proof of Delivery (Required for Success)</label>
-                                    <div class="d-flex align-items-center gap-3">
-                                        <label for="file-@order.TrackingId" class="btn btn-outline-orange btn-sm px-3 py-2 rounded-3">
-                                            <i class="bi bi-camera-fill me-2"></i> Capture/Attach
-                                        </label>
-                                        <input type="file" id="file-@order.TrackingId" name="proofPhoto" class="d-none" accept="image/*" 
-                                               onchange="handlePhotoUpload('@order.TrackingId')">
-                                        <span id="label-@order.TrackingId" class="text-secondary smaller">No image attached</span>
-                                    </div>
-                                    <img id="preview-@order.TrackingId" class="pod-preview" src="#" alt="Preview" />
-                                </div>
-
-                                <div class="col-12 mt-3">
-                                    <div class="btn-group w-100">
-                                        <button type="submit" name="status" value="Delivered" id="btn-deliver-@order.TrackingId" 
-                                                class="btn btn-success py-3 fw-bold flex-grow-1" disabled>
-                                            COMPLETE DELIVERY
-                                        </button>
-                                        <button type="button" class="btn btn-dark border-secondary px-3" data-bs-toggle="dropdown">
-                                            <i class="bi bi-three-dots-vertical"></i>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end border-secondary shadow">
-                                            <li><a class="dropdown-item text-warning" href="#" onclick="showStatusModal('@order.TrackingId', 'Failed')">
-                                                <i class="bi bi-exclamation-triangle-fill me-2"></i> Mark as Failed
-                                            </a></li>
-                                            <li><a class="dropdown-item text-danger" href="#" onclick="showStatusModal('@order.TrackingId', 'Returned')">
-                                                <i class="bi bi-arrow-return-left me-2"></i> Return to Hub
-                                            </a></li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                    }
-                    else
-                    {
-                        <form asp-action="AcceptTask" method="post">
-                            <input type="hidden" name="trackingId" value="@order.TrackingId" />
-                            <button type="submit" class="btn btn-orange w-100 py-3 fw-bold rounded-3">
-                                <i class="bi bi-check2-circle me-2"></i> ACCEPT THIS TASK
+                        </td>
+                        <td>
+                            <div class="text-white small fw-bold">₱@(order.Payment?.Amount.ToString("N2") ?? "0.00")</div>
+                            <div class="text-orange x-small">@order.Payment?.Method</div>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary bg-opacity-25 text-white-50 p-2 rounded-2" style="font-size: 0.75rem;">
+                                @order.DeliveryAttempts / 3
+                            </span>
+                        </td>
+                        <td>
+                            <a href="tel:@order.ReceiverPhone" class="btn btn-sm btn-dark border-secondary border-opacity-10 p-2 rounded-3 shadow-sm">
+                                <i class="bi bi-telephone-fill text-success"></i>
+                            </a>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-dark border-secondary border-opacity-10 p-2 rounded-3 shadow-sm" onclick="showMapModal('@order.ReceiverAddress', '@order.ReceiverName')">
+                                <i class="bi bi-cursor-fill text-orange"></i>
                             </button>
-                        </form>
-                    }
-                </div>
-            </div>
-        }
-
-        @if (!Model.Any())
-        {
-            <div class="col-12 text-center py-5">
-                <div class="glass-card py-5">
-                    <i class="bi bi-clipboard-check text-success display-1 opacity-25 mb-4"></i>
-                    <h3 class="text-white fw-bold">All items delivered!</h3>
-                    <p class="text-secondary">Your manifest is clear for today.</p>
-                </div>
-            </div>
-        }
+                        </td>
+                        <td class="text-center">
+                            <div class="position-relative d-inline-block">
+                                <div id="placeholder-@order.TrackingId" class="rounded-3 border border-secondary border-opacity-10 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: rgba(255,255,255,0.02);">
+                                    <i class="bi bi-image text-secondary opacity-25"></i>
+                                </div>
+                                <img id="preview-@order.TrackingId" class="pod-preview-mini position-absolute top-0 start-0" style="display:none; width: 48px; height: 48px; object-fit: cover;" src="#" />
+                                <button type="button" id="remove-@order.TrackingId" onclick="clearPhoto('@order.TrackingId')" class="btn btn-danger btn-xs position-absolute top-0 end-0 p-0 d-flex align-items-center justify-content-center shadow-sm" style="display:none !important; width:20px; height:20px; border-radius:50%; font-size:12px; margin-top:-8px; margin-right:-8px; z-index: 10; border: 1px solid rgba(255,255,255,0.3);">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td>
+                            @if (order.AssignedRiderId != null)
+                            {
+                                <form asp-action="UpdateStatus" method="post" enctype="multipart/form-data" id="form-@order.TrackingId" class="m-0">
+                                    <input type="hidden" name="trackingId" value="@order.TrackingId" />
+                                    <input type="file" id="file-@order.TrackingId" name="proofPhoto" class="d-none" accept="image/*">
+                                    
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="btn-group flex-grow-1 shadow-sm">
+                                            <button type="button" class="btn btn-sm btn-dark border-secondary border-opacity-50 py-2 dropdown-toggle w-100" data-bs-toggle="dropdown" id="label-@order.TrackingId" style="font-size: 0.75rem;">
+                                                CAPTURE
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow border-secondary">
+                                                <li><button type="button" class="dropdown-item x-small py-2" onclick="openCamera('@order.TrackingId')">
+                                                    <i class="bi bi-camera-fill text-orange me-2"></i> Camera
+                                                </button></li>
+                                                <li><label class="dropdown-item x-small cursor-pointer py-2 mb-0">
+                                                    <i class="bi bi-folder2-open text-primary me-2"></i> Gallery
+                                                    <input type="file" class="d-none" accept="image/*" onchange="handleFileSelect('@order.TrackingId', this)">
+                                                </label></li>
+                                            </ul>
+                                        </div>
+                                        <div class="btn-group shadow-sm">
+                                            <button type="submit" name="status" value="Delivered" id="btn-deliver-@order.TrackingId" 
+                                                    class="btn btn-sm btn-success fw-bold px-3 py-2" disabled style="font-size: 0.75rem;">
+                                                COMPLETE
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-dark border-secondary border-opacity-50 px-2 dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <span class="visually-hidden">Toggle Dropdown</span>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow border-secondary">
+                                                <li><a class="dropdown-item text-warning x-small py-2" href="#" onclick="showStatusModal('@order.TrackingId', 'Failed')">
+                                                    <i class="bi bi-exclamation-circle me-2"></i> Failed Delivery
+                                                </a></li>
+                                                <li><a class="dropdown-item text-danger x-small py-2" href="#" onclick="showStatusModal('@order.TrackingId', 'Returned')">
+                                                    <i class="bi bi-arrow-return-left me-2"></i> Return to Sender
+                                                </a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-secondary">
+                            <i class="bi bi-clipboard-check display-4 d-block mb-3 opacity-25"></i>
+                            No active deliveries in your manifest.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 </div>
 
-<!-- Map Modal (API 1: Google Maps JS API) -->
+<!-- Map Modal -->
 <div class="modal fade" id="mapModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content bg-dark border-orange overflow-hidden" style="border-radius: 24px;">
-            <div class="modal-header border-0 bg-black bg-opacity-50 position-absolute w-100 z-3">
-                <h5 class="modal-title text-white fw-bold">Address Pin</h5>
+            <div class="modal-header border-0 bg-black bg-opacity-75 position-absolute w-100 z-3" style="z-index: 1000;">
+                <h5 class="modal-title text-white fw-bold"><i class="bi bi-geo-alt-fill text-orange me-2"></i> Real-time Routing</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-0" style="height: 450px;">
-                <div id="googleMap" style="width: 100%; height: 100%;">
-                    <!-- Placeholder if no API Key -->
-                    <div id="map-placeholder" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-secondary bg-black">
-                        <i class="bi bi-map-fill fs-1 mb-3"></i>
-                        <p>Google Maps Loading...</p>
-                        <small class="text-muted">Requires API Key in settings</small>
-                    </div>
-                </div>
+                <div id="map" style="width: 100%; height: 100%;"></div>
             </div>
             <div class="modal-footer bg-black border-0 p-3">
                 <div class="d-flex justify-content-between w-100 align-items-center">
                     <div id="distanceInfo" class="text-orange fw-bold">
-                        <!-- API 2: Distance Matrix Info goes here -->
-                        <i class="bi bi-truck me-2"></i> <span id="etaValue">Calculating ETA...</span>
+                        <i class="bi bi-truck me-2"></i> <span id="etaValue">Locating...</span>
                     </div>
-                    <button class="btn btn-orange px-4 fw-bold" data-bs-dismiss="modal">Got it</button>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-dark px-3 fw-bold border-secondary" data-bs-dismiss="modal">Close</button>
+                        <a id="externalNavBtn" href="#" target="_blank" class="btn btn-orange px-4 fw-bold">Navigate</a>
+                    </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Camera Modal -->
+<div class="modal fade" id="cameraModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-black border-orange" style="border-radius: 24px;">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-white fw-bold">Capture POD</h5>
+                <button type="button" class="btn-close btn-close-white" onclick="closeCamera()"></button>
+            </div>
+            <div class="modal-body p-2 position-relative">
+                <video id="cameraView" autoplay playsinline muted style="width:100%; border-radius: 12px;"></video>
+                <div class="camera-overlay"></div>
+                <canvas id="cameraCanvas" class="d-none"></canvas>
+            </div>
+            <div class="modal-footer border-0 justify-content-center pb-4">
+                <button type="button" class="shutter-btn" onclick="takeSnapshot()"></button>
             </div>
         </div>
     </div>
@@ -234,28 +275,19 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content bg-dark border-secondary" style="border-radius: 20px;">
             <div class="modal-header border-0">
-                <h5 class="modal-title text-white fw-bold">Delivery <span id="modalStatusTitle"></span></h5>
+                <h5 class="modal-title text-white fw-bold">Delivery Status</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form asp-action="UpdateStatus" method="post">
-                <div class="modal-body pt-0">
+                <div class="modal-body pt-0 pb-4">
                     <input type="hidden" name="trackingId" id="statusTrackingId" />
                     <input type="hidden" name="status" id="statusValue" />
-                    
                     <label class="text-secondary small mb-2 fw-bold text-uppercase">Reason:</label>
                     <select name="failReason" class="form-select bg-black text-white border-secondary mb-3 py-3">
                         <option value="Customer Not Home">Customer Not Home</option>
                         <option value="Refused to Pay (COD)">Refused to Pay (COD)</option>
                         <option value="Incorrect Address">Incorrect Address</option>
-                        <option value="Unreachable">Phone/Gate Unreachable</option>
-                        <option value="Customer Cancelled">Customer Cancelled</option>
                     </select>
-                    
-                    <p class="smaller text-warning" id="attemptWarning">
-                        <i class="bi bi-info-circle me-1"></i> This order will remain in your list for a re-attempt (max 3).
-                    </p>
-                </div>
-                <div class="modal-footer border-0 pb-4">
                     <button type="submit" class="btn btn-orange w-100 py-3 fw-bold">Confirm Status</button>
                 </div>
             </form>
@@ -264,90 +296,117 @@
 </div>
 
 @section Scripts {
-    <script src="https://maps.googleapis.com/maps/api/js?key=@Configuration["GoogleMaps:ApiKey"]&callback=initMap" async defer></script>
     <script>
-        let map;
-        let geocoder;
+        let map = null;
+        let marker = null;
+        let routeLine = null;
+        let activeStream = null;
+        let currentOrderRef = null;
+        const JAWG_TOKEN = "@jawgToken";
 
-        function initMap() {
-            // This function is expected by the Google Maps script
-            geocoder = new google.maps.Geocoder();
-        }
-
-        function filterRoute() {
+        function filterTable() {
             const query = document.getElementById('routeSearch').value.toLowerCase();
-            const items = document.querySelectorAll('.route-item');
-            items.forEach(item => {
-                const text = item.getAttribute('data-search').toLowerCase();
-                item.style.display = text.includes(query) ? 'block' : 'none';
+            const rows = document.querySelectorAll('.route-row');
+            rows.forEach(row => {
+                const text = row.getAttribute('data-search').toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
             });
         }
 
-        function handlePhotoUpload(id) {
-            const input = document.getElementById('file-' + id);
-            const label = document.getElementById('label-' + id);
-            const preview = document.getElementById('preview-' + id);
-            const btn = document.getElementById('btn-deliver-' + id);
-            
+        async function openCamera(trackingId) {
+            currentOrderRef = trackingId;
+            const modal = new bootstrap.Modal(document.getElementById('cameraModal'));
+            modal.show();
+            try {
+                activeStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+                document.getElementById('cameraView').srcObject = activeStream;
+            } catch (err) { alert("Camera access denied."); modal.hide(); }
+        }
+
+        function closeCamera() {
+            if (activeStream) { activeStream.getTracks().forEach(track => track.stop()); }
+            bootstrap.Modal.getInstance(document.getElementById('cameraModal')).hide();
+        }
+
+        function takeSnapshot() {
+            const video = document.getElementById('cameraView');
+            const canvas = document.getElementById('cameraCanvas');
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob((blob) => {
+                const file = new File([blob], "pod.jpg", { type: "image/jpeg" });
+                const container = new DataTransfer(); container.items.add(file);
+                document.getElementById('file-' + currentOrderRef).files = container.files;
+                updatePreview(currentOrderRef, canvas.toDataURL('image/jpeg'));
+                closeCamera();
+            }, 'image/jpeg', 0.8);
+        }
+
+        function handleFileSelect(id, input) {
             if (input.files && input.files[0]) {
+                const fileInput = document.getElementById('file-' + id);
+                fileInput.files = input.files;
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
-                    label.innerText = "Image Captured";
-                    label.classList.replace('text-secondary', 'text-orange');
-                    if(btn) btn.disabled = false;
-                }
+                reader.onload = (e) => updatePreview(id, e.target.result);
                 reader.readAsDataURL(input.files[0]);
             }
+        }
+
+        function updatePreview(id, dataUrl) {
+            const preview = document.getElementById('preview-' + id);
+            const label = document.getElementById('label-' + id);
+            const btn = document.getElementById('btn-deliver-' + id);
+            const removeBtn = document.getElementById('remove-' + id);
+            preview.src = dataUrl;
+            preview.style.display = 'block';
+            removeBtn.style.setProperty('display', 'flex', 'important');
+            label.innerText = "READY";
+            label.classList.replace('btn-dark', 'btn-success');
+            if(btn) btn.disabled = false;
+        }
+
+        function clearPhoto(id) {
+            const fileInput = document.getElementById('file-' + id);
+            const preview = document.getElementById('preview-' + id);
+            const removeBtn = document.getElementById('remove-' + id);
+            const label = document.getElementById('label-' + id);
+            const btn = document.getElementById('btn-deliver-' + id);
+            fileInput.value = "";
+            preview.style.display = 'none';
+            removeBtn.style.setProperty('display', 'none', 'important');
+            label.innerText = "CAPTURE";
+            label.classList.replace('btn-success', 'btn-dark');
+            if(btn) btn.disabled = true;
+        }
+
+        async function showMapModal(address, name) {
+            const modal = new bootstrap.Modal(document.getElementById('mapModal'));
+            modal.show();
+            if (map === null) {
+                map = L.map('map').setView([14.5995, 120.9842], 13);
+                L.tileLayer(`https://{s}.tile.jawg.io/jawg-sunny/{z}/{x}/{y}{r}.png?access-token=${JAWG_TOKEN}`).addTo(map);
+            }
+            try {
+                const query = address.toLowerCase().includes("philippines") ? address : address + ", Philippines";
+                const geocodeUrl = `https://api.jawg.io/places/v1/search?text=${encodeURIComponent(query)}&access-token=${JAWG_TOKEN}&size=1`;
+                const geoRes = await fetch(geocodeUrl);
+                const geoData = await geoRes.json();
+                if (geoData.features && geoData.features.length > 0) {
+                    const coords = geoData.features[0].geometry.coordinates;
+                    const dest = [coords[1], coords[0]];
+                    if (marker) map.removeLayer(marker);
+                    marker = L.marker(dest).addTo(map).bindPopup(address).openPopup();
+                    document.getElementById('externalNavBtn').href = `https://waze.com/ul?ll=${dest[0]},${dest[1]}&navigate=yes`;
+                }
+            } catch (e) {}
+            setTimeout(() => map.invalidateSize(), 500);
         }
 
         function showStatusModal(id, status) {
             document.getElementById('statusTrackingId').value = id;
             document.getElementById('statusValue').value = status;
-            document.getElementById('modalStatusTitle').innerText = status;
-            
-            const warning = document.getElementById('attemptWarning');
-            warning.style.display = (status === 'Returned') ? 'none' : 'block';
-
             new bootstrap.Modal(document.getElementById('statusModal')).show();
-        }
-
-        async function showMapModal(address) {
-            new bootstrap.Modal(document.getElementById('mapModal')).show();
-            document.getElementById('etaValue').innerText = "Calculating ETA...";
-            
-            // 1. Get ETA via our C# API (Uses Distance Matrix API internally)
-            try {
-                const response = await fetch(`/Rider/GetEta?destination=${encodeURIComponent(address)}`);
-                const data = await response.json();
-                document.getElementById('etaValue').innerText = data.eta;
-            } catch (e) {
-                document.getElementById('etaValue').innerText = "ETA Unavailable";
-            }
-
-            // 2. Initialize Map (Uses Google Maps JS API pin)
-            if (typeof google !== 'undefined' && google.maps) {
-                geocoder = new google.maps.Geocoder();
-                geocoder.geocode({ 'address': address }, function (results, status) {
-                    if (status === 'OK') {
-                        const mapOptions = {
-                            zoom: 15,
-                            center: results[0].geometry.location,
-                            mapTypeId: google.maps.MapTypeId.ROADMAP,
-                            styles: [{ "elementType": "geometry", "stylers": [{ "color": "#212121" }] }, { "elementType": "labels.text.fill", "stylers": [{ "color": "#757575" }] }] // Dark mode map
-                        };
-                        const mapDiv = document.getElementById('googleMap');
-                        document.getElementById('map-placeholder').style.display = 'none';
-                        map = new google.maps.Map(mapDiv, mapOptions);
-                        new google.maps.Marker({
-                            map: map,
-                            position: results[0].geometry.location,
-                            title: address
-                        });
-                    }
-                });
-            }
         }
     </script>
 }

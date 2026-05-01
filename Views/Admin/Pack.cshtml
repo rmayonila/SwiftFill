@@ -5,30 +5,35 @@
 }
 
 <div class="animate-fade-up">
-    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-dark pb-3">
-        <div>
-            <h1 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-box-seam me-3 text-warning"></i> Order Packing</h1>
-            <p class="text-secondary mt-1">Manage picking and packing for items received from customers.</p>
-        </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-box-seam me-3 text-orange"></i> Order Packing</h2>
+        <div class="text-secondary small">Manage picking and packing for items received from customers.</div>
     </div>
 
-    <div class="card bg-dark border-secondary mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-2">
-                <div class="col-md-7">
-                    <input type="text" name="search" value="@ViewBag.Search" class="form-control bg-transparent text-white border-secondary" placeholder="Search Tracking ID or Receiver Name...">
-                </div>
-                <div class="col-md-3">
-                    <select name="status" class="form-select bg-transparent text-white border-secondary">
-                        <option value="All" selected='@(ViewBag.Status == "All")'>All Pending/Picked</option>
-                        <option value="Pending" selected='@(ViewBag.Status == "Pending")'>Pending Only</option>
-                        <option value="Picked" selected='@(ViewBag.Status == "Picked")'>Picked (Ready to Pack)</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-warning w-100 fw-bold">Search</button>
+    <!-- Integrated Filter Bar (Reference-Matched) -->
+    <div class="d-flex justify-content-between align-items-center mb-4 gap-3 bg-dark-soft p-2 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+        <div class="d-flex align-items-center flex-grow-1 gap-3">
+            <form method="get" class="d-flex align-items-center flex-grow-1">
+                <div class="search-wrapper flex-grow-1" style="max-width: 400px;">
+                    <i class="bi bi-search"></i>
+                    <input type="text" name="search" value="@ViewBag.Search" class="minimal-input w-100" 
+                           placeholder="Search Tracking ID or Receiver Name...">
                 </div>
             </form>
+        </div>
+
+        <div class="d-flex align-items-center gap-4">
+            <form method="get" class="d-flex align-items-center gap-3">
+                <select name="status" class="minimal-input" style="width: 200px; background: transparent; border: none;" onchange="this.form.submit()">
+                    <option value="All" selected='@(ViewBag.Status == "All")'>All Pending/Picked</option>
+                    <option value="Pending" selected='@(ViewBag.Status == "Pending")'>Pending Only</option>
+                    <option value="Picked" selected='@(ViewBag.Status == "Picked")'>Picked (Ready to Pack)</option>
+                </select>
+            </form>
+            <button type="submit" form="filterForm" class="btn btn-primary px-4 py-2 shadow-sm border-0 d-flex align-items-center" 
+                    style="background: #FF8C00; border-radius: 8px; font-weight: 600; font-size: 0.85rem;" onclick="this.closest('form').submit()">
+                <i class="bi bi-search me-2"></i> Search
+            </button>
         </div>
     </div>
 
@@ -37,44 +42,41 @@
         <div class="alert alert-success bg-dark text-success border-success mb-4">@TempData["SuccessMessage"]</div>
     }
 
-    <div class="table-responsive">
-        <table class="table table-dark table-hover border-secondary align-middle">
-            <thead class="text-secondary small text-uppercase">
-                <tr>
-                    <th>Tracking ID</th>
-                    <th>Receiver</th>
-                    <th>Package Details</th>
-                    <th>Destination</th>
-                    <th>Status</th>
-                    <th>Packing Action</th>
-                </tr>
-            </thead>
+    <div class="glass-card p-0 overflow-hidden" style="background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.05);">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0">
+                <thead style="background: rgba(255,140,0,0.03);">
+                    <tr>
+                        <th class="ps-4 py-3">Tracking ID</th>
+                        <th class="py-3">Receiver</th>
+                        <th class="py-3">Package Details</th>
+                        <th class="py-3">Destination</th>
+                        <th class="py-3">Status</th>
+                        <th class="py-3 pe-4 text-end">Action</th>
+                    </tr>
+                </thead>
             <tbody>
                 @foreach (var order in Model)
                 {
-                    <tr>
-                        <td class="fw-bold text-warning">#@order.TrackingId</td>
-                        <td>
-                            <div class="fw-bold">@order.ReceiverName</div>
-                            <div class="small text-secondary">@order.ReceiverPhone</div>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
+                        <td class="ps-4 py-3 fw-bold text-orange">#@order.TrackingId</td>
+                        <td class="py-3">
+                            <div class="fw-bold text-white">@order.ReceiverName</div>
+                            <div class="x-small text-secondary">@order.ReceiverPhone</div>
                         </td>
-                        <td>
+                        <td class="py-3">
                             <div class="small text-white">@(order.ItemCategory ?? "General") &bull; @order.Weight kg</div>
                             @if (order.IsFragile)
                             {
                                 <span class="badge bg-warning text-dark" style="font-size:0.6rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>FRAGILE</span>
                             }
-                            else
-                            {
-                                <span class="badge bg-secondary" style="font-size:0.6rem;">Non-Fragile</span>
-                            }
                         </td>
-                        <td>@order.DestinationRegion</td>
-                        <td>
-                            <span class="badge @(order.Status == "Picked" ? "bg-info" : "bg-secondary")">@order.Status</span>
+                        <td class="py-3 text-white small">@order.DestinationRegion</td>
+                        <td class="py-3">
+                            <span class="badge border bg-transparent px-2 @(order.Status == "Picked" ? "border-info text-info" : "border-warning text-warning")" style="font-size: 0.65rem;">@order.Status</span>
                         </td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-warning" onclick="openPackModal('@order.TrackingId')">
+                        <td class="py-3 pe-4 text-end">
+                            <button class="btn btn-sm btn-outline-orange x-small fw-bold text-uppercase" onclick="openPackModal('@order.TrackingId')">
                                 Update Packing
                             </button>
                         </td>
@@ -83,23 +85,31 @@
                 @if (!Model.Any())
                 {
                     <tr>
-                        <td colspan="5" class="text-center py-5 text-secondary">No orders pending for packing.</td>
+                        <td colspan="6" class="text-center py-5 text-secondary">No orders pending for packing.</td>
                     </tr>
                 }
             </tbody>
         </table>
     </div>
+</div>
 
+    <!-- Pagination -->
     @if (ViewBag.TotalPages > 1)
     {
         <nav class="mt-4">
-            <ul class="pagination justify-content-center">
+            <ul class="pagination pagination-sm justify-content-center">
+                <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                    <a class="page-link bg-dark border-0 text-secondary px-3" href="?page=@(ViewBag.CurrentPage - 1)&search=@ViewBag.Search&status=@ViewBag.Status">Previous</a>
+                </li>
                 @for (int i = 1; i <= ViewBag.TotalPages; i++)
                 {
-                    <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
-                        <a class="page-link bg-dark border-secondary text-white" href="?search=@ViewBag.Search&page=@i">@i</a>
+                    <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
+                        <a class="page-link @(ViewBag.CurrentPage == i ? "bg-orange border-0" : "bg-dark border-0 text-secondary") mx-1 rounded" href="?page=@i&search=@ViewBag.Search&status=@ViewBag.Status">@i</a>
                     </li>
                 }
+                <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                    <a class="page-link bg-dark border-0 text-secondary px-3" href="?page=@(ViewBag.CurrentPage + 1)&search=@ViewBag.Search&status=@ViewBag.Status">Next</a>
+                </li>
             </ul>
         </nav>
     }
@@ -159,13 +169,7 @@
                         </select>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label text-secondary small text-uppercase ls-1">Sorting Status</label>
-                        <select name="sortingStatus" id="sortStatus" class="form-select bg-dark border-secondary text-white shadow-none">
-                            <option value="Pending in Store">Pending in Store</option>
-                            <option value="Sorted in Warehouse">Sorted in Warehouse</option>
-                        </select>
-                    </div>
+                    <input type="hidden" name="sortingStatus" id="sortStatus" value="Pending" />
                 </div>
                 <div class="modal-footer border-0">
                     <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Cancel</button>
@@ -208,10 +212,31 @@
                     document.getElementById('availPacking').checked = order.availPacking;
                     document.getElementById('packFee').value = order.packingFee;
                     document.getElementById('packLocation').value = order.packingLocation || 'Store';
-                    document.getElementById('sortStatus').value = order.sortingStatus || 'Pending in Store';
+                    
+                    // Reset button state on open
+                    const btn = document.querySelector('#packForm button[type="submit"]');
+                    if (order.packingLocation === 'Warehouse') {
+                        btn.textContent = 'Send to Warehouse';
+                        btn.className = 'btn btn-info fw-bold px-4';
+                    } else {
+                        btn.textContent = 'Complete Packing';
+                        btn.className = 'btn btn-warning fw-bold px-4';
+                    }
+                    
                     modal.show();
                 });
         }
+
+        document.getElementById('packLocation').addEventListener('change', function() {
+            const btn = document.querySelector('#packForm button[type="submit"]');
+            if (this.value === 'Warehouse') {
+                btn.textContent = 'Send to Warehouse';
+                btn.className = 'btn btn-info fw-bold px-4';
+            } else {
+                btn.textContent = 'Complete Packing';
+                btn.className = 'btn btn-warning fw-bold px-4';
+            }
+        });
 
         document.getElementById('packForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -235,10 +260,14 @@
                     bootstrap.Modal.getInstance(document.getElementById('packModal')).hide();
                     if (currentTargetRow) {
                         const statusBadge = currentTargetRow.querySelector('.badge');
-                        statusBadge.className = 'badge bg-success';
-                        statusBadge.textContent = 'Packed in Warehouse';
+                        const packLocation = document.getElementById('packLocation').value;
+                        const finalStatus = packLocation === 'Store' ? 'Packed in Store' : 'Sent to Warehouse Packing';
+                        
+                        statusBadge.className = packLocation === 'Store' ? 'badge bg-success' : 'badge bg-info';
+                        statusBadge.textContent = finalStatus;
                         const actionCell = currentTargetRow.querySelector('td:last-child');
-                        actionCell.innerHTML = `<span class="text-success small fw-bold"><i class="bi bi-check-circle me-1"></i>Packed ₱${(result.newTotal||0).toLocaleString('en-US', {minimumFractionDigits:2})}</span>`;
+                        const actionText = packLocation === 'Store' ? `Packed ₱${(result.newTotal||0).toLocaleString('en-US', {minimumFractionDigits:2})}` : 'Forwarded to WH';
+                        actionCell.innerHTML = `<span class="${packLocation === 'Store' ? 'text-success' : 'text-info'} small fw-bold"><i class="bi bi-check-circle me-1"></i>${actionText}</span>`;
                     }
                 } else {
                     alert('Error: ' + result.message);

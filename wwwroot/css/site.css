@@ -471,3 +471,16 @@ footer {
   color: var(--text-secondary);
   background-color: var(--darker-bg);
 }
+
+/* Global Administrative Design Utilities */
+.x-small { font-size: 0.75rem !important; }
+.ls-1 { letter-spacing: 1px !important; }
+.ls-2 { letter-spacing: 2px !important; }
+.bg-dark-soft { background: rgba(255, 255, 255, 0.02) !important; }
+.hover-scale { transition: transform 0.2s ease-in-out; }
+.hover-scale:hover { transform: scale(1.02); }
+.w-fit { width: fit-content; }
+.text-orange { color: #ff8c00 !important; }
+.bg-orange { background-color: #ff8c00 !important; }
+.border-orange { border-color: #ff8c00 !important; }
+

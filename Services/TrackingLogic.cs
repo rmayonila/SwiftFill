@@ -25,7 +25,7 @@ namespace SwiftFill.Services
             timeline.Add(new TrackingEventViewModel
             {
                 Title = "Shipment Accepted",
-                Description = "Shipment has been accepted in SwiftFill",
+                Description = "Your package has been successfully received at our SwiftFill origin hub.",
                 Date = order.CreatedAt,
                 IsCompleted = true,
                 IsActive = order.Status == "Pending",
@@ -37,9 +37,10 @@ namespace SwiftFill.Services
             
             bool isTransit = order.Status.Contains("Transit");
             bool isArrived = order.Status.Contains("Arrived");
-            bool isOutForDelivery = order.Status == "Out for Delivery";
-            bool isDelivered = order.Status == "Delivered";
-            bool isReturned = order.Status == "Returned";
+            bool isOutForDelivery = order.Status.Equals("Out for Delivery", StringComparison.OrdinalIgnoreCase);
+            bool isDelivered = order.Status.Equals("Delivered", StringComparison.OrdinalIgnoreCase);
+            bool isReturning = order.Status.Contains("Return", StringComparison.OrdinalIgnoreCase);
+            bool isReturned = order.Status.Equals("Returned", StringComparison.OrdinalIgnoreCase);
 
             // If it's passed initial acceptance but not yet at final delivery
             if (!order.Status.Equals("Pending", StringComparison.OrdinalIgnoreCase))
@@ -69,8 +70,8 @@ namespace SwiftFill.Services
                         string currentHubName = order.Status.Replace("Arrived at ", "");
                         timeline.Add(new TrackingEventViewModel
                         {
-                            Title = "Intermediate Sorting",
-                            Description = $"Parcel received and currently being sorted at {currentHubName} ({HubRegistry.GetIsland(currentHubName)}).",
+                            Title = "Arrival at Hub",
+                            Description = $"Your parcel has arrived at the {currentHubName.Replace(" Hub", "")} facility for sorting.",
                             Date = order.UpdatedAt,
                             IsCompleted = true,
                             IsActive = true,
@@ -99,8 +100,8 @@ namespace SwiftFill.Services
                         string targetHubName = order.Status.Replace("In Transit to ", "");
                         timeline.Add(new TrackingEventViewModel
                         {
-                            Title = "Transport in Progress",
-                            Description = $"Shipment is being transferred to {targetHubName} for further sorting.",
+                            Title = "In Transit",
+                            Description = $"Shipment is currently moving towards the {targetHubName.Replace(" Hub", "")} distribution center.",
                             Date = order.UpdatedAt,
                             IsCompleted = true,
                             IsActive = true,
@@ -122,8 +123,8 @@ namespace SwiftFill.Services
                 }
             }
 
-            // 3. Final Mile
-            if (isOutForDelivery || isDelivered || isReturned)
+            // 3. Final Mile / Returns
+            if (isOutForDelivery || isDelivered || isReturning || isReturned)
             {
                 if (isOutForDelivery)
                 {
@@ -150,12 +151,12 @@ namespace SwiftFill.Services
                         Icon = "bi-box-seam-fill"
                     });
                 }
-                else if (isReturned)
+                else if (isReturning || isReturned)
                 {
                     timeline.Add(new TrackingEventViewModel
                     {
-                        Title = "Returned to Sender",
-                        Description = $"Package delivery failed. {order.Notes}",
+                        Title = "Returning to Sender",
+                        Description = $"Delivery unsuccessful. Package is being routed back to the origin. Note: {order.Notes ?? "No additional notes provided"}",
                         Date = order.UpdatedAt,
                         IsCompleted = true,
                         IsActive = true,
@@ -163,17 +164,20 @@ namespace SwiftFill.Services
                     });
                 }
             }
-            else if (!isDelivered && !isReturned)
+            else if (!order.Status.Equals("Pending", StringComparison.OrdinalIgnoreCase) && !isArrived && !isTransit && order.Status != "Sorted for Transfer")
             {
-                 timeline.Add(new TrackingEventViewModel
+                // Catch-all for any status not explicitly handled above
+                timeline.Add(new TrackingEventViewModel
                 {
-                    Title = "Final Delivery",
-                    Description = "Awaiting final recipient confirmation.",
-                    IsCompleted = false,
-                    IsActive = false,
-                    Icon = "bi-house-heart"
+                    Title = order.Status,
+                    Description = "The shipment has reached a new milestone in our logistics network.",
+                    Date = order.UpdatedAt,
+                    IsCompleted = true,
+                    IsActive = true,
+                    Icon = "bi-info-circle-fill"
                 });
             }
+            // 4. (Placeholders removed as requested - only show what's done)
 
             return timeline;
         }

@@ -63,21 +63,21 @@ namespace SwiftFill.Controllers
         {
             return new AdminDashboardViewModel
             {
-                TotalOrders = _context.Orders.Count(o => o.Status != "Delivered" && o.Status != "Returned" && !o.IsArchived),
-                PendingOrders = _context.Orders.Count(o => o.Status == "Pending" && !o.IsArchived),
-                InTransit = _context.Orders.Count(o => (o.Status.Contains("Transit") || o.Status == "OutForDelivery") && !o.IsArchived),
-                Delivered = _context.Orders.Count(o => o.Status == "Delivered" && !o.IsArchived),
+                TotalOrders = _context.Orders.Count(o => o.Status != "Delivered" && o.Status != "Returned"),
+                PendingOrders = _context.Orders.Count(o => o.Status == "Pending"),
+                InTransit = _context.Orders.Count(o => (o.Status.Contains("Transit") || o.Status == "OutForDelivery")),
+                Delivered = _context.Orders.Count(o => o.Status == "Delivered"),
                 TotalRevenue = _context.Payments.Where(p => p.IsPaid).Sum(p => p.Amount),
                 
-                StatusCounts = _context.Orders.Where(o => !o.IsArchived).GroupBy(o => o.Status)
+                StatusCounts = _context.Orders.GroupBy(o => o.Status)
                     .Select(g => new StatusDistributionItem { Status = g.Key, Count = g.Count() }).ToList(),
                 
-                DailyTrend = _context.Orders.Where(o => o.CreatedAt >= DateTime.Now.AddDays(-7) && !o.IsArchived)
+                DailyTrend = _context.Orders.Where(o => o.CreatedAt >= DateTime.Now.AddDays(-7))
                     .GroupBy(o => o.CreatedAt.Date)
                     .OrderBy(g => g.Key)
                     .Select(g => new DailyTrendItem { Date = g.Key.ToString("MM-dd"), Count = g.Count() }).ToList(),
                 
-                RecentShipments = _context.Orders.Where(o => !o.IsArchived).OrderByDescending(o => o.CreatedAt).Take(5).ToList()
+                RecentShipments = _context.Orders.OrderByDescending(o => o.CreatedAt).Take(5).ToList()
             };
         }
         
@@ -184,6 +184,13 @@ namespace SwiftFill.Controllers
             return Json(order);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetShippingRatesJson()
+        {
+            var rates = await _context.ShippingRates.ToListAsync();
+            return Json(rates);
+        }
+
         [HttpPost]
         public async Task<IActionResult> EditOrder(Order model, string? PaymentMethod)
         {
@@ -201,6 +208,8 @@ namespace SwiftFill.Controllers
                 order.ItemCategory = model.ItemCategory;
                 order.IsFragile = model.IsFragile;
                 order.DeclaredValue = model.DeclaredValue;
+                order.AvailPacking = model.AvailPacking;
+                order.PackingFee = model.PackingFee;
                 order.UpdatedAt = DateTime.UtcNow;
 
                 if (!string.IsNullOrEmpty(PaymentMethod))
@@ -242,7 +251,7 @@ namespace SwiftFill.Controllers
         {
             int pageSize = 10;
             // Item 6: Only show orders where the customer availed packing service
-            var query = _context.Orders.Where(o => !o.IsArchived && o.AvailPacking).AsQueryable();
+            var query = _context.Orders.Where(o => o.AvailPacking).AsQueryable();
 
             if (!string.IsNullOrEmpty(status) && status != "All")
             {
@@ -299,8 +308,16 @@ namespace SwiftFill.Controllers
                 order.PackingLocation = packingLocation;
                 order.SortingStatus = sortingStatus;
                 order.PackedByStaffId = _userManager.GetUserId(User);
-                // Item 9: Explicit warehouse pack status
-                order.Status = "Packed in Warehouse";
+                
+                // Set status based on packing location
+                if (packingLocation == "Warehouse")
+                {
+                    order.Status = "Sent to Warehouse Packing";
+                }
+                else
+                {
+                    order.Status = "Packed in Store";
+                }
                 order.UpdatedAt = DateTime.UtcNow;
 
                 await _context.SaveChangesAsync();
@@ -357,7 +374,7 @@ namespace SwiftFill.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateManualOrder(Order model, string paymentMethod, string deliveryType = "DoorToDoor", string originHub = "Davao Hub", bool availPacking = false, decimal packingFee = 0, bool isFragile = false)
+        public async Task<IActionResult> CreateManualOrder(Order model, string paymentMethod, string deliveryType = "DoorToDoor", string originHub = "Davao Hub", bool availPacking = false, decimal packingFee = 0, bool isFragile = false, string? ReceiverLandmark = null)
         {
             // Guard: originHub must be a real hub
             if (!SwiftFill.Models.HubRegistry.Names.Contains(originHub))
@@ -374,6 +391,9 @@ namespace SwiftFill.Controllers
             model.PackingFee = packingFee;
             model.CreatedAt = DateTime.UtcNow;
             model.UpdatedAt = DateTime.UtcNow;
+
+            if (!string.IsNullOrWhiteSpace(ReceiverLandmark))
+                model.ReceiverAddress = $"{model.ReceiverAddress} | Landmark: {ReceiverLandmark.Trim()}";
 
             _context.Orders.Add(model);
 
@@ -407,7 +427,7 @@ namespace SwiftFill.Controllers
         public IActionResult Payments(string search, string status, int page = 1)
         {
             int pageSize = 10;
-            var query = _context.Payments.Include(p => p.Order).AsQueryable();
+            var query = _context.Payments.Include(p => p.Order).Where(p => !p.IsArchived).AsQueryable();
 
             if (!string.IsNullOrEmpty(search))
                 query = query.Where(p => p.TrackingId.Contains(search) || p.Order.ReceiverName.Contains(search));
@@ -459,6 +479,20 @@ namespace SwiftFill.Controllers
             return RedirectToAction(nameof(Payments));
         }
 
+        [HttpPost]
+        public async Task<IActionResult> ArchivePayment(int paymentId)
+        {
+            var payment = await _context.Payments.FindAsync(paymentId);
+            if (payment != null)
+            {
+                payment.IsArchived = true;
+                await _context.SaveChangesAsync();
+                _audit.Log(User.Identity?.Name ?? "Admin", "Admin", "Archive Payment", $"Payment ID {paymentId} archived.");
+                TempData["SuccessMessage"] = "Payment record archived.";
+            }
+            return RedirectToAction(nameof(Payments));
+        }
+
         public IActionResult Reconciliation(string search, int page = 1) 
             => RedirectToAction(nameof(Payments), new { search, page });
 
@@ -485,8 +519,8 @@ namespace SwiftFill.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            int pageSize = 5;
-            var query = _context.ReturnRequests.AsQueryable();
+            int pageSize = 10;
+            var query = _context.ReturnRequests.Where(r => !r.IsArchived).AsQueryable();
 
             if (!string.IsNullOrEmpty(search))
                 query = query.Where(r => r.TrackingId.Contains(search) || r.Reason.Contains(search));
@@ -535,6 +569,20 @@ namespace SwiftFill.Controllers
             return RedirectToAction(nameof(Returns));
         }
 
+        [HttpPost]
+        public async Task<IActionResult> ArchiveReturnRequest(int requestId)
+        {
+            var returnReq = await _context.ReturnRequests.FindAsync(requestId);
+            if (returnReq != null)
+            {
+                returnReq.IsArchived = true;
+                await _context.SaveChangesAsync();
+                _audit.Log(User.Identity?.Name ?? "Admin", "Admin", "Archive Return", $"Return request #{requestId} archived.");
+                TempData["SuccessMessage"] = "Return request archived.";
+            }
+            return RedirectToAction(nameof(Returns));
+        }
+
         public async Task<IActionResult> ShippingRates()
         {
             var rates = await _context.ShippingRates.ToListAsync();
@@ -571,11 +619,29 @@ namespace SwiftFill.Controllers
             return RedirectToAction(nameof(ShippingRates));
         }
 
-        public IActionResult RecentActivity()
+        public IActionResult RecentActivity(string search, string status, int page = 1)
         {
-            // Just get the last 20 orders/payments/returns as activity
-            var recentOrders = _context.Orders.OrderByDescending(o => o.CreatedAt).Take(10).ToList();
-            return View(recentOrders);
+            int pageSize = 15;
+            var query = _context.Orders.AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+                query = query.Where(o => o.TrackingId.Contains(search) || o.ReceiverName.Contains(search) || o.CurrentLocation.Contains(search));
+
+            if (!string.IsNullOrEmpty(status) && status != "All")
+                query = query.Where(o => o.Status == status);
+
+            var totalItems = query.Count();
+            var orders = query.OrderByDescending(o => o.UpdatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            ViewBag.Search = search;
+            ViewBag.Status = status;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            return View(orders);
         }
 
         public IActionResult Reports(int? month, int? year)
@@ -584,7 +650,7 @@ namespace SwiftFill.Controllers
             var targetYear = year ?? DateTime.Now.Year;
 
             var filteredOrders = _context.Orders
-                .Where(o => o.CreatedAt.Month == targetMonth && o.CreatedAt.Year == targetYear && !o.IsArchived);
+                .Where(o => o.CreatedAt.Month == targetMonth && o.CreatedAt.Year == targetYear);
 
             var model = new AdminDashboardViewModel
             {

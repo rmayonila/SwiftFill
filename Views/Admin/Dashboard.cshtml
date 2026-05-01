@@ -14,31 +14,39 @@
 
     <div class="row g-4 mb-5">
         <div class="col-md-3">
-            <div class="glass-card p-3 border-0 border-start border-warning border-4" style="background: rgba(255, 255, 255, 0.02);">
-                <div class="stat-label text-orange">Current Volume</div>
+            <div class="glass-card p-3 border-0 border-start border-warning border-4 d-flex justify-content-between align-items-center" style="background: rgba(255, 255, 255, 0.02);">
+                <div>
+                    <div class="stat-label text-orange">Current Volume</div>
+                    <div class="text-secondary x-small">Active Shipments</div>
+                </div>
                 <div class="stat-value text-white h2 mb-0">@Model.TotalOrders</div>
-                <div class="text-secondary x-small">Active Shipments</div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="glass-card p-3 border-0 border-start border-info border-4" style="background: rgba(255, 255, 255, 0.02);">
-                <div class="stat-label text-info">In Logistics</div>
+            <div class="glass-card p-3 border-0 border-start border-info border-4 d-flex justify-content-between align-items-center" style="background: rgba(255, 255, 255, 0.02);">
+                <div>
+                    <div class="stat-label text-info">In Logistics</div>
+                    <div class="text-secondary x-small">In Transit Hubs</div>
+                </div>
                 <div class="stat-value text-white h2 mb-0">@Model.InTransit</div>
-                <div class="text-secondary x-small">In Transit Hubs</div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="glass-card p-3 border-0 border-start border-success border-4" style="background: rgba(255, 255, 255, 0.02);">
-                <div class="stat-label text-success">Total Revenue</div>
+            <div class="glass-card p-3 border-0 border-start border-success border-4 d-flex justify-content-between align-items-center" style="background: rgba(255, 255, 255, 0.02);">
+                <div>
+                    <div class="stat-label text-success">Total Revenue</div>
+                    <div class="text-secondary x-small">Settled COD</div>
+                </div>
                 <div class="stat-value text-white h2 mb-0">₱@Model.TotalRevenue.ToString("N0")</div>
-                <div class="text-secondary x-small">Settled COD</div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="glass-card p-3 border-0 border-start border-danger border-4" style="background: rgba(255, 255, 255, 0.02);">
-                <div class="stat-label text-danger">Action Items</div>
+            <div class="glass-card p-3 border-0 border-start border-danger border-4 d-flex justify-content-between align-items-center" style="background: rgba(255, 255, 255, 0.02);">
+                <div>
+                    <div class="stat-label text-danger">Action Items</div>
+                    <div class="text-secondary x-small">Pending Pickup</div>
+                </div>
                 <div class="stat-value text-white h2 mb-0">@Model.PendingOrders</div>
-                <div class="text-secondary x-small">Pending Pickup</div>
             </div>
         </div>
     </div>
@@ -61,14 +69,14 @@
         <div class="col-md-3">
             <a asp-action="Reports" class="glass-card p-3 d-flex align-items-center text-decoration-none hover-scale" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
                 <div class="rounded-circle bg-dark p-2 me-3"><i class="bi bi-file-earmark-bar-graph text-orange"></i></div>
-                <div class="text-white fw-bold small">System Intelligence</div>
+                <div class="text-white fw-bold small">Analytical Reports</div>
             </a>
         </div>
         <div class="col-md-3">
-            <div class="glass-card p-3 d-flex align-items-center text-decoration-none hover-scale" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); cursor: pointer;">
+            <a asp-controller="Account" asp-action="Settings" class="glass-card p-3 d-flex align-items-center text-decoration-none hover-scale" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
                 <div class="rounded-circle bg-dark p-2 me-3"><i class="bi bi-gear-fill text-orange"></i></div>
-                <div class="text-white fw-bold small">Hub Settings</div>
-            </div>
+                <div class="text-white fw-bold small">Settings</div>
+            </a>
         </div>
     </div>
 
@@ -90,39 +98,43 @@
     </div>
 
     <!-- Shipment Summary -->
-    <div class="glass-card p-4 border-0 mb-5" style="background: rgba(255, 255, 255, 0.01);">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="glass-card p-0 overflow-hidden border-0 mb-5" style="background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.05) !important;">
+        <div class="d-flex justify-content-between align-items-center p-4 pb-3">
             <h6 class="text-uppercase text-secondary ls-1 mb-0">Track Shipment Summary</h6>
             <a asp-action="Shipments" class="text-orange text-decoration-none small">View All <i class="bi bi-arrow-right ms-1"></i></a>
         </div>
         <div class="table-responsive">
             <table class="table table-dark table-hover mb-0">
-                <thead>
+                <thead style="background: rgba(255,140,0,0.03);">
                     <tr class="text-secondary small text-uppercase">
-                        <th class="border-0 ps-0">Tracking ID</th>
-                        <th class="border-0">Destination</th>
-                        <th class="border-0">Status</th>
-                        <th class="border-0 text-end pe-0">Last Updated</th>
+                        <th class="border-0 ps-4 py-3">Tracking ID</th>
+                        <th class="border-0 py-3">Destination</th>
+                        <th class="border-0 py-3">Status</th>
+                        <th class="border-0 text-end pe-4 py-3">Last Updated</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var shipment in Model.RecentShipments)
                     {
-                        <tr>
-                            <td class="border-0 ps-0 py-3">
-                                <span class="text-orange fw-bold">@shipment.TrackingId</span>
-                                <div class="x-small text-secondary">@shipment.SenderName</div>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
+                            <td class="border-0 ps-4 py-3">
+                                <div class="d-flex align-items-center">
+                                    <div>
+                                        <code class="text-orange fw-bold d-block">@shipment.TrackingId</code>
+                                        <div class="text-secondary x-small">@shipment.SenderName</div>
+                                    </div>
+                                </div>
                             </td>
                             <td class="border-0 py-3">
-                                <div class="text-white">@shipment.DestinationRegion</div>
-                                <div class="x-small text-secondary">@shipment.ReceiverName</div>
+                                <div class="text-white small">@shipment.DestinationRegion</div>
+                                <div class="text-secondary x-small">@shipment.ReceiverName</div>
                             </td>
                             <td class="border-0 py-3">
-                                <span class="badge border bg-transparent px-3 @(shipment.Status == "Delivered" ? "border-success text-success" : "border-warning text-warning")" style="font-size: 0.7rem;">
+                                <span class="badge border bg-transparent px-3 @(shipment.Status == "Delivered" ? "border-success text-success" : (shipment.Status.Contains("Arrived") ? "border-primary text-primary" : (shipment.Status.Contains("Transit") ? "border-info text-info" : "border-warning text-warning")))" style="font-size: 0.65rem;">
                                     @shipment.Status
                                 </span>
                             </td>
-                            <td class="border-0 py-3 text-end pe-0">
+                            <td class="border-0 py-3 text-end pe-4">
                                 <div class="text-white small">@shipment.CreatedAt.ToString("MMM dd")</div>
                                 <div class="x-small text-secondary">@shipment.Weight kg</div>
                             </td>
@@ -206,10 +218,11 @@
                 const data = await response.json();
 
                 // Update Stat Cards
-                document.querySelector('.stat-value.text-white.h2:nth-child(1)').parentElement.querySelector('.stat-value').textContent = data.totalOrders;
-                document.querySelectorAll('.stat-value.text-white.h2')[1].textContent = data.inTransit;
-                document.querySelectorAll('.stat-value.text-white.h2')[2].textContent = '₱' + data.totalRevenue.toLocaleString('en-US');
-                document.querySelectorAll('.stat-value.text-white.h2')[3].textContent = data.pendingOrders;
+                const statCards = document.querySelectorAll('.stat-value.text-white.h2');
+                statCards[0].textContent = data.totalOrders;
+                statCards[1].textContent = data.inTransit;
+                statCards[2].textContent = '₱' + data.totalRevenue.toLocaleString('en-US');
+                statCards[3].textContent = data.pendingOrders;
 
                 // Update Charts
                 trendChart.data.labels = data.dailyTrend.map(d => d.date);
@@ -223,21 +236,23 @@
                 // Update Recent Shipments Table
                 const tbody = document.querySelector('table tbody');
                 tbody.innerHTML = data.recentShipments.map(s => `
-                    <tr>
-                        <td class="border-0 ps-0 py-3">
-                            <span class="text-orange fw-bold">${s.trackingId}</span>
-                            <div class="x-small text-secondary">${s.senderName}</div>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
+                        <td class="border-0 ps-4 py-3">
+                            <div>
+                                <code class="text-orange fw-bold d-block">${s.trackingId}</code>
+                                <div class="x-small text-secondary">${s.senderName}</div>
+                            </div>
                         </td>
                         <td class="border-0 py-3">
-                            <div class="text-white">${s.destinationRegion}</div>
+                            <div class="text-white small">${s.destinationRegion}</div>
                             <div class="x-small text-secondary">${s.receiverName}</div>
                         </td>
                         <td class="border-0 py-3">
-                            <span class="badge border bg-transparent px-3 ${s.status === 'Delivered' ? 'border-success text-success' : 'border-warning text-warning'}" style="font-size: 0.7rem;">
+                            <span class="badge border bg-transparent px-3 ${s.status === 'Delivered' ? 'border-success text-success' : (s.status.includes('Arrived') ? 'border-primary text-primary' : (s.status.includes('Transit') ? 'border-info text-info' : 'border-warning text-warning'))}" style="font-size: 0.65rem;">
                                 ${s.status}
                             </span>
                         </td>
-                        <td class="border-0 py-3 text-end pe-0">
+                        <td class="border-0 py-3 text-end pe-4">
                             <div class="text-white small">${s.createdAt}</div>
                             <div class="x-small text-secondary">${s.weight} kg</div>
                         </td>

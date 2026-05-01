@@ -7,228 +7,136 @@
     var hubInfo = HubRegistry.All.FirstOrDefault(h => h.Name == currentHub);
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-    <h1 class="dashboard-title">
-        <i class="bi bi-building-gear me-3"></i> Warehouse Dispatch
-    </h1>
-    <div class="d-flex align-items-center gap-3 flex-wrap">
-        <div style="background: rgba(255,140,0,0.08); border: 1px solid rgba(255,140,0,0.25); border-radius: 10px; padding: 8px 16px;">
-            <div style="font-size: 0.65rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px;">Your Hub</div>
-            <div style="font-size: 0.9rem; font-weight: 700; color: #ff8c00;">
-                <i class="bi bi-geo-alt-fill me-1"></i>@currentHub
-            </div>
-            @if (hubInfo != null)
-            {
-                <div style="font-size: 0.7rem; color: rgba(255,255,255,0.35);">@hubInfo.Region · @hubInfo.Island</div>
-            }
-        </div>
-    </div>
-</div>
-
-<div class="row g-4 mb-5">
-    <div class="col-md-3">
-        <div class="stat-card yellow">
-            <div class="stat-label">Pending Pick</div>
-            <div class="stat-value">@Model.PendingPickOrders.Count</div>
-            <div class="stat-subtext">Awaiting Warehouse Staff</div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card blue">
-            <div class="stat-label">In Packing</div>
-            <div class="stat-value">@Model.PickedOrders.Count</div>
-            <div class="stat-subtext">Currently at Packing Table</div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card green">
-            <div class="stat-label">Ready to Ship</div>
-            <div class="stat-value">@Model.PackedOrders.Count</div>
-            <div class="stat-subtext">Packed & Sealed</div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card red">
-            <div class="stat-label">Inbound</div>
-            <div class="stat-value">@Model.RecentShipments.Count(s => s.Status.Contains($"Transit to {currentHub}"))</div>
-            <div class="stat-subtext">Arriving at @currentHub</div>
-        </div>
-    </div>
-</div>
-
-<div class="module-toolbar">
-    <div class="d-flex gap-2 align-items-center w-100 flex-wrap">
-        <div class="search-container flex-grow-1">
-            <i class="bi bi-search"></i>
-            <input type="text" id="searchInput" placeholder="Search Tracking ID, Receiver..." oninput="filterTable(this.value)" />
-        </div>
-        <form asp-action="QuickReceive" method="post" class="d-flex gap-2">
-            <div class="search-container" style="max-width: 250px;">
-                <i class="bi bi-qr-code-scan"></i>
-                <input type="text" name="trackingId" placeholder="Scan to Receive..." required autocomplete="off" />
-            </div>
-            <button type="submit" class="btn btn-primary fw-bold" style="border-radius: 8px;">Receive</button>
-        </form>
-    </div>
-</div>
-
-<div class="table-container">
+<div class="animate-fade-up">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h5 class="m-0 fw-bold text-white">Recent Orders Overview — @currentHub</h5>
-        <a asp-action="WarehouseQueue" class="btn btn-sm btn-warning fw-bold px-4 shadow-sm">
-            <i class="bi bi-grid-3x3-gap me-2"></i>VIEW ALL
-        </a>
-    </div>
+        <h1 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-speedometer2 me-2"></i> Warehouse Dispatch</h1>
+        <div class="text-secondary small">Hub: <span class="text-orange fw-bold">@currentHub</span></div>
     </div>
 
-    @*
-        LEGEND — Action logic per parcel (no fixed "Origin Hub"):
-        • CurrentLocation == currentHub + Status "Pending"  → PICK
-        • CurrentLocation == currentHub + Status "Picked"   → PACK
-        • CurrentLocation == currentHub + Status "Packed"   → SHIP (dispatch to next hub)
-        • Status contains "In Transit to currentHub"        → RECEIVE (staff at destination hub)
-        • Status starts with "Arrived at currentHub"
-             + DeliveryType "DoorToDoor"                    → ASSIGN RIDER
-             + DeliveryType "BranchPickup"                  → READY FOR PICKUP
-    *@
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="glass-card p-3 border-0 border-start border-warning border-4 d-flex justify-content-between align-items-center" style="background: rgba(255, 255, 255, 0.02);">
+                <div>
+                    <div class="stat-label text-orange">Inbound Volume</div>
+                    <div class="text-secondary x-small">Awaiting Arrival</div>
+                </div>
+                <div class="stat-value text-white h2 mb-0">@Model.InTransit</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card p-3 border-0 border-start border-info border-4 d-flex justify-content-between align-items-center" style="background: rgba(255, 255, 255, 0.02);">
+                <div>
+                    <div class="stat-label text-info">In Processing</div>
+                    <div class="text-secondary x-small">Hub Sorting</div>
+                </div>
+                <div class="stat-value text-white h2 mb-0">@(Model.PendingPickOrders.Count + Model.PickedOrders.Count)</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card p-3 border-0 border-start border-success border-4 d-flex justify-content-between align-items-center" style="background: rgba(255, 255, 255, 0.02);">
+                <div>
+                    <div class="stat-label text-success">Outbound Ready</div>
+                    <div class="text-secondary x-small">Sorted for Dispatch</div>
+                </div>
+                <div class="stat-value text-white h2 mb-0">@Model.PackedOrders.Count</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card p-3 border-0 border-start border-danger border-4 d-flex justify-content-between align-items-center" style="background: rgba(255, 255, 255, 0.02);">
+                <div>
+                    <div class="stat-label text-danger">Active Returns</div>
+                    <div class="text-secondary x-small">Returning to Sender</div>
+                </div>
+                <div class="stat-value text-white h2 mb-0">@Model.ReturningOrders.Count</div>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <table class="table table-dark table-hover mb-0 align-middle" id="queueTable">
-        <thead>
-            <tr>
-                <th>Tracking ID</th>
-                <th>Receiver & Address</th>
-                <th>Package</th>
-                <th>Destination</th>
-                <th>Status</th>
-                <th class="text-center">Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model.RecentShipments.Take(5))
-            {
-                @* Determine what action this hub can do for this parcel *@
-                var isLocal    = item.CurrentLocation == currentHub;
-                var isInbound  = item.Status.Contains($"Transit to {currentHub}");
-                var isArrived  = item.Status.StartsWith($"Arrived at {currentHub}");
-                var isOtherHub = !isLocal && !isInbound && !isArrived; // order at a different hub
-                var canPick    = isLocal && item.Status == "Pending";
-                var canPack    = isLocal && item.Status == "Picked";
-                var canShip    = isLocal && (item.Status == "Packed" || item.Status == "Packed in Warehouse" || item.Status == "Sorted for Transfer");
-                var canReceive = isInbound;
-                var isFinalDest = HubRegistry.ResolveDestinationHub(item.DestinationRegion) == currentHub;
-                var canSort    = isArrived && !item.Status.Contains("Sorted") && !isFinalDest;
-                var isAssigned = !string.IsNullOrEmpty(item.AssignedRiderId) || item.ManualRiderId != null;
-                var canRider   = (isArrived || item.Status == "Packed in Warehouse" || item.Status == "Sorted for Transfer") && item.DeliveryType == "DoorToDoor" && !canSort && !isAssigned;
-                var isPickup   = (isArrived || item.Status == "Packed in Warehouse" || item.Status == "Sorted for Transfer") && item.DeliveryType == "BranchPickup" && !canSort && !isAssigned;
+<div class="glass-card p-0 overflow-hidden border-0 mb-5" style="background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.05) !important;">
+    <div class="d-flex justify-content-between align-items-center p-4 pb-3">
+        <h6 class="text-uppercase text-secondary ls-1 mb-0">Recent Hub Activity — @currentHub</h6>
+        <a asp-action="HubTransfers" class="text-orange text-decoration-none small">View All <i class="bi bi-arrow-right ms-1"></i></a>
+    </div>
 
-                <tr class="@(isOtherHub ? "opacity-75" : "")">
-                    <td class="fw-bold" style="color: #ff8c00;">#@item.TrackingId</td>
-                    <td>
-                        <div class="fw-bold text-white">@item.ReceiverName</div>
-                        <div class="small text-secondary" style="max-width: 250px;">
-                            @item.ReceiverAddress
-                        </div>
-                    </td>
-                    <td>
-                        <div class="text-white small">@item.ItemCategory • @item.Weight kg</div>
-                        @if (item.IsFragile)
-                        {
-                            <span class="badge bg-warning text-dark mt-1" style="font-size: 0.65rem;">
-                                <i class="bi bi-exclamation-triangle-fill me-1"></i>FRAGILE
+    <div class="table-responsive">
+        <table class="table table-dark table-hover mb-0">
+            <thead style="background: rgba(255,140,0,0.03);">
+                <tr class="text-secondary small text-uppercase">
+                    <th class="border-0 ps-4 py-3">Tracking ID</th>
+                    <th class="border-0 py-3">Package & Info</th>
+                    <th class="border-0 py-3">Destination</th>
+                    <th class="border-0 py-3">Status</th>
+                    <th class="border-0 text-end pe-4 py-3">Last Updated</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.RecentShipments.Take(8))
+                {
+                    var destHub = HubRegistry.ResolveDestinationHub(item.DestinationRegion);
+                    string targetAction = "WarehouseQueue";
+                    string targetController = "Warehouse";
+                    
+                    if (item.Status.Contains("In Transit to " + currentHub)) {
+                        targetAction = "HubTransfers";
+                    } else if (item.Status.Contains("Arrived at " + currentHub) || item.Status == "Out for Delivery") {
+                        if (destHub == currentHub) {
+                            targetAction = "Index";
+                            targetController = "RiderInfo";
+                        } else {
+                            targetAction = "HubTransfers";
+                        }
+                    } else if (item.Status == "Sorted for Transfer") {
+                        targetAction = "HubTransfers";
+                    } else if (item.Status == "Delivered" || item.Status == "Returned") {
+                        targetAction = "OrderHistory";
+                    }
+
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
+                        <td class="border-0 ps-4 py-3">
+                            <code class="text-orange fw-bold d-block">#@item.TrackingId</code>
+                            <div class="text-secondary x-small">@item.ReceiverName</div>
+                        </td>
+                        <td class="border-0 py-3">
+                            <div class="text-white small">@(item.ItemCategory ?? "General") • @item.Weight kg</div>
+                            @if (item.IsFragile)
+                            {
+                                <span class="badge border border-warning text-warning x-small" style="font-size: 0.6rem;">FRAGILE</span>
+                            }
+                        </td>
+                        <td class="border-0 py-3">
+                            <div class="text-white small">@item.DestinationRegion</div>
+                            <div class="text-secondary x-small">→ @destHub</div>
+                        </td>
+                        <td class="border-0 py-3">
+                            @{
+                                var statusClass = item.Status == "Delivered" ? "border-success text-success" : 
+                                                 (item.Status.Contains("Arrived") ? "border-primary text-primary" : 
+                                                 (item.Status.Contains("Transit") ? "border-info text-info" : 
+                                                 (item.Status == "Returning to Sender" ? "border-danger text-danger" : "border-warning text-warning")));
+                            }
+                            <span class="badge border bg-transparent px-3 @statusClass" style="font-size: 0.65rem;">
+                                @item.Status
                             </span>
-                        }
-                    </td>
-                    <td>
-                        <div class="text-white small">@item.DestinationRegion</div>
-                        <div class="small text-orange" style="color: #ff8c00;">→ @item.DestinationRegion Hub</div>
-                    </td>
-                    <td>
-                        <span class="badge py-2 px-3" style="background: rgba(46, 204, 113, 0.15); color: #2ecc71; border: 1px solid rgba(46, 204, 113, 0.3);">
-                            @item.Status
-                        </span>
-                    </td>
-                    <td style="min-width: 220px;">
-                        @if (isAssigned)
-                        {
-                            string riderName = item.AssignedRider != null 
-                                ? $"{item.AssignedRider.FirstName} {item.AssignedRider.LastName}" 
-                                : item.ManualRider?.Name ?? "Assigned";
-                            <div class="badge bg-success p-2 w-100 mb-2 d-flex align-items-center justify-content-center">
-                                <i class="bi bi-truck me-2"></i>@riderName
-                            </div>
-                        }
-
-                        @if (isPickup)
-                        {
-                            <div class="badge bg-info text-dark p-2 w-100">
-                                <i class="bi bi-building me-1"></i>Branch Pickup
-                            </div>
-                        }
-                        else if (canRider || isAssigned)
-                        {
-                                <div class="d-flex gap-1">
-                                    <select class="form-select form-select-sm bg-dark text-white border-secondary rider-select" id="rider-@item.TrackingId">
-                                        <option value="">@(isAssigned ? "Change" : "Select Rider")</option>
-                                        @foreach (var rider in Model.AvailableRiders)
-                                        {
-                                            bool isSelected = item.AssignedRiderId == rider.Id;
-                                            <option value="user_@rider.Id" selected="@isSelected">@rider.FirstName @rider.LastName [User]</option>
-                                        }
-                                        @foreach (var rider in Model.ManualRiders)
-                                        {
-                                            bool routeMatch = !string.IsNullOrEmpty(rider.Route) && item.ReceiverAddress.Contains(rider.Route, StringComparison.OrdinalIgnoreCase);
-                                            bool isSelected = item.ManualRiderId == rider.Id;
-                                            <option value="manual_@rider.Id" selected="@isSelected">
-                                                @rider.Name @(routeMatch ? "✓" : "") (@rider.Route)
-                                            </option>
-                                        }
-                                    </select>
-                                    <button class="btn btn-sm btn-warning fw-bold px-3" onclick="assignRider('@item.TrackingId')" title="@(isAssigned ? "Re-assign Rider" : "Assign Rider")">
-                                        <i class="bi @(isAssigned ? "bi-arrow-repeat" : "bi-person-plus-fill")"></i>
-                                    </button>
-                                </div>
-                        }
-                        else
-                        {
-                            <div class="btn-group w-100">
-                                @if (canPick)
-                                {
-                                    <form asp-action="MarkPicked" method="post" class="w-100">
-                                        <input type="hidden" name="trackingId" value="@item.TrackingId" />
-                                        <button type="submit" class="btn btn-sm btn-warning w-100">
-                                            <i class="bi bi-box2-heart me-1"></i>Pick
-                                        </button>
-                                    </form>
-                                }
-                                else if (canPack)
-                                {
-                                    <form asp-action="MarkPacked" method="post" class="w-100">
-                                        <input type="hidden" name="trackingId" value="@item.TrackingId" />
-                                        <button type="submit" class="btn btn-sm btn-info text-white w-100">
-                                            <i class="bi bi-box-seam me-1"></i>Pack
-                                        </button>
-                                    </form>
-                                }
-                                else
-                                {
-                                    <span class="text-secondary small">@item.Status</span>
-                                }
-                            </div>
-                        }
-                    </td>
-                </tr>
-            }
-            @if (!Model.RecentShipments.Any())
-            {
-                <tr>
-                    <td colspan="7" class="text-center py-5 text-secondary">
-                        <i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:8px;"></i>
-                        No orders in the system yet.
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+                        </td>
+                        <td class="border-0 py-3 text-end pe-4">
+                            <div class="text-white small">@item.UpdatedAt.ToString("MMM dd")</div>
+                            <div class="x-small text-secondary">@item.UpdatedAt.ToString("HH:mm")</div>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.RecentShipments.Any())
+                {
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-secondary border-0">
+                            <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                            No recent activity in this hub.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </div>
 
 @section Scripts {

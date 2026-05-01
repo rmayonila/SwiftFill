@@ -30,12 +30,12 @@
                                 <i class="bi bi-clock"></i> Local Time: @DateTime.Now.ToString("h:mm tt")
                             </li>
                             <li class="nav-item me-3">
-                                <span class="nav-link fw-bold text-white d-flex align-items-center">
+                                <a asp-controller="Account" asp-action="Settings" class="nav-link fw-bold text-white d-flex align-items-center text-decoration-none">
                                     <div class="rounded-circle d-flex justify-content-center align-items-center me-2 fw-bold" style="width: 28px; height: 28px; background: rgba(255,140,0,0.2); color: #ff8c00; font-size: 0.8rem;">
                                         @((User.Identity?.Name ?? "U").Substring(0,1).ToUpper())
                                     </div>
                                     @User.Identity?.Name
-                                </span>
+                                </a>
                             </li>
                             <li class="nav-item">
                                 <form method="post" action="/Account/Logout" class="d-inline">

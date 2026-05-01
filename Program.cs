@@ -57,8 +57,9 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<SwiftFill.Services.OrderService>();
 builder.Services.AddSingleton<SwiftFill.Services.AuditLogService>();
-builder.Services.AddHttpClient<SwiftFill.Services.GoogleMapsService>();
-builder.Services.AddScoped<SwiftFill.Services.GoogleMapsService>();
+builder.Services.AddHttpClient<SwiftFill.Services.JawgMapsService>();
+builder.Services.AddScoped<SwiftFill.Services.JawgMapsService>();
+builder.Services.AddScoped<SwiftFill.Services.CloudinaryService>();
 
 var app = builder.Build();
 

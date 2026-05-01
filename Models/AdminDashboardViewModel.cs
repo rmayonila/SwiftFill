@@ -24,6 +24,7 @@ namespace SwiftFill.Models
 
         // For Shipping.cshtml & Delivery.cshtml
         public List<Order> PackedOrders { get; set; } = new();
+        public List<Order> ReturningOrders { get; set; } = new();
 
         // To populate the Rider Dropdown
         public List<ApplicationUser> AvailableRiders { get; set; } = new();

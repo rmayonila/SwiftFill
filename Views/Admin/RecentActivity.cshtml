@@ -6,28 +6,128 @@
 
 <div class="animate-fade-up">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-clock-history text-orange me-2"></i> Recent System Activity</h2>
+        <h2 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-clock-history text-orange me-2"></i> Recent Activity</h2>
+        <div class="text-secondary small">Tracking real-time shipment movement across hubs and warehouses.</div>
     </div>
 
-    <div class="glass-card p-0 overflow-hidden border-0" style="background: rgba(255, 255, 255, 0.01);">
-        <ul class="list-group list-group-flush bg-transparent">
-            @foreach (var order in Model)
-            {
-                <li class="list-group-item bg-transparent border-bottom border-dark py-3 px-4" style="border-color: rgba(255,255,255,0.02) !important;">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <div class="text-white-50 x-small mb-1">LOGISTICS EVENT</div>
-                            <div class="text-white">Shipment <code class="text-orange">@order.TrackingId</code> received at Central Hub</div>
-                            <div class="text-secondary x-small mt-1 opacity-50">Node: SF-TRANSIT-@(order.TrackingId.Substring(0,4))</div>
-                        </div>
-                        <div class="text-secondary x-small">@order.CreatedAt.ToString("MMM dd, HH:mm")</div>
-                    </div>
-                </li>
-            }
-            @if (!Model.Any())
-            {
-                <li class="list-group-item bg-transparent text-center py-5 text-secondary border-0"><i class="bi"></i>No recent activity found.</li>
-            }
-        </ul>
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success bg-success bg-opacity-10 border-success text-success border-0 mb-4 animate-fade-in">
+            <i class="bi bi-check-circle me-2"></i> @TempData["SuccessMessage"]
+        </div>
+    }
+
+    <!-- Integrated Filter Bar (Reference-Matched) -->
+    <div class="d-flex justify-content-between align-items-center mb-4 gap-3 bg-dark-soft p-2 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+        <div class="d-flex align-items-center flex-grow-1 gap-3">
+            <form method="get" class="d-flex align-items-center flex-grow-1">
+                <div class="search-wrapper flex-grow-1" style="max-width: 400px;">
+                    <i class="bi bi-search"></i>
+                    <input type="text" name="search" value="@ViewBag.Search" class="minimal-input w-100" 
+                           placeholder="Search Tracking ID, Customer or Location...">
+                </div>
+            </form>
+        </div>
+
+        <div class="d-flex align-items-center gap-4">
+            <form method="get" class="d-flex align-items-center gap-3">
+                <select name="status" class="minimal-input" style="width: 150px; background: transparent; border: none;" onchange="this.form.submit()">
+                    <option value="All">All Logistics States</option>
+                    <option value="Pending" selected="@(ViewBag.Status == "Pending")">Pending</option>
+                    <option value="Sorted" selected="@(ViewBag.Status == "Sorted")">Sorted</option>
+                    <option value="In Transit" selected="@(ViewBag.Status == "In Transit")">In Transit</option>
+                    <option value="Received at Hub" selected="@(ViewBag.Status == "Received at Hub")">Received at Hub</option>
+                    <option value="Ready for Delivery" selected="@(ViewBag.Status == "Ready for Delivery")">Ready for Delivery</option>
+                    <option value="Delivered" selected="@(ViewBag.Status == "Delivered")">Delivered</option>
+                </select>
+            </form>
+            <button type="button" class="btn btn-primary px-4 py-2 shadow-sm border-0 d-flex align-items-center" 
+                    style="background: #FF8C00; border-radius: 8px; font-weight: 600; font-size: 0.85rem;" onclick="this.closest('div').querySelector('form').submit()">
+                <i class="bi bi-funnel me-2"></i> Filter
+            </button>
+        </div>
     </div>
+
+    <div class="glass-card p-0 overflow-hidden" style="background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.05);">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0">
+                <thead style="background: rgba(255,140,0,0.03);">
+                    <tr>
+                        <th class="ps-4 py-3">Last Update</th>
+                        <th class="py-3">Logistics Event</th>
+                        <th class="py-3">Current Location</th>
+                        <th class="py-3">Recipient</th>
+                        <th class="py-3 pe-4 text-end">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model)
+                    {
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
+                            <td class="ps-4 py-3">
+                                <div class="text-white small">@order.UpdatedAt.ToString("MMM dd, yyyy")</div>
+                                <div class="text-secondary x-small">@order.UpdatedAt.ToString("HH:mm:ss")</div>
+                            </td>
+                            <td class="py-3">
+                                <div class="text-white-50 x-small mb-1 text-uppercase ls-1">Shipment Movement</div>
+                                <div class="text-white">Shipment <code class="text-orange fw-bold">#@order.TrackingId</code></div>
+@* Event ID removed *@
+                            </td>
+                            <td class="py-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-geo-alt-fill text-orange me-2"></i>
+                                    <span class="text-white small">@order.CurrentLocation</span>
+                                </div>
+                            </td>
+                            <td class="py-3">
+                                <div class="text-white small fw-bold">@order.ReceiverName</div>
+                                <div class="text-secondary x-small">@order.DestinationRegion</div>
+                            </td>
+                            <td class="py-3 pe-4 text-end">
+                                <span class="badge border px-2 py-1 bg-transparent @(order.Status == "Delivered" ? "border-success text-success" : (order.Status == "In Transit" ? "border-primary text-primary" : "border-warning text-warning"))" style="font-size: 0.65rem;">
+                                    @order.Status.ToUpper()
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-secondary">
+                                <i class="bi bi-truck display-4 opacity-10 d-block mb-3"></i>
+                                No recent logistics activity found.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <nav class="mt-4">
+            <ul class="pagination pagination-sm justify-content-center">
+                <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                    <a class="page-link bg-dark border-0 text-secondary px-3" href="?page=@(ViewBag.CurrentPage - 1)&search=@ViewBag.Search&status=@ViewBag.Status">Previous</a>
+                </li>
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
+                        <a class="page-link @(ViewBag.CurrentPage == i ? "bg-orange border-0" : "bg-dark border-0 text-secondary") mx-1 rounded" href="?page=@i&search=@ViewBag.Search&status=@ViewBag.Status">@i</a>
+                    </li>
+                }
+                <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                    <a class="page-link bg-dark border-0 text-secondary px-3" href="?page=@(ViewBag.CurrentPage + 1)&search=@ViewBag.Search&status=@ViewBag.Status">Next</a>
+                </li>
+            </ul>
+        </nav>
+    }
 </div>
+
+<style>
+    .bg-orange { background-color: #ff8c00 !important; }
+    .x-small { font-size: 0.75rem; }
+    .ls-1 { letter-spacing: 1px; }
+</style>

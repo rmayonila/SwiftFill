@@ -5,253 +5,309 @@
     ViewData["Title"] = "Hub Transfers";
     var currentHub = ViewBag.CurrentHub as string ?? "Hub";
     var hubs = (ViewBag.Hubs as IEnumerable<string> ?? new List<string>()).ToList();
-    var outbound = ViewBag.Outbound as IEnumerable<SwiftFill.Models.Order> ?? new List<SwiftFill.Models.Order>();
-    var inTransit = ViewBag.InTransit as IEnumerable<SwiftFill.Models.Order> ?? new List<SwiftFill.Models.Order>();
-    var inbound = ViewBag.InboundParcels as IEnumerable<SwiftFill.Models.Order> ?? new List<SwiftFill.Models.Order>();
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-    <div>
-        <h1 class="dashboard-title text-info"><i class="bi bi-map-fill me-3"></i> Hub Transfers</h1>
-        <p class="text-secondary small mb-0">Inter-hub shipment manifest for <strong class="text-info">@currentHub</strong></p>
-    </div>
-    <div class="d-flex gap-2 flex-wrap">
-        <span class="badge bg-warning text-dark px-3 py-2">@outbound.Count() Outbound</span>
-        <span class="badge bg-success text-dark px-3 py-2">@inbound.Count() Inbound</span>
-        <span class="badge bg-info text-dark px-3 py-2">@inTransit.Count() In Transit</span>
-    </div>
-</div>
-
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success border-success bg-dark mb-4">
-        <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
-    </div>
-}
-@if (TempData["ErrorMessage"] != null)
-{
-    <div class="alert alert-danger border-danger bg-dark mb-4">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
-    </div>
-}
-
-<!-- ═══════════════════════════════════════════════
-     SECTION 1 — INBOUND PARCELS (Arriving Here)
-     ═══════════════════════════════════════════════ -->
-<div class="mb-5">
-    <div class="d-flex align-items-center gap-2 mb-3">
-        <span class="badge bg-success text-dark px-3">INBOUND</span>
-        <h5 class="text-white mb-0">Arriving at @currentHub</h5>
-        <span class="text-secondary small">— parcels dispatched from other hubs heading here</span>
+<div class="animate-fade-up">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-map-fill text-orange me-2"></i> Hub Transfers</h2>
+        <div class="text-secondary small">Hub: <span class="text-orange fw-bold">@currentHub</span></div>
     </div>
 
-    <div class="table-container border-top border-3" style="border-color: #198754 !important;">
-        <table class="table table-dark table-hover mb-0 align-middle">
-            <thead>
-                <tr>
-                    <th>Tracking ID</th>
-                    <th>Sender Hub</th>
-                    <th>Receiver</th>
-                    <th>Package</th>
-                    <th>Final Destination</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in inbound)
-                {
-                    // Resolve the final destination hub from the order's destination region
-                    var finalDestHub = HubRegistry.ResolveDestinationHub(item.DestinationRegion);
-                    var isFinalDest = finalDestHub == currentHub;
+    <!-- Integrated Filter Bar -->
+    <div class="d-flex justify-content-between align-items-center mb-4 gap-3 bg-dark-soft p-2 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+        <div class="d-flex align-items-center flex-grow-1 gap-3">
+            <form method="get" class="d-flex align-items-center flex-grow-1">
+                <div class="search-wrapper flex-grow-1" style="max-width: 400px; position: relative;">
+                    <i class="bi bi-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #6c757d;"></i>
+                    <input type="text" name="search" value="@ViewBag.Search" class="minimal-input w-100" 
+                           style="background: #111; border: 1px solid #222; border-radius: 8px; padding: 10px 15px 10px 40px; color: #fff; outline: none;"
+                           placeholder="Search Tracking ID, Receiver...">
+                </div>
+            </form>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+             <span class="badge bg-warning text-dark px-3 py-2 fw-bold">@Model.Count() TRANSFERS</span>
+        </div>
+    </div>
 
-                    <tr>
-                        <td class="text-success fw-bold">#@item.TrackingId</td>
-                        <td>
-                            <span class="badge bg-secondary">
-                                <i class="bi bi-geo-alt me-1"></i>@item.OriginHub
-                            </span>
-                        </td>
-                        <td>
-                            <div class="fw-semibold text-white">@item.ReceiverName</div>
-                            <div class="small text-secondary">@item.ReceiverAddress</div>
-                        </td>
-                        <td>
-                            <div class="small text-white">@(item.ItemCategory ?? "General") &bull; @item.Weight kg</div>
-                            @if (item.IsFragile)
-                            {
-                                <span class="badge bg-warning text-dark" style="font-size:0.6rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>FRAGILE</span>
-                            }
-                        </td>
-                        <td>
-                            <div class="small text-white">@item.DestinationRegion</div>
-                            @if (isFinalDest)
-                            {
-                                <span class="badge bg-success bg-opacity-10 border border-success text-success" style="font-size:0.65rem;">
-                                    <i class="bi bi-check-circle me-1"></i>Final Stop — @currentHub
-                                </span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-info bg-opacity-10 border border-info text-info" style="font-size:0.65rem;">
-                                    <i class="bi bi-arrow-right me-1"></i>Passing Through
-                                </span>
-                            }
-                        </td>
-                        <td>
-                            <form asp-action="MarkReceived" asp-controller="Warehouse" method="post">
-    <input type="hidden" name="trackingId" value="@item.TrackingId" />
-    <button type="submit" class="btn btn-success">
-        <i class="bi bi-box-arrow-in-down me-1"></i> Receive
-    </button>
-</form>
-                        </td>
+    <div class="glass-card p-0 overflow-hidden" style="background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.05);">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0">
+                <thead style="background: rgba(255,140,0,0.03);">
+                    <tr class="text-secondary small text-uppercase">
+                        <th class="ps-4 py-3">Shipment Identity</th>
+                        <th class="py-3">Transit Route</th>
+                        <th class="py-3">Status</th>
+                        <th class="py-3 pe-4 text-end">Action</th>
                     </tr>
-                }
-                @if (!inbound.Any())
-                {
-                    <tr>
-                        <td colspan="6" class="text-center py-4 text-secondary">
-                            <i class="bi bi-inbox" style="font-size:1.5rem; display:block; margin-bottom:6px;"></i>
-                            No parcels currently in transit to <strong>@currentHub</strong>.
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-</div>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var destHub = HubRegistry.ResolveDestinationHub(item.DestinationRegion);
+                        var isInbound = item.Status.Contains($"Transit to {currentHub}") || item.Status.Contains($"Transit back to {currentHub}");
+                        var isOutbound = item.Status == "Sorted for Transfer";
 
-<!-- ═══════════════════════════════════════════════
-     SECTION 2 — OUTBOUND (Ship Out)
-     ═══════════════════════════════════════════════ -->
-<div class="mb-5">
-    <div class="d-flex align-items-center gap-2 mb-3">
-        <span class="badge bg-warning text-dark px-3">OUTBOUND</span>
-        <h5 class="text-white mb-0">Ready to Ship Out</h5>
-        <span class="text-secondary small">— sorted and waiting to be dispatched to destination hub</span>
-    </div>
-
-    <div class="table-container border-top border-warning border-3">
-        <table class="table table-dark table-hover mb-0 align-middle">
-            <thead>
-                <tr>
-                    <th>Tracking ID</th>
-                    <th>Receiver</th>
-                    <th>Package</th>
-                    <th>Destination Region</th>
-                    <th>Target Hub</th>
-                    <th>Action — Ship Out</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in outbound)
-                {
-                    var destHub = HubRegistry.ResolveDestinationHub(item.DestinationRegion);
-                    <tr>
-                        <td class="text-warning fw-bold">#@item.TrackingId</td>
-                        <td>
-                            <div class="fw-semibold text-white">@item.ReceiverName</div>
-                            <div class="small text-secondary">@item.ReceiverAddress</div>
-                        </td>
-                        <td>
-                            <div class="small text-white">@(item.ItemCategory ?? "General") &bull; @item.Weight kg</div>
-                            @if (item.IsFragile)
-                            {
-                                <span class="badge bg-warning text-dark" style="font-size:0.6rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>FRAGILE</span>
-                            }
-                        </td>
-                        <td><span class="badge bg-secondary">@item.DestinationRegion</span></td>
-                        <td>
-                            <span class="text-info fw-bold"><i class="bi bi-geo-alt me-1"></i>@destHub</span>
-                        </td>
-                        <td>
-                            <form asp-action="MarkShipped" method="post" class="d-flex gap-2 align-items-center">
-                                <input type="hidden" name="trackingId" value="@item.TrackingId" />
-                                <select name="targetHub" class="form-select form-select-sm bg-dark text-white border-secondary" style="width: 160px;" required>
-                                    <option value="@destHub" selected>@destHub (Recommended)</option>
-                                    @foreach (var h in hubs.Where(x => x != currentHub && x != destHub))
-                                    {
-                                        <option value="@h">@h</option>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
+                            <td class="ps-4 py-3">
+                                <code class="text-orange fw-bold d-block">#@item.TrackingId</code>
+                                <div class="text-white small">@item.ReceiverName</div>
+                                <div class="text-secondary x-small"><i class="bi bi-geo-alt me-1"></i>@item.ReceiverAddress</div>
+                            </td>
+                            <td class="py-3">
+                                <div class="text-white small">
+                                    @if (isInbound) {
+                                        <span><i class="bi bi-arrow-down-left text-success me-1"></i> INBOUND</span>
+                                    } else {
+                                        <span><i class="bi bi-arrow-up-right text-info me-1"></i> OUTBOUND</span>
                                     }
-                                </select>
-                                <button type="submit" class="btn btn-sm btn-warning fw-bold">
-                                    <i class="bi bi-send-fill me-1"></i>Ship
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                }
-                @if (!outbound.Any())
-                {
-                    <tr>
-                        <td colspan="6" class="text-center py-4 text-secondary">
-                            No outbound parcels sorted yet.
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+                                </div>
+                                <div class="text-secondary x-small">
+                                    @if (isInbound) {
+                                        <span>Origin: @(item.OriginHub ?? "Davao")</span>
+                                    } else {
+                                        <span>Target: @destHub</span>
+                                    }
+                                </div>
+                            </td>
+                            <td class="py-3">
+                                @{
+                                    var statusClass = item.Status == "Delivered" ? "border-success text-success" : 
+                                                     (item.Status.Contains("Arrived") ? "border-primary text-primary" : 
+                                                     (item.Status.Contains("Transit") ? "border-info text-info" : 
+                                                     (item.Status == "Returning to Sender" ? "border-danger text-danger" : "border-warning text-warning")));
+                                }
+                                <span class="badge border bg-transparent px-2 py-1 @statusClass" style="font-size: 0.65rem;">
+                                    @item.Status
+                                </span>
+                            </td>
+                            <td class="py-3 pe-4 text-end">
+                                <div class="d-flex justify-content-end align-items-center gap-3">
+                                    @if (item.AssignedRiderId != null || item.ManualRiderId != null)
+                                    {
+                                        <div class="text-success x-small fw-bold border-end border-secondary border-opacity-25 pe-3 d-none d-md-block">
+                                            <i class="bi bi-truck me-1"></i>Assigned
+                                        </div>
+                                    }
+                                    <div class="d-flex gap-2">
+                                        @if (isInbound || isOutbound || item.Status == "Returning to Sender")
+                                        {
+                                            <button class="btn btn-link text-info p-0 action-icon" onclick="openTransferModal('@item.TrackingId', @isInbound.ToString().ToLower(), @isOutbound.ToString().ToLower(), '@(item.Status == "Returning to Sender" ? "true" : "false")', '@destHub')" title="Transfer Control">
+                                                <i class="bi bi-lightning-charge-fill"></i>
+                                            </button>
+                                        }
+                                        @if (item.CurrentLocation == currentHub && !item.Status.Contains("In Transit"))
+                                        {
+                                            <button class="btn btn-link text-warning p-0 action-icon" onclick="openAssignModal('@item.TrackingId')" title="Assign Rider">
+                                                <i class="bi bi-person-badge-fill"></i>
+                                            </button>
+                                        }
+                                        @if (!isInbound && !isOutbound && item.Status.Contains("In Transit"))
+                                        {
+                                            <span class="text-secondary x-small"><i class="bi bi-clock-history me-1"></i>En Route</span>
+                                        }
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center py-5 text-secondary border-0">
+                                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                                No active transfers for this hub.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
+
+    <!-- Pagination -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="mt-4">
+            <ul class="pagination pagination-sm justify-content-center">
+                <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                    <a class="page-link bg-dark border-0 text-secondary px-3" href="?page=@(ViewBag.CurrentPage - 1)&search=@ViewBag.Search">Previous</a>
+                </li>
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
+                        <a class="page-link @(ViewBag.CurrentPage == i ? "bg-orange border-0" : "bg-dark border-0 text-secondary") mx-1 rounded" href="?page=@i&search=@ViewBag.Search">@i</a>
+                    </li>
+                }
+                <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                    <a class="page-link bg-dark border-0 text-secondary px-3" href="?page=@(ViewBag.CurrentPage + 1)&search=@ViewBag.Search">Next</a>
+                </li>
+            </ul>
+        </div>
+    }
 </div>
 
-<!-- ═══════════════════════════════════════════════
-     SECTION 3 — IN TRANSIT (Already Dispatched)
-     ═══════════════════════════════════════════════ -->
-<div>
-    <div class="d-flex align-items-center gap-2 mb-3">
-        <span class="badge bg-info text-dark px-3">IN TRANSIT</span>
-        <h5 class="text-white mb-0">Already Dispatched</h5>
-        <span class="text-secondary small">— en route from @currentHub to destination hub</span>
-    </div>
+@section Scripts {
+    <script>
+        function openTransferModal(trackingId, isInbound, isOutbound, isReturning, destHub) {
+            const modal = new bootstrap.Modal(document.getElementById('transferModal'));
+            document.getElementById('transTrackingId').textContent = '#' + trackingId;
+            document.getElementById('receiveTrackingId').value = trackingId;
+            document.getElementById('shipTrackingId').value = trackingId;
+            document.getElementById('returnTrackingId').value = trackingId;
+            
+            document.getElementById('receiveSection').style.display = isInbound ? 'block' : 'none';
+            document.getElementById('shipSection').style.display = isOutbound ? 'block' : 'none';
+            document.getElementById('returnSection').style.display = (isReturning === 'true') ? 'block' : 'none';
+            
+            // Auto-select target hub if possible
+            const select = document.getElementById('targetHubSelect');
+            if (select && destHub) {
+                for (let i = 0; i < select.options.length; i++) {
+                    if (select.options[i].value === destHub) {
+                        select.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+            
+            modal.show();
+        }
 
-    <div class="table-container border-top border-info border-3">
-        <table class="table table-dark table-hover mb-0 align-middle">
-            <thead>
-                <tr>
-                    <th>Tracking ID</th>
-                    <th>Receiver</th>
-                    <th>Package</th>
-                    <th>Heading To</th>
-                    <th>Status</th>
-                    <th>Last Updated</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in inTransit)
-                {
-                    <tr>
-                        <td class="text-info fw-bold">#@item.TrackingId</td>
-                        <td>
-                            <div class="fw-semibold text-white">@item.ReceiverName</div>
-                            <div class="small text-secondary">@item.DestinationRegion</div>
-                        </td>
-                        <td>
-                            <div class="small text-white">@(item.ItemCategory ?? "General") &bull; @item.Weight kg</div>
-                            @if (item.IsFragile)
-                            {
-                                <span class="badge bg-warning text-dark" style="font-size:0.6rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>FRAGILE</span>
-                            }
-                        </td>
-                        <td>
-                            <span class="text-info"><i class="bi bi-arrow-right me-1"></i>@item.Status.Replace("In Transit to ", "")</span>
-                        </td>
-                        <td><span class="badge bg-info text-dark">In Transit</span></td>
-                        <td class="text-white-50 small">@item.UpdatedAt.ToString("MMM dd, HH:mm")</td>
-                    </tr>
-                }
-                @if (!inTransit.Any())
-                {
-                    <tr>
-                        <td colspan="6" class="text-center py-4 text-secondary">
-                            No parcels currently in transit from @currentHub.
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-</div>
+        function openAssignModal(trackingId) {
+            const modal = new bootstrap.Modal(document.getElementById('assignModal'));
+            document.getElementById('assignTrackingId').textContent = '#' + trackingId;
+            document.getElementById('assignFormTrackingId').value = trackingId;
+            modal.show();
+        }
+
+        function assignRider() {
+            const riderId = document.getElementById('assignRiderSelect').value;
+            if (!riderId) { alert('Please select a rider first'); return; }
+            document.getElementById('assignRiderForm').submit();
+        }
+    </script>
+}
 
 <style>
+    .bg-orange { background-color: #ff8c00; color: #000; }
     .x-small { font-size: 0.75rem; }
+    .action-icon { font-size: 1.25rem; transition: transform 0.2s; }
+    .action-icon:hover { transform: scale(1.2); }
+    .square-modal .modal-content {
+        background: #0f0f0f;
+        border: 1px solid rgba(255,140,0,0.2) !important;
+        border-radius: 20px;
+        max-width: 320px;
+        margin: auto;
+    }
+    .minimal-btn {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.05);
+        color: #fff;
+        padding: 12px;
+        border-radius: 12px;
+        width: 100%;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: all 0.2s;
+    }
+    .minimal-btn:hover {
+        background: rgba(255,140,0,0.1);
+        border-color: #ff8c00;
+        color: #ff8c00;
+    }
 </style>
+
+<!-- Transfer Control Modal -->
+<div class="modal fade" id="transferModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered square-modal">
+        <div class="modal-content">
+            <div class="modal-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <div class="text-secondary x-small text-uppercase ls-1">Transfer Control</div>
+                        <div class="fw-bold text-white fs-5" id="transTrackingId">#—</div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div id="receiveSection" class="mb-2">
+                    <form asp-action="MarkReceived" method="post">
+                        <input type="hidden" name="trackingId" id="receiveTrackingId" />
+                        <button type="submit" class="minimal-btn">
+                            <i class="bi bi-download text-success"></i>
+                            <span>Receive Inbound</span>
+                        </button>
+                    </form>
+                </div>
+
+                <div id="shipSection" class="mb-2">
+                    <form asp-action="ShipToHub" method="post">
+                        <input type="hidden" name="trackingId" id="shipTrackingId" />
+                        <div class="mb-2">
+                            <label class="text-secondary x-small mb-1 d-block ps-1">Select Target Hub</label>
+                            <select name="targetHub" id="targetHubSelect" class="form-select bg-dark text-white border-secondary border-opacity-25 mb-2" style="border-radius: 10px; font-size: 0.8rem;">
+                                @foreach (var h in (ViewBag.Hubs as IEnumerable<string> ?? new List<string>()).Where(x => x != currentHub)) {
+                                    <option value="@h">@h</option>
+                                }
+                            </select>
+                        </div>
+                        <button type="submit" class="minimal-btn">
+                            <i class="bi bi-send-fill text-info"></i>
+                            <span>Ship to Hub</span>
+                        </button>
+                    </form>
+                </div>
+
+                <div id="returnSection" class="mb-2">
+                    <form asp-action="ShipBackToOrigin" method="post">
+                        <input type="hidden" name="trackingId" id="returnTrackingId" />
+                        <button type="submit" class="minimal-btn text-danger">
+                            <i class="bi bi-arrow-left-right"></i>
+                            <span>Return to Origin</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assign Rider Modal -->
+<div class="modal fade" id="assignModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered square-modal">
+        <div class="modal-content">
+            <div class="modal-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <div class="text-secondary x-small text-uppercase ls-1">Assign Delivery</div>
+                        <div class="fw-bold text-white fs-5" id="assignTrackingId">#—</div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <form asp-action="AssignRider" method="post" id="assignRiderForm">
+                    <input type="hidden" name="trackingId" id="assignFormTrackingId" />
+                    <div class="mb-3">
+                        <label class="text-secondary x-small mb-2 d-block">Select Available Rider</label>
+                        <select name="riderId" id="assignRiderSelect" class="form-select bg-dark text-white border-secondary border-opacity-25" style="border-radius: 10px;">
+                            <option value="">Choose Rider...</option>
+                            @foreach (var r in (ViewBag.AvailableRiders as IEnumerable<ApplicationUser> ?? new List<ApplicationUser>())) {
+                                <option value="user_@r.Id">@r.FirstName @r.LastName</option>
+                            }
+                            @foreach (var r in (ViewBag.ManualRiders as IEnumerable<ManualRider> ?? new List<ManualRider>())) {
+                                <option value="manual_@r.Id">@r.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-warning w-100 fw-bold py-3" style="border-radius: 12px;" onclick="assignRider()">
+                        <i class="bi bi-person-check-fill me-2"></i> Assign Now
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

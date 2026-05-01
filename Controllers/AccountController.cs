@@ -306,6 +306,7 @@ namespace SwiftFill.Controllers
             if (User.IsInRole("SuperAdmin")) return View("SuperAdminSettings", model);
             if (User.IsInRole("Admin")) return View("AdminSettings", model);
             if (User.IsInRole("WarehouseStaff") || User.IsInRole("WarehouseOperator")) return View("WarehouseSettings", model);
+            if (User.IsInRole("DeliveryRider")) return View("RiderSettings", model);
             if (User.IsInRole("Customer")) return View("CustomerSettings", model);
                 
             return View("CustomerSettings", model); // Provide Customer as the ultimate fallback for standard users

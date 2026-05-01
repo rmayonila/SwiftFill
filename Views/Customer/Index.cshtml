@@ -7,14 +7,6 @@
 <div class="animate-fade-up">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold text-white">Welcome back, @(User.Identity?.Name?.Split('@')[0] ?? "Partner")</h2>
-        <div class="d-flex gap-2">
-            <a asp-controller="Account" asp-action="Settings" class="btn btn-sm btn-outline-secondary border-secondary px-3 text-white">
-                <i class="bi bi-gear-fill me-1"></i> Settings
-            </a>
-            <a asp-action="Book" class="btn btn-sm btn-outline-orange border-0 px-3">
-                <i class="bi bi-plus-lg me-1"></i> New Shipment
-            </a>
-        </div>
     </div>
 
     @if (Model != null && Model.Any(o => o.Status == "Return Notified"))
@@ -29,26 +21,45 @@
     }
 
     <div class="row g-4 mb-5">
-        <div class="col-md-3">
-            <div class="glass-card p-3 border-0 border-start border-primary border-4" style="background: rgba(255, 255, 255, 0.01);">
-                <div class="stat-label text-primary">Active Packages</div>
-                <div class="stat-value text-white h4 mb-0">@(Model?.Count(o => o.Status != "Delivered" && o.Status != "Returned") ?? 0)</div>
-                <div class="text-secondary x-small">In Transit</div>
+        <div class="col-md-4">
+            <div class="glass-card p-3 border-0 border-start border-primary border-4 d-flex justify-content-between align-items-center" style="background: rgba(255, 255, 255, 0.01);">
+                <div>
+                    <div class="stat-label text-primary">ACTIVE PACKAGES</div>
+                    <div class="text-secondary x-small mt-1">In Transit</div>
+                </div>
+                <div class="stat-value text-white h2 mb-0 fw-bold">@(Model?.Count(o => o.Status != "Delivered" && o.Status != "Returned") ?? 0)</div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="glass-card p-3 border-0 border-start border-success border-4" style="background: rgba(255, 255, 255, 0.01);">
-                <div class="stat-label text-success">Successful Drops</div>
-                <div class="stat-value text-white h4 mb-0">@(Model?.Count(o => o.Status == "Delivered") ?? 0)</div>
-                <div class="text-secondary x-small">Lifetime Cargo</div>
+        <div class="col-md-4">
+            <div class="glass-card p-3 border-0 border-start border-success border-4 d-flex justify-content-between align-items-center" style="background: rgba(255, 255, 255, 0.01);">
+                <div>
+                    <div class="stat-label text-success">SUCCESSFUL DROPS</div>
+                    <div class="text-secondary x-small mt-1">Lifetime Cargo</div>
+                </div>
+                <div class="stat-value text-white h2 mb-0 fw-bold">@(Model?.Count(o => o.Status == "Delivered") ?? 0)</div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="glass-card p-3 border-0 border-start border-warning border-4" style="background: rgba(255, 255, 255, 0.01);">
-                <div class="stat-label text-warning">Returns / Issues</div>
-                <div class="stat-value text-white h4 mb-0">@(Model?.Count(o => o.Status.Contains("Return")) ?? 0)</div>
-                <div class="text-secondary x-small">Action Needed</div>
+        <div class="col-md-4">
+            <div class="glass-card p-3 border-0 border-start border-warning border-4 d-flex justify-content-between align-items-center" style="background: rgba(255, 255, 255, 0.01);">
+                <div>
+                    <div class="stat-label text-warning">RETURNS / ISSUES</div>
+                    <div class="text-secondary x-small mt-1">Action Needed</div>
+                </div>
+                <div class="stat-value text-white h2 mb-0 fw-bold">@(Model?.Count(o => o.Status.Contains("Return")) ?? 0)</div>
             </div>
+        </div>
+    </div>
+
+    <!-- Integrated Tracking Bar -->
+    <div class="mb-5">
+        <div class="glass-card p-0 overflow-hidden border border-orange border-opacity-10 shadow-orange-sm" style="background: rgba(255,140,0,0.02); border-radius: 12px;">
+            <form onsubmit="event.preventDefault(); showOrderDetails(this.trackingId.value);" class="d-flex align-items-center p-1">
+                <div class="d-flex align-items-center px-3 flex-grow-1">
+                    <i class="bi bi-upc-scan text-orange me-3"></i>
+                    <input type="text" name="trackingId" class="minimal-input w-100 text-white" placeholder="ENTER 10-DIGIT TRACKING ID TO SCAN PAYLOAD..." style="letter-spacing: 2px; border:none !important;" autocomplete="off" required />
+                </div>
+                <button type="submit" class="btn btn-primary px-4 py-2 fw-bold" style="background: #ff8c00; border-radius: 8px;">TRACK</button>
+            </form>
         </div>
     </div>
 
@@ -102,73 +113,153 @@
     </div>
 </div>
 
-<!-- Order Details Modal -->
+<!-- Order Details Modal (Enhanced Tracking Design) -->
 <div class="modal fade" id="orderDetailsModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content glass-modal p-2" style="background: #111; border: 1px solid rgba(255,140,0,0.2);">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold text-white"><i class="bi bi-box-seam text-orange me-2"></i> Package Telemetry</h5>
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content glass-modal" style="background: #0a0a0a; border: 1px solid rgba(255,140,0,0.15); border-radius: 24px; overflow: hidden;">
+            <div class="modal-header border-0 p-4 pb-0">
+                <div class="d-flex align-items-center">
+                    <div class="icon-glow-sm me-3">
+                        <i class="bi bi-upc-scan text-orange fs-4"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold text-white mb-0" id="mTrackingId"></h5>
+                        <span class="text-secondary x-small text-uppercase ls-2">SECURED TRACKING LINK</span>
+                    </div>
+                </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <div id="modalLoading" class="text-center py-4">
+            <div class="modal-body p-4">
+                <div id="modalLoading" class="text-center py-5">
                     <div class="spinner-border text-orange" role="status"></div>
                 </div>
                 <div id="modalContent" class="d-none">
-                    <div class="d-flex justify-content-between mb-3 border-bottom border-secondary border-opacity-25 pb-2">
-                        <span class="text-secondary x-small text-uppercase ls-1">Tracking ID</span>
-                        <code class="text-orange fs-6" id="mTrackingId"></code>
-                    </div>
-                    
-                    <div class="row g-3 mb-3">
-                        <div class="col-6">
-                            <label class="text-secondary x-small mb-1 d-block">Status</label>
-                            <span class="badge border border-primary text-primary bg-transparent px-2" id="mStatus"></span>
+                    <!-- Status Header -->
+                    <div class="glass-card mb-4 p-3 border-0 border-start border-orange border-4 d-flex justify-content-between align-items-center" style="background: rgba(255,140,0,0.03);">
+                        <div>
+                            <span class="text-secondary x-small text-uppercase ls-1 d-block mb-1">Shipping Status</span>
+                            <h4 class="text-white fw-bold mb-0" id="mStatus"></h4>
                         </div>
-                        <div class="col-6 text-end">
-                            <label class="text-secondary x-small mb-1 d-block">Last Update</label>
+                        <div class="text-end">
+                            <span class="text-secondary x-small text-uppercase ls-1 d-block mb-1">Last Update</span>
                             <span class="text-white-50 x-small" id="mDate"></span>
                         </div>
                     </div>
 
-                    <div class="bg-dark-soft p-3 rounded-2 mb-3" style="background: rgba(255,255,255,0.02)">
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <small class="text-secondary d-block">Destination</small>
-                                <span class="text-white" id="mDest"></span>
-                            </div>
-                            <div class="col-6">
-                                <small class="text-secondary d-block">Delivery Type</small>
-                                <span class="text-white" id="mDelivery"></span>
+                    <div class="row g-4">
+                        <!-- Left: Shipment Meta -->
+                        <div class="col-md-5">
+                            <div class="p-4 rounded-4 h-100" style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.05);">
+                                <h6 class="text-orange small text-uppercase ls-1 mb-4 fw-bold">Shipment Details</h6>
+                                
+                                <div class="mb-3">
+                                    <label class="text-secondary x-small d-block mb-1">Sender</label>
+                                    <div class="text-white small fw-bold" id="mSender"></div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-secondary x-small d-block mb-1">Receiver</label>
+                                    <div class="text-white small fw-bold" id="mReceiver"></div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-secondary x-small d-block mb-1">Destination</label>
+                                    <div class="text-white small fw-bold" id="mDest"></div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-secondary x-small d-block mb-1">Service Type</label>
+                                    <div class="text-white small fw-bold" id="mDelivery"></div>
+                                </div>
+                                <div class="mb-0">
+                                    <label class="text-secondary x-small d-block mb-1">Package Info</label>
+                                    <div class="text-white small fw-bold"><span id="mWeight"></span>kg &bull; <span id="mCategory"></span></div>
+                                </div>
+
+                                <div id="pickupSection" class="mt-4 p-3 rounded-3 d-none" style="background: rgba(255,140,0,0.05);">
+                                    <label class="text-orange x-small d-block mb-1 fw-bold">PICKUP HUB</label>
+                                    <div class="text-white small fw-bold" id="mBranch"></div>
+                                </div>
                             </div>
                         </div>
-                        <div class="row g-2 mt-2" id="pickupSection" class="d-none">
-                            <div class="col-12">
-                                <small class="text-secondary d-block">Pickup Branch</small>
-                                <span class="text-orange fw-bold" id="mBranch"></span>
+
+                        <!-- Right: Timeline -->
+                        <div class="col-md-7">
+                            <div class="p-4 rounded-4 h-100" style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.05);">
+                                <h6 class="text-orange small text-uppercase ls-1 mb-4 fw-bold">Tracking History</h6>
+                                <div class="timeline-v2" id="mTimeline">
+                                    <!-- Dynamic Timeline Events -->
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Return Reason Block (Dynamically toggled) -->
-                    <div id="returnReasonBlock" class="d-none alert alert-warning border-warning bg-transparent border-opacity-50">
-                        <div class="x-small text-uppercase text-warning fw-bold mb-1"><i class="bi bi-exclamation-circle me-1"></i> Return Origin Notes</div>
-                        <div class="small text-white-50" id="mReturnReason"></div>
-                    </div>
-                    
-                     <!-- Driver Notes Block (Dynamically toggled) -->
-                    <div id="driverNotesBlock" class="d-none">
-                         <div class="text-secondary x-small mb-1">Driver Activity Logs</div>
-                         <div class="small text-white fst-italic border-start border-orange border-3 ps-2" id="mNotes"></div>
+                    <!-- Issues / Return Section -->
+                    <div id="returnReasonBlock" class="mt-4 p-4 rounded-4 d-none" style="background: rgba(220,53,69,0.05); border: 1px solid rgba(220,53,69,0.1);">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-triangle-fill text-danger fs-4 me-3"></i>
+                            <div>
+                                <h6 class="text-danger small text-uppercase ls-1 mb-1 fw-bold">Resolution Required</h6>
+                                <p class="text-white-50 x-small mb-0" id="mReturnReason"></p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-outline-secondary border-0" data-bs-dismiss="modal">Close</button>
+            <div class="modal-footer border-0 p-4">
+                <button type="button" class="btn btn-dark w-100 py-2 border border-secondary border-opacity-25" data-bs-dismiss="modal">Close Window</button>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .ls-2 { letter-spacing: 2px; }
+    .icon-glow-sm {
+        width: 40px; height: 40px;
+        background: rgba(255,140,0,0.1);
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        border: 1px solid rgba(255,140,0,0.2);
+    }
+
+    /* Vertical Timeline V2 (Matching Landing Page) */
+    .timeline-v2 {
+        position: relative;
+        padding-left: 20px;
+    }
+    .timeline-v2::before {
+        content: '';
+        position: absolute;
+        top: 5px; bottom: 5px; left: 0;
+        width: 2px;
+        background: rgba(255,255,255,0.1);
+    }
+    .t-event {
+        position: relative;
+        padding-bottom: 25px;
+        padding-left: 15px;
+    }
+    .t-event::before {
+        content: '';
+        position: absolute;
+        left: -21px; top: 5px;
+        width: 14px; height: 14px;
+        border-radius: 50%;
+        background: #000;
+        border: 2px solid rgba(255,255,255,0.2);
+        z-index: 1;
+    }
+    .t-event.completed::before {
+        border-color: #ff8c00;
+        background: #ff8c00;
+    }
+    .t-event.active::before {
+        border-color: #ff8c00;
+        background: #ff8c00;
+        box-shadow: 0 0 10px rgba(255,140,0,0.5);
+    }
+    .t-title { font-weight: 700; font-size: 0.85rem; color: #fff; margin-bottom: 2px; }
+    .t-desc { font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-bottom: 4px; }
+    .t-date { font-size: 0.7rem; color: rgba(255,140,0,0.6); font-family: monospace; }
+</style>
 
 @section Scripts {
     <script>
@@ -178,7 +269,6 @@
             document.getElementById('modalLoading').classList.remove('d-none');
             document.getElementById('modalContent').classList.add('d-none');
             document.getElementById('returnReasonBlock').classList.add('d-none');
-            document.getElementById('driverNotesBlock').classList.add('d-none');
             orderModal.show();
 
             fetch(`/Customer/GetOrderDetails?trackingId=${trackingId}`)
@@ -186,9 +276,13 @@
                 .then(data => {
                     if(data.success) {
                         document.getElementById('mTrackingId').textContent = data.trackingId;
-                        document.getElementById('mStatus').textContent = data.status;
+                        document.getElementById('mStatus').textContent = data.status.toUpperCase();
                         document.getElementById('mDate').textContent = data.lastUpdate;
+                        document.getElementById('mSender').textContent = data.sender;
+                        document.getElementById('mReceiver').textContent = data.receiver;
                         document.getElementById('mDest').textContent = data.destination;
+                        document.getElementById('mWeight').textContent = data.weight;
+                        document.getElementById('mCategory').textContent = data.itemCategory;
                         document.getElementById('mDelivery').textContent = data.deliveryType === 'BranchPickup' ? 'Branch Pickup' : 'Door-to-Door';
                         
                         // Handle Pickup Branch UI
@@ -205,19 +299,22 @@
                             document.getElementById('mReturnReason').textContent = data.returnReason;
                             document.getElementById('returnReasonBlock').classList.remove('d-none');
                         }
-                        
-                        // Handle standard tracking notes
-                        if(data.notes && !data.status.includes('Return')) {
-                            document.getElementById('mNotes').textContent = data.notes;
-                            document.getElementById('driverNotesBlock').classList.remove('d-none');
-                        }
 
-                        // Colors
-                        const statBadge = document.getElementById('mStatus');
-                        statBadge.className = 'badge border bg-transparent px-2 ';
-                        if(data.status === 'Delivered') statBadge.classList.add('border-success', 'text-success');
-                        else if(data.status.includes('Return')) statBadge.classList.add('border-warning', 'text-warning');
-                        else statBadge.classList.add('border-primary', 'text-primary');
+                        // Render Timeline
+                        const timelineContainer = document.getElementById('mTimeline');
+                        timelineContainer.innerHTML = '';
+                        data.timeline.forEach(ev => {
+                            const eventHtml = `
+                                <div class="t-event ${ev.isCompleted ? 'completed' : ''} ${ev.isActive ? 'active' : ''}">
+                                    <div class="t-title ${ev.title.includes('Delivered') ? 'text-success' : ''}">
+                                        <i class="bi ${ev.icon} me-1"></i> ${ev.title}
+                                    </div>
+                                    <div class="t-desc">${ev.description}</div>
+                                    <div class="t-date">${ev.date}</div>
+                                </div>
+                            `;
+                            timelineContainer.insertAdjacentHTML('beforeend', eventHtml);
+                        });
 
                         document.getElementById('modalLoading').classList.add('d-none');
                         document.getElementById('modalContent').classList.remove('d-none');
