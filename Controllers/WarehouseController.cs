@@ -411,6 +411,7 @@ namespace SwiftFill.Controllers
                 PackedOrders = localOrders.Where(o => o.CurrentLocation == currentHub && o.Status == "Sorted for Transfer").ToList(),
                 ReturningOrders = localOrders.Where(o => o.Status.Contains("back to " + currentHub) || (o.CurrentLocation == currentHub && o.Status == "Returning to Sender")).ToList(),
                 InTransit = inbound,
+                OutboundCount = localOrders.Count(o => o.CurrentLocation == currentHub && o.Status == "Sorted for Transfer"),
                 AvailableRiders = filteredRiders,
                 ManualRiders = filteredManualRiders,
                 Hubs = HubRegistry.Names

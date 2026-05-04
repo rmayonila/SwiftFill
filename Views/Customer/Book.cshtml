@@ -24,7 +24,7 @@
                     </div>
                     <div class="mb-4">
                         <label class="text-secondary x-small mb-1">Contact Number</label>
-                        <input asp-for="SenderPhone" class="minimal-input w-100" placeholder="+63 9XX..." required pattern="^\+?\d{10,12}$" title="Phone number must be 11 digits" />
+                        <input asp-for="SenderPhone" class="minimal-input w-100" placeholder="09123456789" required pattern="^\d{11}$" title="Phone number must be exactly 11 digits" />
                     </div>
                 </div>
 
@@ -41,7 +41,7 @@
                     </div>
                     <div class="mb-4">
                         <label class="text-secondary x-small mb-1">Contact Number</label>
-                        <input asp-for="ReceiverPhone" class="minimal-input w-100" placeholder="+63 9XX..." required pattern="^\+?\d{10,12}$" title="Phone number must be 11 digits" />
+                        <input asp-for="ReceiverPhone" class="minimal-input w-100" placeholder="09123456789" required pattern="^\d{11}$" title="Phone number must be exactly 11 digits" />
                     </div>
                 </div>
             </div>
@@ -55,10 +55,17 @@
                     <label class="text-secondary x-small mb-1">Item Category</label>
                     <select asp-for="ItemCategory" class="minimal-input w-100 est-trigger" required>
                         <option value="">Select Type</option>
-                        <option value="Documents">Documents</option>
-                        <option value="General">General Goods</option>
-                        <option value="Electronics">Electronics</option>
-                        <option value="Apparel">Apparel / Clothing</option>
+                        @foreach (var cat in (List<SwiftFill.Models.ItemCategory>)(ViewBag.ItemCategories ?? new List<SwiftFill.Models.ItemCategory>()))
+                        {
+                            <option value="@cat.Name">@cat.Name</option>
+                        }
+                        @if (!(ViewBag.ItemCategories as List<SwiftFill.Models.ItemCategory>)?.Any() ?? true)
+                        {
+                            <option value="Documents">Documents</option>
+                            <option value="General">General Goods</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Apparel">Apparel / Clothing</option>
+                        }
                     </select>
                 </div>
                 <div class="col-md-3">

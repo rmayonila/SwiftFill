@@ -44,6 +44,8 @@ namespace SwiftFill.Controllers
                 pendingOrders = model.PendingOrders,
                 inTransit = model.InTransit,
                 delivered = model.Delivered,
+                totalReturns = model.TotalReturns,
+                packingCount = model.PackingCount,
                 totalRevenue = model.TotalRevenue,
                 statusCounts = model.StatusCounts,
                 dailyTrend = model.DailyTrend,
@@ -63,11 +65,13 @@ namespace SwiftFill.Controllers
         {
             return new AdminDashboardViewModel
             {
-                TotalOrders = _context.Orders.Count(o => o.Status != "Delivered" && o.Status != "Returned"),
+                TotalOrders = _context.Orders.Count(o => !o.IsArchived),
                 PendingOrders = _context.Orders.Count(o => o.Status == "Pending"),
                 InTransit = _context.Orders.Count(o => (o.Status.Contains("Transit") || o.Status == "OutForDelivery")),
                 Delivered = _context.Orders.Count(o => o.Status == "Delivered"),
-                TotalRevenue = _context.Payments.Where(p => p.IsPaid).Sum(p => p.Amount),
+                TotalReturns = _context.ReturnRequests.Count(r => !r.IsArchived),
+                PackingCount = _context.Orders.Count(o => o.AvailPacking && (o.Status == "Pending" || o.Status == "Picked")),
+                TotalRevenue = _context.Payments.Where(p => p.IsPaid && !p.IsArchived).Sum(p => p.Amount),
                 
                 StatusCounts = _context.Orders.GroupBy(o => o.Status)
                     .Select(g => new StatusDistributionItem { Status = g.Key, Count = g.Count() }).ToList(),
@@ -107,6 +111,7 @@ namespace SwiftFill.Controllers
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
             ViewBag.PaymentMethods = await _context.PaymentMethods.Where(m => m.IsActive).ToListAsync();
+            ViewBag.ItemCategories = await _context.ItemCategories.Where(c => c.IsActive).OrderBy(c => c.Name).ToListAsync();
 
             return View(orders);
         }
@@ -230,7 +235,12 @@ namespace SwiftFill.Controllers
                     order.ShippingFee = totalAmount;
 
                     order.Payment.Method = PaymentMethod;
-                    if (PaymentMethod == "Cash" || PaymentMethod == "Bank Transfer" || PaymentMethod == "Prepaid")
+                    bool isInstantPayment = PaymentMethod == "GCash" || 
+                                           PaymentMethod == "Bank Transfer" || 
+                                           PaymentMethod == "Prepaid" || 
+                                           PaymentMethod == "Online Payment";
+                                           
+                    if (isInstantPayment)
                     {
                         if (!order.Payment.IsPaid) { order.Payment.IsPaid = true; order.Payment.PaidAt = DateTime.UtcNow; }
                     }
@@ -405,13 +415,18 @@ namespace SwiftFill.Controllers
                 totalAmount = rates.Calculate(model.Weight) + packingFee;
             }
 
+            bool isInstantPayment = paymentMethod == "GCash" || 
+                                   paymentMethod == "Bank Transfer" || 
+                                   paymentMethod == "Prepaid" || 
+                                   paymentMethod == "Online Payment";
+
             var payment = new Payment
             {
                 TrackingId = model.TrackingId,
                 Amount = totalAmount,
                 Method = paymentMethod,
-                IsPaid = paymentMethod == "Prepaid",
-                PaidAt = paymentMethod == "Prepaid" ? DateTime.UtcNow : null
+                IsPaid = isInstantPayment,
+                PaidAt = isInstantPayment ? DateTime.UtcNow : null
             };
             _context.Payments.Add(payment);
 
@@ -520,7 +535,7 @@ namespace SwiftFill.Controllers
             }
 
             int pageSize = 10;
-            var query = _context.ReturnRequests.Where(r => !r.IsArchived).AsQueryable();
+            var query = _context.ReturnRequests.Include(r => r.Order).Where(r => !r.IsArchived).AsQueryable();
 
             if (!string.IsNullOrEmpty(search))
                 query = query.Where(r => r.TrackingId.Contains(search) || r.Reason.Contains(search));
@@ -715,6 +730,101 @@ namespace SwiftFill.Controllers
                 TempData["SuccessMessage"] = "Payment method removed.";
             }
             return RedirectToAction(nameof(PaymentsManagement));
+        }
+
+        // --- ITEM CATEGORIES MANAGEMENT ---
+        public async Task<IActionResult> ItemCategories(string search, string status, int page = 1)
+        {
+            int pageSize = 10;
+            var query = _context.ItemCategories.AsQueryable();
+            
+            // Seed defaults if empty
+            if (!_context.ItemCategories.Any())
+            {
+                var defaults = new List<ItemCategory>
+                {
+                    new ItemCategory { Name = "General Merchandise", Description = "Common household and commercial goods." },
+                    new ItemCategory { Name = "Electronics", Description = "Devices, gadgets, and computer parts." },
+                    new ItemCategory { Name = "Apparel", Description = "Clothing, shoes, and textiles." },
+                    new ItemCategory { Name = "Documents", Description = "Paper-based items and files." }
+                };
+                _context.ItemCategories.AddRange(defaults);
+                await _context.SaveChangesAsync();
+                query = _context.ItemCategories.AsQueryable();
+            }
+
+            if (!string.IsNullOrEmpty(search))
+                query = query.Where(c => c.Name.Contains(search) || (c.Description != null && c.Description.Contains(search)));
+
+            if (status == "Archived")
+                query = query.Where(c => c.IsArchived);
+            else
+                query = query.Where(c => !c.IsArchived);
+
+            var totalItems = await query.CountAsync();
+            var categories = await query.OrderBy(c => c.Name)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+            
+            ViewBag.Search = search;
+            ViewBag.Status = status;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            
+            return View(categories);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddItemCategory(ItemCategory category)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.ItemCategories.Add(category);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Category '{category.Name}' added successfully.";
+            }
+            return RedirectToAction(nameof(ItemCategories));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateItemCategory(ItemCategory category)
+        {
+            var existing = await _context.ItemCategories.FindAsync(category.Id);
+            if (existing != null)
+            {
+                existing.Name = category.Name;
+                existing.Description = category.Description;
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Category '{category.Name}' updated.";
+            }
+            return RedirectToAction(nameof(ItemCategories));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ArchiveItemCategory(int id)
+        {
+            var category = await _context.ItemCategories.FindAsync(id);
+            if (category != null)
+            {
+                category.IsArchived = true;
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Category '{category.Name}' archived.";
+            }
+            return RedirectToAction(nameof(ItemCategories));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RestoreItemCategory(int id)
+        {
+            var category = await _context.ItemCategories.FindAsync(id);
+            if (category != null)
+            {
+                category.IsArchived = false;
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Category '{category.Name}' restored.";
+            }
+            return RedirectToAction(nameof(ItemCategories), new { status = "Archived" });
         }
     }
 }

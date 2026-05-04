@@ -19,6 +19,7 @@ namespace SwiftFill.Models
         public string LastName { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
         public string Hub { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
         public List<string> Permissions { get; set; } = new List<string>();
     }
 }

@@ -70,31 +70,29 @@
 
 <div class="animate-fade-up">
     <!-- Daily Summary (Admin Cards Copy) -->
-    <div class="row g-4 mb-5">
-        <div class="col-md-3">
-            <div class="glass-card p-3 border-0 border-start border-warning border-4 d-flex justify-content-between align-items-center">
+    <div class="row g-3 g-md-4 mb-5">
+        <div class="col-6 col-md-3">
+            <div class="glass-card p-3 border-0 border-start border-warning border-4 d-flex justify-content-between align-items-center h-100">
                 <div>
-                    <div class="stat-label text-orange">Remaining</div>
-                    <div class="text-secondary x-small">Active Parcels</div>
+                    <div class="stat-label text-orange x-small fw-bold text-uppercase">Remaining</div>
+                    <div class="stat-value text-white h4 mb-0 mt-1">@Model.Count()</div>
                 </div>
-                <div class="stat-value text-white h2 mb-0">@Model.Count()</div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="glass-card p-3 border-0 border-start border-success border-4 d-flex justify-content-between align-items-center">
+        <div class="col-6 col-md-3">
+            <div class="glass-card p-3 border-0 border-start border-success border-4 d-flex justify-content-between align-items-center h-100">
                 <div>
-                    <div class="stat-label text-success">Collected</div>
-                    <div class="text-secondary x-small">Total COD</div>
+                    <div class="stat-label text-success x-small fw-bold text-uppercase">Collected</div>
+                    <div class="stat-value text-white h5 mb-0 mt-1">₱@Model.Where(o => o.Payment?.Method == "COD").Sum(o => o.Payment?.Amount ?? 0).ToString("N0")</div>
                 </div>
-                <div class="stat-value text-white h3 mb-0">₱@Model.Where(o => o.Payment?.Method == "COD").Sum(o => o.Payment?.Amount ?? 0).ToString("N0")</div>
             </div>
         </div>
-        <div class="col-md-6 d-none d-md-block">
+        <div class="col-12 col-md-6">
             <div class="glass-card p-3 h-100 d-flex align-items-center">
                 <i class="bi bi-info-circle text-info me-3 fs-4"></i>
-                <div class="text-secondary smaller">
-                    <b>Rider Note:</b> Capture a clear POD photo for each successful delivery. <br/>
-                    Ensure the parcel and recipient are visible if possible.
+                <div class="text-secondary small">
+                    <b class="text-white-50">Rider Note:</b> Capture a clear POD photo for each successful delivery. 
+                    Ensure the parcel and recipient are visible.
                 </div>
             </div>
         </div>
@@ -283,12 +281,22 @@
                     <input type="hidden" name="trackingId" id="statusTrackingId" />
                     <input type="hidden" name="status" id="statusValue" />
                     <label class="text-secondary small mb-2 fw-bold text-uppercase">Reason:</label>
-                    <select name="failReason" class="form-select bg-black text-white border-secondary mb-3 py-3">
+                    <select id="mainReasonSelect" name="failReason" class="form-select bg-black text-white border-secondary mb-3 py-3" onchange="toggleOtherReason(this.value)">
                         <option value="Customer Not Home">Customer Not Home</option>
                         <option value="Refused to Pay (COD)">Refused to Pay (COD)</option>
                         <option value="Incorrect Address">Incorrect Address</option>
+                        <option value="Consignee Relocated">Consignee Relocated</option>
+                        <option value="Package Damage (Rejected)">Package Damage (Rejected)</option>
+                        <option value="Forbidden/Illegal Items">Forbidden/Illegal Items</option>
+                        <option value="Others">Others (Please specify)</option>
                     </select>
-                    <button type="submit" class="btn btn-orange w-100 py-3 fw-bold">Confirm Status</button>
+
+                    <div id="otherReasonWrapper" style="display: none;">
+                        <label class="text-secondary small mb-2 fw-bold text-uppercase">Specify Other Reason:</label>
+                        <input type="text" id="otherReasonInput" class="form-control bg-black text-white border-orange mb-3 py-3" placeholder="Type reason here...">
+                    </div>
+
+                    <button type="submit" class="btn btn-orange w-100 py-3 fw-bold" onclick="prepareStatusSubmit(event)">Confirm Status</button>
                 </div>
             </form>
         </div>
@@ -297,6 +305,37 @@
 
 @section Scripts {
     <script>
+        function toggleOtherReason(val) {
+            const wrapper = document.getElementById('otherReasonWrapper');
+            const input = document.getElementById('otherReasonInput');
+            if (val === 'Others') {
+                wrapper.style.display = 'block';
+                input.required = true;
+                input.focus();
+            } else {
+                wrapper.style.display = 'none';
+                input.required = false;
+            }
+        }
+
+        function prepareStatusSubmit(e) {
+            const select = document.getElementById('mainReasonSelect');
+            const input = document.getElementById('otherReasonInput');
+            if (select.value === 'Others') {
+                if (!input.value.trim()) {
+                    alert('Please specify the reason');
+                    e.preventDefault();
+                    return;
+                }
+                // Temporarily change the select name so it doesn't override the input
+                // Or better, set the select value to the input value before submit
+                const option = document.createElement('option');
+                option.value = input.value;
+                option.text = input.value;
+                select.appendChild(option);
+                select.value = input.value;
+            }
+        }
         let map = null;
         let marker = null;
         let routeLine = null;

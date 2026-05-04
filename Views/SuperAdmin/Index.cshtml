@@ -18,43 +18,43 @@
     
     <!-- Top Stats -->
     <div class="row g-4 mb-5">
-        <div class="col-md-3">
+        <div class="col-6 col-md-3">
             <div class="card premium-card border-0 shadow-sm h-100" style="background: linear-gradient(145deg, rgba(22,27,34,0.9) 0%, rgba(10,12,16,0.9) 100%); border: 1px solid #30363d !important; border-radius: 12px;">
-                <div class="card-body p-4 border-start border-success border-4 rounded-start">
+                <div class="card-body p-3 p-md-4 border-start border-success border-4 rounded-start">
                     <div class="d-flex align-items-center mb-2">
-                        <i class="bi bi-check-circle-fill text-success me-2"></i>
-                        <span class="text-success fw-bold text-uppercase x-small ls-1">System Status</span>
+                        <i class="bi bi-check-circle-fill text-success me-2 x-small"></i>
+                        <span class="text-success fw-bold text-uppercase x-small ls-1">System</span>
                     </div>
-                    <h3 class="text-white mb-1 fw-bold">Online</h3>
-                    <div class="text-secondary small">All services running smoothly</div>
+                    <h4 class="text-white mb-1 fw-bold">Online</h4>
+                    <div class="text-secondary x-small d-none d-md-block">All services running</div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-6 col-md-3">
             <div class="card premium-card border-0 shadow-sm h-100" style="background: linear-gradient(145deg, rgba(22,27,34,0.9) 0%, rgba(10,12,16,0.9) 100%); border: 1px solid #30363d !important; border-radius: 12px;">
-                <div class="card-body p-4 border-start border-info border-4 rounded-start">
+                <div class="card-body p-3 p-md-4 border-start border-info border-4 rounded-start">
                     <div class="d-flex align-items-center mb-2">
-                        <i class="bi bi-box-seam-fill text-info me-2"></i>
-                        <span class="text-info fw-bold text-uppercase x-small ls-1">Total Orders</span>
+                        <i class="bi bi-box-seam-fill text-info me-2 x-small"></i>
+                        <span class="text-info fw-bold text-uppercase x-small ls-1">Orders</span>
                     </div>
-                    <h3 class="text-white mb-1 fw-bold">@ViewBag.OrderCount</h3>
-                    <div class="text-secondary small">Recorded in database</div>
+                    <h4 class="text-white mb-1 fw-bold">@ViewBag.OrderCount</h4>
+                    <div class="text-secondary x-small d-none d-md-block">Total recorded</div>
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
             <div class="card premium-card border-0 shadow-sm h-100" style="background: rgba(22, 27, 34, 0.5); border: 1px solid #30363d !important; border-radius: 12px;">
                 <div class="card-body p-4">
-                    <h6 class="text-white mb-3 fw-bold">Quick System Actions</h6>
-                    <div class="d-flex gap-3 h-100 align-items-center">
-                        <button class="btn btn-outline-secondary border-secondary flex-fill py-2 rounded-3 hover-white" title="Clear Temporary Files" onclick="triggerSystemAction('Clear Memory')">
-                            <i class="bi bi-trash me-2"></i> Clear Memory
+                    <h6 class="text-white mb-3 fw-bold x-small text-uppercase ls-1">Quick System Actions</h6>
+                    <div class="d-flex flex-wrap gap-2 h-100 align-items-center">
+                        <button class="btn btn-outline-secondary border-secondary flex-fill py-2 px-2 rounded-3 hover-white x-small" title="Clear Temporary Files" onclick="triggerSystemAction('Clear Memory')">
+                            <i class="bi bi-trash"></i> <span class="d-none d-sm-inline">Clear</span>
                         </button>
-                        <button class="btn btn-outline-secondary border-secondary flex-fill py-2 rounded-3 hover-white" title="Apply Database Updates" onclick="triggerSystemAction('Update Database')">
-                            <i class="bi bi-database-up me-2"></i> Update Database
+                        <button class="btn btn-outline-secondary border-secondary flex-fill py-2 px-2 rounded-3 hover-white x-small" title="Apply Database Updates" onclick="triggerSystemAction('Update Database')">
+                            <i class="bi bi-database-up"></i> <span class="d-none d-sm-inline">Update</span>
                         </button>
-                        <button class="btn btn-outline-warning border-warning text-warning flex-fill py-2 rounded-3" title="Enable Advanced Testing" onclick="triggerSystemAction('Test Mode')">
-                            <i class="bi bi-bug me-2"></i> Test Mode
+                        <button class="btn btn-outline-warning border-warning text-warning flex-fill py-2 px-2 rounded-3 x-small" title="Enable Advanced Testing" onclick="triggerSystemAction('Test Mode')">
+                            <i class="bi bi-bug"></i> <span class="d-none d-sm-inline">Test</span>
                         </button>
                     </div>
                 </div>
@@ -66,7 +66,7 @@
     <h5 class="text-white fw-bold mb-4">Super Admin Modules</h5>
     <div class="row g-4 mb-5">
         <!-- 1 -->
-        <div class="col-md-4">
+        <div class="col-6 col-md-4">
             <a href="/SuperAdmin/Users" class="text-decoration-none">
                 <div class="card premium-card border-0 h-100 module-card" style="background: rgba(22, 27, 34, 0.7); border: 1px solid #30363d !important; border-radius: 12px; transition: all 0.3s ease;">
                     <div class="card-body p-4 text-center">
@@ -80,7 +80,7 @@
             </a>
         </div>
         <!-- 2 -->
-        <div class="col-md-4">
+        <div class="col-6 col-md-4">
             <a href="/SuperAdmin/Warehouses" class="text-decoration-none">
                 <div class="card premium-card border-0 h-100 module-card" style="background: rgba(22, 27, 34, 0.7); border: 1px solid #30363d !important; border-radius: 12px; cursor: pointer; transition: all 0.3s ease;">
                     <div class="card-body p-4 text-center">
@@ -94,7 +94,7 @@
             </a>
         </div>
         <!-- 3 -->
-        <div class="col-md-4">
+        <div class="col-6 col-md-4">
             <a href="/SuperAdmin/SecurityLogs" class="text-decoration-none">
                 <div class="card premium-card border-0 h-100 module-card" style="background: rgba(22, 27, 34, 0.7); border: 1px solid #30363d !important; border-radius: 12px; cursor: pointer; transition: all 0.3s ease;">
                     <div class="card-body p-4 text-center">
@@ -108,7 +108,7 @@
             </a>
         </div>
         <!-- 4 -->
-        <div class="col-md-4">
+        <div class="col-6 col-md-4">
             <a href="/SuperAdmin/SystemLogs" class="text-decoration-none">
                 <div class="card premium-card border-0 h-100 module-card" style="background: rgba(22, 27, 34, 0.7); border: 1px solid #30363d !important; border-radius: 12px; cursor: pointer; transition: all 0.3s ease;">
                     <div class="card-body p-4 text-center">
@@ -122,7 +122,7 @@
             </a>
         </div>
         <!-- 5 -->
-        <div class="col-md-4">
+        <div class="col-6 col-md-4">
             <a href="/SuperAdmin/Branding" class="text-decoration-none">
                 <div class="card premium-card border-0 h-100 module-card" style="background: rgba(22, 27, 34, 0.7); border: 1px solid #30363d !important; border-radius: 12px; cursor: pointer; transition: all 0.3s ease;">
                     <div class="card-body p-4 text-center">
@@ -136,7 +136,7 @@
             </a>
         </div>
         <!-- 6 -->
-        <div class="col-md-4">
+        <div class="col-6 col-md-4">
             <a href="/Admin/Dashboard" class="text-decoration-none">
                 <div class="card premium-card border-0 h-100 module-card" style="background: rgba(22, 27, 34, 0.7); border: 1px solid #30363d !important; border-radius: 12px; cursor: pointer; transition: all 0.3s ease;">
                     <div class="card-body p-4 text-center">
@@ -150,7 +150,7 @@
             </a>
         </div>
         <!-- 7 -->
-        <div class="col-md-4">
+        <div class="col-6 col-md-4">
             <a asp-controller="Account" asp-action="Settings" class="text-decoration-none">
                 <div class="card premium-card border-0 h-100 module-card" style="background: rgba(22, 27, 34, 0.7); border: 1px solid #30363d !important; border-radius: 12px; cursor: pointer; transition: all 0.3s ease;">
                     <div class="card-body p-4 text-center">

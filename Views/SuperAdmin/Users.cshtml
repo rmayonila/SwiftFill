@@ -6,56 +6,42 @@
 }
 
 <div class="animate-fade-up">
+
     <!-- Top Header Profile Area -->
     <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-dark pb-3">
         <div>
-            <h2 class="fw-bold fs-3 mt-2 mb-0 text-white">Users & Roles</h2>
+            <h1 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-people-fill text-orange me-3"></i> Users & Roles</h1>
             <p class="text-secondary mt-1" style="font-size: 1rem;">Manage system access, identities, and permissions.</p>
         </div>
-        <div>
-            <button class="btn btn-warning" style="border-radius: 8px; padding: 8px 16px; font-weight: 600; color: #000;" data-bs-toggle="modal" data-bs-target="#registerUserModal">
-                <i class="bi bi-person-plus-fill me-2"></i> Register New User
-            </button>
+    </div>
+
+    <!-- Search & Filter Bar (Reference-Matched) -->
+    <div class="d-flex justify-content-between align-items-center mb-4 gap-3 bg-dark-soft p-2 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+        <div class="d-flex align-items-center flex-grow-1 gap-3">
+            <form method="get" class="d-flex align-items-center flex-grow-1">
+                <div class="search-wrapper flex-grow-1" style="max-width: 400px;">
+                    <i class="bi bi-search"></i>
+                    <input type="text" name="search" value="@ViewBag.Search" class="minimal-input w-100" 
+                           placeholder="Search email, first name, or last name...">
+                </div>
+            </form>
+        </div>
+
+        <div class="d-flex align-items-center gap-4">
+            <form method="get" class="d-flex align-items-center gap-3">
+                <select name="role" class="minimal-input" style="width: 150px; background: transparent; border: none;" onchange="this.form.submit()">
+                    <option value="">All Roles</option>
+                    <option value="Admin" selected="@(ViewBag.Role == "Admin")">Admin</option>
+                    <option value="WarehouseStaff" selected="@(ViewBag.Role == "WarehouseStaff")">Warehouse Staff</option>
+                    <option value="DeliveryRider" selected="@(ViewBag.Role == "DeliveryRider")">Delivery Rider</option>
+                    <option value="SuperAdmin" selected="@(ViewBag.Role == "SuperAdmin")">SuperAdmin</option>
+                </select>
+            </form>
         </div>
     </div>
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success bg-success bg-opacity-10 border-success border-opacity-25 text-success alert-dismissible fade show mb-4" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger bg-danger bg-opacity-10 border-danger border-opacity-25 text-danger alert-dismissible fade show mb-4" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-
-    <!-- Search & Filter Bar -->
-    <div class="minimal-filter-bar mb-4 p-2 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
-        <form method="get" class="d-flex w-100 gap-3 align-items-center">
-            <div class="search-wrapper flex-grow-1">
-                <i class="bi bi-search"></i>
-                <input type="text" name="search" value="@ViewBag.Search" class="minimal-input w-100" 
-                       placeholder="Search email, first name, or last name...">
-            </div>
-            <select name="role" class="minimal-input" style="width: 150px; background: transparent; border: none;" onchange="this.form.submit()">
-                <option value="">All Roles</option>
-                <option value="Admin" selected="@(ViewBag.Role == "Admin")">Admin</option>
-                <option value="WarehouseStaff" selected="@(ViewBag.Role == "WarehouseStaff")">Warehouse Staff</option>
-                <option value="DeliveryRider" selected="@(ViewBag.Role == "DeliveryRider")">Delivery Rider</option>
-                <option value="SuperAdmin" selected="@(ViewBag.Role == "SuperAdmin")">SuperAdmin</option>
-            </select>
-            <button type="submit" class="btn btn-sm btn-warning px-4 py-2 border-0 shadow-sm text-dark fw-bold">Filter</button>
-        </form>
-    </div>
-
-    <!-- User Management Table -->
-    <div class="card premium-card border-0 shadow-lg" style="background: rgba(22, 27, 34, 0.9); backdrop-filter: blur(14px); border-radius: 12px; border: 1px solid #30363d !important; overflow: hidden;">
+    <!-- User Management Table (Glass-Card) -->
+    <div class="glass-card p-0 overflow-hidden" style="background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.05);">
         <div class="card-header bg-transparent border-bottom border-dark py-3 px-4 d-flex justify-content-between align-items-center">
             <h6 class="mb-0 fw-bold d-flex align-items-center text-white">
                 <i class="bi bi-people-fill text-orange me-3" style="font-size: 1.2rem;"></i> 
@@ -66,7 +52,7 @@
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-dark table-hover mb-0 align-middle">
-                    <thead style="background: rgba(0,0,0,0.3);">
+                    <thead style="background: rgba(255,140,0,0.03);">
                         <tr>
                             <th class="ps-4 py-3 text-secondary fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 1px;">User Identity</th>
                             <th class="py-3 text-secondary fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 1px;">Username</th>
@@ -171,31 +157,28 @@
             </div>
         </div>
 
-        <!-- Pagination -->
-        @if (ViewBag.TotalPages != null && ViewBag.TotalPages > 1)
-        {
-            <div class="card-footer bg-transparent border-top border-dark py-3">
-                <div class="d-flex justify-content-center">
-                    <nav>
-                        <ul class="pagination pagination-sm m-0" style="--bs-pagination-bg: transparent; --bs-pagination-border-color: rgba(255,255,255,0.1); --bs-pagination-color: #fff; --bs-pagination-hover-bg: rgba(255,255,255,0.1); --bs-pagination-hover-color: #fff; --bs-pagination-active-bg: #ff8c00; --bs-pagination-active-border-color: #ff8c00;">
-                            <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
-                                <a class="page-link" href="?search=@ViewBag.Search&role=@ViewBag.Role&page=@(ViewBag.CurrentPage - 1)">Previous</a>
-                            </li>
-                            @for (int i = 1; i <= ViewBag.TotalPages; i++)
-                            {
-                                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
-                                    <a class="page-link" href="?search=@ViewBag.Search&role=@ViewBag.Role&page=@i">@i</a>
-                                </li>
-                            }
-                            <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
-                                <a class="page-link" href="?search=@ViewBag.Search&role=@ViewBag.Role&page=@(ViewBag.CurrentPage + 1)">Next</a>
-                            </li>
-                        </ul>
-                    </nav>
-                </div>
-            </div>
-        }
     </div>
+
+    <!-- Pagination (Reference-Matched) -->
+    @if (ViewBag.TotalPages != null && ViewBag.TotalPages > 1)
+    {
+        <div class="mt-4">
+            <ul class="pagination pagination-sm justify-content-center">
+                <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                    <a class="page-link bg-dark border-0 text-secondary px-3" href="?search=@ViewBag.Search&role=@ViewBag.Role&page=@(ViewBag.CurrentPage - 1)">Previous</a>
+                </li>
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                        <a class="page-link @(i == ViewBag.CurrentPage ? "bg-orange border-0" : "bg-dark border-0 text-secondary") mx-1 rounded" href="?search=@ViewBag.Search&role=@ViewBag.Role&page=@i">@i</a>
+                    </li>
+                }
+                <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                    <a class="page-link bg-dark border-0 text-secondary px-3" href="?search=@ViewBag.Search&role=@ViewBag.Role&page=@(ViewBag.CurrentPage + 1)">Next</a>
+                </li>
+            </ul>
+        </div>
+    }
 </div>
 
 <!-- Register New User Modal -->
@@ -229,6 +212,10 @@
                     <div class="mb-3">
                         <label class="form-label text-secondary small">Password</label>
                         <input type="password" name="Password" class="form-control bg-dark border-secondary text-white shadow-none" placeholder="Enter password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small">Phone Number</label>
+                        <input type="text" name="PhoneNumber" class="form-control bg-dark border-secondary text-white shadow-none" placeholder="09123456789" required pattern="^\d{11}$" title="Phone number must be exactly 11 digits">
                     </div>
                     <div class="mb-3">
                         <label class="form-label text-secondary small">Assign Primary Role</label>
@@ -490,7 +477,7 @@
                     <input type="text" name="userName" id="edit_userName" class="form-control bg-dark border-secondary text-white mb-3" required>
                     
                     <label class="form-label text-secondary small">Phone Number</label>
-                    <input type="text" name="phoneNumber" id="edit_phoneNumber" class="form-control bg-dark border-secondary text-white mb-3" placeholder="+63 9XX XXX XXXX">
+                    <input type="text" name="phoneNumber" id="edit_phoneNumber" class="form-control bg-dark border-secondary text-white mb-3" placeholder="09123456789" required pattern="^\d{11}$" title="Phone number must be exactly 11 digits">
                     
                     <label class="form-label text-secondary small">ASSIGN HUB</label>
                     <select name="hub" id="edit_hub" class="form-select bg-dark border-secondary text-white">

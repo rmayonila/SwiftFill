@@ -1,20 +1,28 @@
 using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SwiftFill.Models
 {
     public class ApplicationUser : IdentityUser
     {
+        [Required]
+        [StringLength(50)]
         public string? FirstName { get; set; }
+
+        [Required]
+        [StringLength(50)]
         public string? LastName { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        // Hub assignment for riders/staff (e.g. "Davao Hub", "Manila Hub", "Cebu Hub")
+
+        [Phone]
+        [RegularExpression(@"^\d{11}$", ErrorMessage = "Phone number must be exactly 11 digits.")]
+        public override string? PhoneNumber { get; set; }
+
+        
         public string? Hub { get; set; }
 
-        /// <summary>
-        /// Delivery route keyword assigned to this rider (e.g. "Mabolo", "Buhangin").
-        /// Matches the Route field in ManualRiders — used to filter order assignments.
-        /// </summary>
         public string? Route { get; set; }
 
         public bool IsSuspended { get; set; } = false;

@@ -48,6 +48,7 @@
                     <thead style="background: rgba(255,140,0,0.03);">
                         <tr>
                             <th class="ps-4 py-3">RMA/Tracking</th>
+                            <th class="py-3">Address</th>
                             <th class="py-3">Reason</th>
                             <th class="py-3">Status</th>
                             <th class="py-3 pe-4 text-end">Action</th>
@@ -59,6 +60,14 @@
                             <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
                                 <td class="ps-4 py-3">
                                     <code class="text-orange">@item.TrackingId</code>
+                                    <div class="x-small text-secondary">@item.Order?.ReceiverName</div>
+                                </td>
+                                <td class="py-3">
+                                    <div class="text-white small" style="max-width: 250px;">
+                                        <i class="bi bi-geo-alt text-secondary me-1"></i>
+                                        @(item.Order?.ReceiverAddress ?? "No Address Linked")
+                                    </div>
+                                    <div class="x-small text-secondary">@item.Order?.DestinationRegion</div>
                                 </td>
                                 <td class="py-3 text-white">@(item.Description ?? item.Reason)</td>
                                 <td class="py-3">
@@ -157,7 +166,7 @@
             <div class="modal-body text-center p-4">
                 <div class="display-4 text-danger mb-3"><i class="bi bi-exclamation-octagon"></i></div>
                 <h5 class="text-white fw-bold mb-2">Archive Return?</h5>
-                <p class="text-secondary small mb-4">Are you sure you want to archive return request for <strong id="archiveTrackingId" class="text-white"></strong>? This will remove it from active records.</p>
+                <p class="text-secondary small mb-4">Are you sure you want to archive return request for <strong id="archiveTrackingId" class="text-white"></strong>? This will remove it from active management.</p>
                 <form asp-action="ArchiveReturnRequest" method="post" id="archiveReturnForm">
                     <input type="hidden" name="requestId" id="archiveRequestIdInput" />
                     <div class="d-flex gap-2">

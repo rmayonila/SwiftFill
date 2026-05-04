@@ -14,6 +14,7 @@ namespace SwiftFill.Models
         [Required]
         public string SenderAddress { get; set; } = string.Empty;
         [Required]
+        [RegularExpression(@"^\d{11}$", ErrorMessage = "Phone number must be exactly 11 digits.")]
         public string SenderPhone { get; set; } = string.Empty;
 
         [Required]
@@ -21,6 +22,7 @@ namespace SwiftFill.Models
         [Required]
         public string ReceiverAddress { get; set; } = string.Empty;
         [Required]
+        [RegularExpression(@"^\d{11}$", ErrorMessage = "Phone number must be exactly 11 digits.")]
         public string ReceiverPhone { get; set; } = string.Empty;
 
         [Required]

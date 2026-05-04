@@ -83,7 +83,7 @@ namespace SwiftFill.Controllers
                 });
             }
 
-            ViewBag.AllHubNames = await _context.Warehouses.Select(w => w.Name).ToListAsync();
+            ViewBag.AllHubNames = await _context.Warehouses.Where(w => !w.IsArchived).Select(w => w.Name).ToListAsync();
             
             ViewBag.Search = search;
             ViewBag.Role = role;
@@ -104,6 +104,7 @@ namespace SwiftFill.Controllers
                     Email = model.Email,
                     FirstName = model.FirstName,
                     LastName = model.LastName,
+                    PhoneNumber = model.PhoneNumber,
                     Hub = model.Hub,
                     EmailConfirmed = true // Auto-verify for admin created accounts
                 };
@@ -230,7 +231,7 @@ namespace SwiftFill.Controllers
             return RedirectToAction(nameof(Users));
         }
 
-        public async Task<IActionResult> Warehouses(string search, int page = 1)
+        public async Task<IActionResult> Warehouses(string search, string island, int page = 1)
         {
             int pageSize = 8;
             var query = _context.Warehouses.Where(w => !w.IsArchived).AsQueryable();
@@ -240,6 +241,11 @@ namespace SwiftFill.Controllers
                 query = query.Where(w => w.Name.Contains(search) || w.Region.Contains(search) || w.Island.Contains(search));
             }
 
+            if (!string.IsNullOrEmpty(island))
+            {
+                query = query.Where(w => w.Island == island);
+            }
+
             var totalItems = await query.CountAsync();
             var warehouses = await query.OrderByDescending(w => w.CreatedAt)
                                         .Skip((page - 1) * pageSize)
@@ -247,6 +253,7 @@ namespace SwiftFill.Controllers
                                         .ToListAsync();
 
             ViewBag.Search = search;
+            ViewBag.Island = island;
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 
@@ -302,7 +309,7 @@ namespace SwiftFill.Controllers
             }
             return RedirectToAction(nameof(Warehouses));
         }
-
+ 
         [HttpPost]
         public async Task<IActionResult> ArchiveHub(int id)
         {
@@ -317,46 +324,8 @@ namespace SwiftFill.Controllers
             }
             return RedirectToAction(nameof(Warehouses));
         }
-        
-        [HttpPost]
-        public async Task<IActionResult> RestoreHub(int id)
-        {
-            var warehouse = await _context.Warehouses.FindAsync(id);
-            if (warehouse != null)
-            {
-                warehouse.IsArchived = false;
-                await _context.SaveChangesAsync();
-                _audit.Log(User.Identity?.Name ?? "SuperAdmin", "SuperAdmin", "Restore Hub", 
-                    $"Warehouse '{warehouse.Name}' restored.", AuditLogType.System);
-                TempData["SuccessMessage"] = $"Warehouse '{warehouse.Name}' restored successfully.";
-            }
-            return RedirectToAction(nameof(Archive));
-        }
 
-        public async Task<IActionResult> Archive(string search, int page = 1)
-        {
-            int pageSize = 8;
-            var query = _context.Warehouses.Where(w => w.IsArchived).AsQueryable();
-
-            if (!string.IsNullOrEmpty(search))
-            {
-                query = query.Where(w => w.Name.Contains(search) || w.Region.Contains(search) || w.Island.Contains(search));
-            }
-
-            var totalItems = await query.CountAsync();
-            var warehouses = await query.OrderByDescending(w => w.CreatedAt)
-                                        .Skip((page - 1) * pageSize)
-                                        .Take(pageSize)
-                                        .ToListAsync();
-
-            ViewBag.Search = search;
-            ViewBag.CurrentPage = page;
-            ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
-
-            return View(warehouses);
-        }
-
-        public async Task<IActionResult> SystemLogs(string search, int page = 1)
+        public async Task<IActionResult> SystemLogs(string search, string role, int page = 1)
         {
             int pageSize = 15;
             var query = _context.AuditLogs.Where(l => l.Type == AuditLogType.System).AsQueryable();
@@ -366,27 +335,9 @@ namespace SwiftFill.Controllers
                 query = query.Where(l => l.Action.Contains(search) || l.Detail.Contains(search) || l.Actor.Contains(search));
             }
 
-            var totalItems = await query.CountAsync();
-            var logs = await query.OrderByDescending(l => l.Timestamp)
-                                  .Skip((page - 1) * pageSize)
-                                  .Take(pageSize)
-                                  .ToListAsync();
-
-            ViewBag.Search = search;
-            ViewBag.CurrentPage = page;
-            ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
-
-            return View(logs);
-        }
-
-        public async Task<IActionResult> SecurityLogs(string search, int page = 1)
-        {
-            int pageSize = 15;
-            var query = _context.AuditLogs.Where(l => l.Type == AuditLogType.Security).AsQueryable();
-
-            if (!string.IsNullOrEmpty(search))
+            if (!string.IsNullOrEmpty(role))
             {
-                query = query.Where(l => l.Action.Contains(search) || l.Detail.Contains(search) || l.Actor.Contains(search));
+                query = query.Where(l => l.Role == role);
             }
 
             var totalItems = await query.CountAsync();
@@ -396,6 +347,36 @@ namespace SwiftFill.Controllers
                                   .ToListAsync();
 
             ViewBag.Search = search;
+            ViewBag.Role = role;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            return View(logs);
+        }
+
+        public async Task<IActionResult> SecurityLogs(string search, string role, int page = 1)
+        {
+            int pageSize = 15;
+            var query = _context.AuditLogs.Where(l => l.Type == AuditLogType.Security).AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(l => l.Action.Contains(search) || l.Detail.Contains(search) || l.Actor.Contains(search));
+            }
+
+            if (!string.IsNullOrEmpty(role))
+            {
+                query = query.Where(l => l.Role == role);
+            }
+
+            var totalItems = await query.CountAsync();
+            var logs = await query.OrderByDescending(l => l.Timestamp)
+                                  .Skip((page - 1) * pageSize)
+                                  .Take(pageSize)
+                                  .ToListAsync();
+
+            ViewBag.Search = search;
+            ViewBag.Role = role;
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 

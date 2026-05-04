@@ -1,0 +1,297 @@
+@model IEnumerable<SwiftFill.Models.ItemCategory>
+@{
+    ViewData["Title"] = "Accepted Items";
+    Layout = "_AdminLayout";
+}
+
+<div class="animate-fade-up">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-card-checklist text-orange me-2"></i> Accepted Items</h2>
+        <div>
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <span class="badge bg-success me-3 p-2">@TempData["SuccessMessage"]</span>
+            }
+        </div>
+    </div>
+
+    <!-- Filter Bar (Matches Orders Page) -->
+    <div class="d-flex justify-content-between align-items-center mb-4 gap-3 bg-dark-soft p-2 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+        <div class="d-flex align-items-center flex-grow-1 gap-3">
+            <form method="get" class="d-flex align-items-center flex-grow-1">
+                <div class="search-wrapper flex-grow-1" style="max-width: 400px; position: relative;">
+                    <i class="bi bi-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.4);"></i>
+                    <input type="text" name="search" value="@ViewBag.Search" class="minimal-input w-100 ps-5" 
+                           placeholder="Search categories or descriptions..." style="background: transparent; border: none; color: white; padding: 8px 12px;">
+                </div>
+            </form>
+        </div>
+
+        <div class="d-flex align-items-center gap-4">
+            <form method="get" class="d-flex align-items-center gap-3">
+                <select name="status" class="minimal-input" style="width: 150px; background: transparent; border: none; color: rgba(255,255,255,0.7);" onchange="this.form.submit()">
+                    <option value="Active" selected="@(ViewBag.Status != "Archived")">Active Items</option>
+                    <option value="Archived" selected="@(ViewBag.Status == "Archived")">Archived Items</option>
+                </select>
+            </form>
+            <button type="button" class="btn btn-primary px-4 py-2 shadow-sm border-0 d-flex align-items-center" 
+                    style="background: #FF8C00; border-radius: 8px; font-weight: 600; font-size: 0.85rem; color: black;" 
+                    data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                <i class="bi bi-plus-lg me-2"></i> Add Item
+            </button>
+        </div>
+    </div>
+
+    <div class="glass-card p-0 overflow-hidden" style="background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px;">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0">
+                <thead style="background: rgba(255,140,0,0.03);">
+                    <tr>
+                        <th class="ps-4 py-3">Item Detail</th>
+                        <th class="py-3">Description</th>
+                        <th class="py-3 text-center">Date Added</th>
+                        <th class="py-3 pe-4 text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
+                            <td class="ps-4 py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary bg-opacity-10 rounded-3 d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; border: 1px solid rgba(255,140,0,0.2);">
+                                        <i class="bi bi-box-seam text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <span class="fw-bold text-white d-block">@item.Name</span>
+                                        <span class="text-secondary x-small">ID: #@item.Id.ToString("D3")</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-3">
+                                <div class="text-secondary small" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    @(string.IsNullOrEmpty(item.Description) ? "No description provided" : item.Description)
+                                </div>
+                            </td>
+                            <td class="py-3 text-center">
+                                <div class="text-white small">@item.CreatedAt.ToString("MMM dd, yyyy")</div>
+                            </td>
+                            <td class="py-3 pe-4 text-end">
+                                <div class="d-flex justify-content-end gap-1">
+                                    <button type="button" class="btn btn-sm btn-outline-warning border-0 p-1" onclick="editCategory(@item.Id, '@item.Name', '@item.Description')">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                    @if (item.IsArchived)
+                                    {
+                                        <form asp-action="RestoreItemCategory" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-success border-0 p-1" title="Restore Category">
+                                                <i class="bi bi-arrow-counterclockwise"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn btn-sm btn-outline-danger border-0 p-1" onclick="confirmArchive(@item.Id, '@item.Name')">
+                                            <i class="bi bi-archive"></i>
+                                        </button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center py-5 text-secondary">
+                                <i class="bi bi-inbox fs-1 d-block mb-2 opacity-25"></i>
+                                No categories found matching your criteria.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="mt-4">
+            <ul class="pagination pagination-sm justify-content-center">
+                <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                    <a class="page-link bg-dark border-0 text-secondary px-3" href="?page=@(ViewBag.CurrentPage - 1)&search=@ViewBag.Search&status=@ViewBag.Status">Previous</a>
+                </li>
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
+                        <a class="page-link @(ViewBag.CurrentPage == i ? "bg-orange border-0" : "bg-dark border-0 text-secondary") mx-1 rounded text-white" href="?page=@i&search=@ViewBag.Search&status=@ViewBag.Status">@i</a>
+                    </li>
+                }
+                <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                    <a class="page-link bg-dark border-0 text-secondary px-3" href="?page=@(ViewBag.CurrentPage + 1)&search=@ViewBag.Search&status=@ViewBag.Status">Next</a>
+                </li>
+            </ul>
+        </div>
+    }
+</div>
+
+<!-- Add Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="background: #0f0f0f; border-radius: 16px; border: 1px solid rgba(255,140,0,0.1) !important;">
+            <form asp-action="AddItemCategory" method="post">
+                <div class="modal-header border-0 pb-0">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-orange d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background: #FF8C00;">
+                            <i class="bi bi-plus-lg text-black fs-5"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title text-white fw-bold mb-0">Add New Item</h5>
+                            <p class="text-secondary x-small mb-0">Define a new accepted shipment category</p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="text-secondary x-small mb-2 d-block text-uppercase fw-bold ls-1">Item Name</label>
+                        <input type="text" name="Name" class="minimal-input w-100" required placeholder="e.g. Fragile Electronics">
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-secondary x-small mb-2 d-block text-uppercase fw-bold ls-1">Description</label>
+                        <textarea name="Description" class="minimal-input w-100" rows="3" placeholder="Describe the item requirements..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-dark px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary px-4 fw-bold" style="background:#FF8C00; color: black;">Create Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Category Modal -->
+<div class="modal fade" id="editCategoryModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="background: #0f0f0f; border-radius: 16px; border: 1px solid rgba(255,140,0,0.1) !important;">
+            <form asp-action="UpdateItemCategory" method="post">
+                <input type="hidden" name="Id" id="editId">
+                <div class="modal-header border-0 pb-0">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-orange d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background: #FF8C00;">
+                            <i class="bi bi-pencil-fill text-black fs-5"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title text-white fw-bold mb-0">Edit Item Details</h5>
+                            <p class="text-secondary x-small mb-0">Update item configuration</p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="text-secondary x-small mb-2 d-block text-uppercase fw-bold ls-1">Item Name</label>
+                        <input type="text" name="Name" id="editName" class="minimal-input w-100" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-secondary x-small mb-2 d-block text-uppercase fw-bold ls-1">Description</label>
+                        <textarea name="Description" id="editDescription" class="minimal-input w-100" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-dark px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary px-4 fw-bold" style="background:#FF8C00; color: black;">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Archive Confirmation Modal -->
+<div class="modal fade" id="archiveModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+        <div class="modal-content border-0 shadow-lg" style="background: #0a0a0a; border-radius: 16px; border: 1px solid rgba(220,53,69,0.2) !important;">
+            <div class="modal-body text-center p-4">
+                <div class="display-4 text-danger mb-3"><i class="bi bi-exclamation-octagon"></i></div>
+                <h5 class="text-white fw-bold mb-2">Archive Item?</h5>
+                <p class="text-secondary small mb-4">Are you sure you want to archive <strong id="archiveItemName" class="text-white"></strong>? This will remove it from active management.</p>
+                <form asp-action="ArchiveItemCategory" method="post" id="archiveForm">
+                    <input type="hidden" name="id" id="archiveIdInput" />
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-dark flex-fill" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger flex-fill fw-bold">Yes, Archive</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function editCategory(id, name, description) {
+            document.getElementById('editId').value = id;
+            document.getElementById('editName').value = name;
+            document.getElementById('editDescription').value = description;
+            
+            new bootstrap.Modal(document.getElementById('editCategoryModal')).show();
+        }
+
+        function confirmArchive(id, name) {
+            document.getElementById('archiveIdInput').value = id;
+            document.getElementById('archiveItemName').textContent = name;
+            new bootstrap.Modal(document.getElementById('archiveModal')).show();
+        }
+    </script>
+}
+
+<style>
+    .minimal-input {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 8px;
+        color: white;
+        padding: 10px 14px;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+    }
+    .minimal-input:focus {
+        background: rgba(255,255,255,0.08);
+        border-color: #FF8C00;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(255,140,0,0.1);
+    }
+    .text-orange { color: #FF8C00 !important; }
+    .bg-orange { background-color: #FF8C00 !important; }
+    .ls-1 { letter-spacing: 0.5px; }
+    .x-small { font-size: 0.75rem; }
+    
+    .table th {
+        font-size: 0.7rem !important;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 700;
+        color: rgba(255,255,255,0.5);
+        border: none;
+    }
+    
+    .table td {
+        vertical-align: middle;
+        border-color: rgba(255,255,255,0.02);
+    }
+
+    .form-check-input:checked {
+        background-color: #FF8C00;
+        border-color: #FF8C00;
+    }
+    
+    .pagination .page-link {
+        color: rgba(255,255,255,0.5);
+    }
+    .pagination .page-item.active .page-link {
+        background-color: #FF8C00 !important;
+        color: black !important;
+    }
+</style>

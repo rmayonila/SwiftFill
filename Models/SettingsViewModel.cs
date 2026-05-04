@@ -18,6 +18,7 @@ namespace SwiftFill.Models
 
         [Phone]
         [Display(Name = "Phone Number")]
+        [RegularExpression(@"^\d{11}$", ErrorMessage = "Phone number must be exactly 11 digits.")]
         public string? PhoneNumber { get; set; }
 
         public string? Hub { get; set; }

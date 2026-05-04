@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using SwiftFill.Data;
 using SwiftFill.Models;
 using System.IO;
+using SwiftFill.Helpers;
 
 namespace SwiftFill.Controllers
 {
@@ -95,8 +96,15 @@ namespace SwiftFill.Controllers
         [HttpPost]
         public async Task<IActionResult> UpdateStatus(string trackingId, string status, string? failReason, IFormFile? proofPhoto)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var order = await _context.Orders.Include(o => o.Payment).FirstOrDefaultAsync(o => o.TrackingId == trackingId);
+            try 
+            {
+                // Sanitization
+                trackingId = InputSanitizer.Sanitize(trackingId) ?? "";
+                status = InputSanitizer.Sanitize(status) ?? "";
+                failReason = InputSanitizer.Sanitize(failReason);
+
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var order = await _context.Orders.Include(o => o.Payment).FirstOrDefaultAsync(o => o.TrackingId == trackingId);
             
             if (order == null) return NotFound();
 
@@ -157,6 +165,16 @@ namespace SwiftFill.Controllers
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                // Log the technical error internally
+                Console.WriteLine($"[ERROR] RiderController.UpdateStatus: {ex.Message}");
+                
+                // Show a nice message to the user
+                TempData["ErrorMessage"] = "Something went wrong while updating the order status. Please try again later.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // --- 4. DELIVERY HISTORY ---

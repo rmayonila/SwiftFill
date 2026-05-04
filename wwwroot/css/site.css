@@ -1,10 +1,10 @@
 :root {
   --swift-orange: #ff8c00;
   --swift-orange-glow: rgba(255, 140, 0, 0.4);
-  --dark-bg: #0b0e14;
-  --darker-bg: #05070a;
-  --card-bg: #161b22;
-  --card-bg-hover: #1f2630;
+  --dark-bg: #05070a;
+  --darker-bg: #000000;
+  --card-bg: #0d1117;
+  --card-bg-hover: #161b22;
   --text-primary: #ffffff;
   --text-secondary: #8b949e;
   --border-color: rgba(255, 255, 255, 0.05);

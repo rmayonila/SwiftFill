@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using SwiftFill.Data;
 using SwiftFill.Models;
 using SwiftFill.Services;
+using System.Text.Json;
+using SwiftFill.Helpers;
 
 namespace SwiftFill.Controllers
 {
@@ -13,17 +15,23 @@ namespace SwiftFill.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ApplicationDbContext _context;
         private readonly AuditLogService _audit;
+        private readonly IConfiguration _configuration;
+        private readonly IHttpClientFactory _httpClientFactory;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             ApplicationDbContext context,
-            AuditLogService audit)
+            AuditLogService audit,
+            IConfiguration configuration,
+            IHttpClientFactory httpClientFactory)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _context = context;
             _audit = audit;
+            _configuration = configuration;
+            _httpClientFactory = httpClientFactory;
         }
 
         [HttpGet]
@@ -35,6 +43,19 @@ namespace SwiftFill.Controllers
         [HttpPost]
         public async Task<IActionResult> SignUpAs(string username, string email, string firstName, string lastName, string password, string phoneNumber)
         {
+            // Sanitization: Clean strings to prevent XSS
+            username = InputSanitizer.StripScripts(username) ?? "";
+            email = InputSanitizer.StripScripts(email) ?? "";
+            firstName = InputSanitizer.Sanitize(firstName) ?? "";
+            lastName = InputSanitizer.Sanitize(lastName) ?? "";
+            phoneNumber = InputSanitizer.Sanitize(phoneNumber) ?? "";
+
+            if (!await IsReCaptchaValid())
+            {
+                TempData["ErrorMessage"] = "Please complete the reCAPTCHA verification.";
+                return RedirectToAction("SignUp");
+            }
+
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(firstName) || 
                 string.IsNullOrWhiteSpace(lastName) || string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(phoneNumber))
             {
@@ -98,6 +119,19 @@ namespace SwiftFill.Controllers
             string firstName, string lastName,
             string password, string phoneNumber)
         {
+            // Sanitization
+            username = InputSanitizer.StripScripts(username) ?? "";
+            email = InputSanitizer.StripScripts(email) ?? "";
+            firstName = InputSanitizer.Sanitize(firstName) ?? "";
+            lastName = InputSanitizer.Sanitize(lastName) ?? "";
+            phoneNumber = InputSanitizer.Sanitize(phoneNumber) ?? "";
+
+            if (!await IsReCaptchaValid())
+            {
+                TempData["ErrorMessage"] = "Please complete the reCAPTCHA verification.";
+                return RedirectToAction("RiderSignUp");
+            }
+
             // Validate required fields
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email) ||
                 string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName) ||
@@ -187,6 +221,12 @@ namespace SwiftFill.Controllers
         [HttpPost]
         public async Task<IActionResult> LoginAction(string username, string password, bool rememberMe)
         {
+            if (!await IsReCaptchaValid())
+            {
+                TempData["ErrorMessage"] = "Please complete the reCAPTCHA verification.";
+                return RedirectToAction("Login");
+            }
+
             var user = await _userManager.FindByNameAsync(username) ?? await _userManager.FindByEmailAsync(username);
             
             if (user != null && user.IsSuspended)
@@ -375,5 +415,29 @@ namespace SwiftFill.Controllers
 
         [HttpGet]
         public IActionResult AccessDenied() => View();
+
+        private async Task<bool> IsReCaptchaValid()
+        {
+            var response = Request.Form["g-recaptcha-response"];
+            if (string.IsNullOrWhiteSpace(response)) return false;
+
+            var secretKey = _configuration["RecaptchaSettings:SecretKey"];
+            var client = _httpClientFactory.CreateClient();
+            
+            var content = new FormUrlEncodedContent(new[]
+            {
+                new KeyValuePair<string, string>("secret", secretKey ?? ""),
+                new KeyValuePair<string, string>("response", response.ToString())
+            });
+
+            var verifyResponse = await client.PostAsync("https://www.google.com/recaptcha/api/siteverify", content);
+            if (verifyResponse.IsSuccessStatusCode)
+            {
+                var jsonResponse = await verifyResponse.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(jsonResponse);
+                return doc.RootElement.GetProperty("success").GetBoolean();
+            }
+            return false;
+        }
     }
 }

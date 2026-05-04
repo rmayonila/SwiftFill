@@ -152,7 +152,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="text-secondary x-small mb-1">Phone Number</label>
-                        <input type="text" name="Phone" class="minimal-input w-100" required placeholder="0917XXXXXXX" />
+                        <input type="text" name="Phone" class="minimal-input w-100" required placeholder="09123456789" pattern="^\d{11}$" title="Phone number must be exactly 11 digits" />
                     </div>
                     <div class="mb-4">
                         <label class="text-secondary x-small mb-1">Assigned Route Area</label>
@@ -184,7 +184,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="text-secondary x-small mb-1">Phone Number</label>
-                        <input type="text" name="Phone" id="editRiderPhone" class="minimal-input w-100" required />
+                        <input type="text" name="Phone" id="editRiderPhone" class="minimal-input w-100" required pattern="^\d{11}$" title="Phone number must be exactly 11 digits" />
                     </div>
                     <div class="mb-4">
                         <label class="text-secondary x-small mb-1">Assigned Route Area</label>

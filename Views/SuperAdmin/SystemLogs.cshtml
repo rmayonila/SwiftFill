@@ -14,26 +14,44 @@
             <span class="badge" style="background: rgba(46,160,67,0.15); border: 1px solid rgba(46,160,67,0.3); color: #6bff72; padding: 8px 14px;">
                 @Model.Count() events
             </span>
-            <button class="btn btn-outline-secondary px-4 border-secondary text-white" onclick="exportLogs()">
-                <i class="bi bi-download me-2"></i>Export CSV
-            </button>
         </div>
     </div>
 
-    <div class="card premium-card border-0 shadow-sm" style="background: rgba(22, 27, 34, 0.7); border: 1px solid #30363d !important; border-radius: 12px; overflow: hidden;">
+    <!-- Search & Filter Bar (Reference-Matched) -->
+    <div class="d-flex justify-content-between align-items-center mb-4 gap-3 bg-dark-soft p-2 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+        <div class="d-flex align-items-center flex-grow-1 gap-3">
+            <form method="get" class="d-flex align-items-center flex-grow-1">
+                <div class="search-wrapper flex-grow-1" style="max-width: 400px;">
+                    <i class="bi bi-search"></i>
+                    <input type="text" name="search" value="@ViewBag.Search" class="minimal-input w-100" 
+                           placeholder="Search logs...">
+                </div>
+            </form>
+        </div>
+
+        <div class="d-flex align-items-center gap-4">
+            <form method="get" class="d-flex align-items-center gap-3">
+                <select name="role" class="minimal-input" style="width: 150px; background: transparent; border: none;" onchange="this.form.submit()">
+                    <option value="">All Roles</option>
+                    <option value="Admin" selected="@(ViewBag.Role == "Admin")">Admin</option>
+                    <option value="WarehouseStaff" selected="@(ViewBag.Role == "WarehouseStaff")">Warehouse Staff</option>
+                    <option value="DeliveryRider" selected="@(ViewBag.Role == "DeliveryRider")">Delivery Rider</option>
+                    <option value="SuperAdmin" selected="@(ViewBag.Role == "SuperAdmin")">SuperAdmin</option>
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <!-- System Activity Table (Glass-Card) -->
+    <div class="glass-card p-0 overflow-hidden mb-4" style="background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.05);">
         <div class="card-header bg-transparent border-bottom border-dark py-3 px-4 d-flex justify-content-between align-items-center">
             <h6 class="mb-0 fw-bold text-white d-flex align-items-center">
                 <i class="bi bi-cpu-fill text-success me-2"></i> System Activity Trace
             </h6>
-            <form method="get" class="d-flex m-0 gap-2">
-                <input type="text" name="search" value="@ViewBag.Search" class="form-control form-control-sm bg-dark border-secondary text-white" 
-                       style="max-width: 240px;" placeholder="Search logs...">
-                <button type="submit" class="btn btn-sm btn-success border-0 px-3 fw-bold">Filter</button>
-            </form>
         </div>
         <div class="table-responsive">
             <table class="table table-dark table-hover mb-0 align-middle" id="sysTable">
-                <thead style="background: rgba(0,0,0,0.3);">
+                <thead style="background: rgba(255,140,0,0.03);">
                     <tr>
                         <th class="ps-4 py-3 text-secondary text-uppercase fw-semibold" style="font-size: 0.75rem; letter-spacing: 1px; width: 170px;">Timestamp</th>
                         <th class="py-3 text-secondary text-uppercase fw-semibold" style="font-size: 0.75rem; letter-spacing: 1px; width: 160px;">Performed By</th>
@@ -80,49 +98,48 @@
                 </tbody>
             </table>
         </div>
-
-        <!-- Pagination -->
-        @if (ViewBag.TotalPages != null && ViewBag.TotalPages > 1)
-        {
-            <div class="card-footer bg-transparent border-top border-dark py-3">
-                <div class="d-flex justify-content-center">
-                    <nav>
-                        <ul class="pagination pagination-sm m-0" style="--bs-pagination-bg: transparent; --bs-pagination-border-color: rgba(255,255,255,0.1); --bs-pagination-color: #fff; --bs-pagination-hover-bg: rgba(255,255,255,0.1); --bs-pagination-hover-color: #fff; --bs-pagination-active-bg: #198754; --bs-pagination-active-border-color: #198754;">
-                            <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
-                                <a class="page-link" href="?search=@ViewBag.Search&page=@(ViewBag.CurrentPage - 1)">Previous</a>
-                            </li>
-                            @for (int i = 1; i <= ViewBag.TotalPages; i++)
-                            {
-                                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
-                                    <a class="page-link" href="?search=@ViewBag.Search&page=@i">@i</a>
-                                </li>
-                            }
-                            <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
-                                <a class="page-link" href="?search=@ViewBag.Search&page=@(ViewBag.CurrentPage + 1)">Next</a>
-                            </li>
-                        </ul>
-                    </nav>
-                </div>
-            </div>
-        }
     </div>
+
+    <!-- Pagination (Reference-Matched) -->
+    @if (ViewBag.TotalPages != null && ViewBag.TotalPages > 1)
+    {
+        <div class="mt-4">
+            <ul class="pagination pagination-sm justify-content-center">
+                <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                    <a class="page-link bg-dark border-0 text-secondary px-3" href="?search=@ViewBag.Search&page=@(ViewBag.CurrentPage - 1)">Previous</a>
+                </li>
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                        <a class="page-link @(i == ViewBag.CurrentPage ? "bg-orange border-0" : "bg-dark border-0 text-secondary") mx-1 rounded" href="?search=@ViewBag.Search&page=@i">@i</a>
+                    </li>
+                }
+                <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                    <a class="page-link bg-dark border-0 text-secondary px-3" href="?search=@ViewBag.Search&page=@(ViewBag.CurrentPage + 1)">Next</a>
+                </li>
+            </ul>
+        </div>
+    }
 </div>
 
 <script>
-        q = q.toLowerCase();
-        document.querySelectorAll('#sysTable tbody tr').forEach(row => {
-            row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
-        });
-    }
     function exportLogs() {
-        const rows = [...document.querySelectorAll('#sysTable tbody tr')].map(r =>
-            [...r.querySelectorAll('td')].map(c => `"${c.textContent.trim().replace(/\s+/g,' ')}"`).join(',')
-        );
-        const csv = 'Timestamp,Actor,Action,Details,Status\n' + rows.join('\n');
+        const rows = [["Timestamp", "User", "Role", "Action", "Details", "Status"]];
+        document.querySelectorAll('#sysTable tbody tr').forEach(tr => {
+            if(tr.innerText.includes("No system events")) return;
+            const cols = Array.from(tr.querySelectorAll('td')).map(td => `"${td.innerText.replace(/"/g, '""')}"`);
+            rows.push(cols);
+        });
+        const csv = rows.map(r => r.join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-        a.download = 'system_logs.csv';
+        a.setAttribute('hidden', '');
+        a.setAttribute('href', url);
+        a.setAttribute('download', 'system_logs.csv');
+        document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
     }
 </script>
 <style>.hover-white:hover { color: #fff !important; background: #30363d !important; }</style>

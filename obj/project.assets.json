@@ -6044,11 +6044,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\PERSONAL\\SwiftFill\\SwiftFill.csproj",
+      "projectUniqueName": "c:\\Users\\PERSONAL\\SwiftFill\\SwiftFill.csproj",
       "projectName": "SwiftFill",
-      "projectPath": "C:\\Users\\PERSONAL\\SwiftFill\\SwiftFill.csproj",
+      "projectPath": "c:\\Users\\PERSONAL\\SwiftFill\\SwiftFill.csproj",
       "packagesPath": "C:\\Users\\PERSONAL\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\PERSONAL\\SwiftFill\\obj\\",
+      "outputPath": "c:\\Users\\PERSONAL\\SwiftFill\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\PERSONAL\\AppData\\Roaming\\NuGet\\NuGet.Config"

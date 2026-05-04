@@ -60,31 +60,20 @@ builder.Services.AddSingleton<SwiftFill.Services.AuditLogService>();
 builder.Services.AddHttpClient<SwiftFill.Services.JawgMapsService>();
 builder.Services.AddScoped<SwiftFill.Services.JawgMapsService>();
 builder.Services.AddScoped<SwiftFill.Services.CloudinaryService>();
+builder.Services.AddHttpClient();
 
 var app = builder.Build();
 
-// Auto-seed Identity Default Roles and the Root Super Admin Account
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
-    {
-        await DbSeeder.SeedRolesAndSuperAdminAsync(services);
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while seeding the database roles and Super Admin.");
-    }
-}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
+// Global Status Code Handling (404, 500, etc)
+app.UseStatusCodePagesWithReExecute("/Home/Error", "?statusCode={0}");
 
 app.UseHttpsRedirection();
 app.UseRouting();

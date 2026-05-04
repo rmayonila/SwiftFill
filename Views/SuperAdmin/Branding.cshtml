@@ -22,13 +22,6 @@
     </div>
     <a id="downloadLink" style="display:none;"></a>
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show bg-dark text-success border-success mb-4" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
 
     <form id="brandingForm" asp-action="SaveBranding" method="post" enctype="multipart/form-data">
         <input type="hidden" asp-for="LogoLayout" id="logoLayoutInput" />

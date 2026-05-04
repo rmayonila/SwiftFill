@@ -35,8 +35,9 @@ namespace SwiftFill.Controllers
         }
 
         [HttpGet]
-        public IActionResult Book()
+        public async Task<IActionResult> Book()
         {
+            ViewBag.ItemCategories = await _context.ItemCategories.Where(c => c.IsActive).OrderBy(c => c.Name).ToListAsync();
             return View();
         }
 

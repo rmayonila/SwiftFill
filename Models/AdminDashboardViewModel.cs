@@ -8,6 +8,9 @@ namespace SwiftFill.Models
         public int PendingOrders { get; set; }
         public int InTransit { get; set; }
         public int Delivered { get; set; }
+        public int TotalReturns { get; set; }
+        public int PackingCount { get; set; }
+        public int OutboundCount { get; set; }
         public decimal TotalRevenue { get; set; }
         
         public List<StatusDistributionItem> StatusCounts { get; set; } = new();

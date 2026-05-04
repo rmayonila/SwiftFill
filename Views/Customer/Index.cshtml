@@ -20,32 +20,29 @@
         </div>
     }
 
-    <div class="row g-4 mb-5">
-        <div class="col-md-4">
-            <div class="glass-card p-3 border-0 border-start border-primary border-4 d-flex justify-content-between align-items-center" style="background: rgba(255, 255, 255, 0.01);">
+    <div class="row g-3 g-md-4 mb-5">
+        <div class="col-6 col-md-4">
+            <div class="glass-card p-3 border-0 border-start border-primary border-4 d-flex justify-content-between align-items-center h-100" style="background: rgba(255, 255, 255, 0.01);">
                 <div>
-                    <div class="stat-label text-primary">ACTIVE PACKAGES</div>
-                    <div class="text-secondary x-small mt-1">In Transit</div>
+                    <div class="stat-label text-primary x-small text-uppercase fw-bold">Active</div>
+                    <div class="stat-value text-white h4 mb-0 fw-bold mt-1">@(Model?.Count(o => o.Status != "Delivered" && o.Status != "Returned") ?? 0)</div>
                 </div>
-                <div class="stat-value text-white h2 mb-0 fw-bold">@(Model?.Count(o => o.Status != "Delivered" && o.Status != "Returned") ?? 0)</div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="glass-card p-3 border-0 border-start border-success border-4 d-flex justify-content-between align-items-center" style="background: rgba(255, 255, 255, 0.01);">
+        <div class="col-6 col-md-4">
+            <div class="glass-card p-3 border-0 border-start border-success border-4 d-flex justify-content-between align-items-center h-100" style="background: rgba(255, 255, 255, 0.01);">
                 <div>
-                    <div class="stat-label text-success">SUCCESSFUL DROPS</div>
-                    <div class="text-secondary x-small mt-1">Lifetime Cargo</div>
+                    <div class="stat-label text-success x-small text-uppercase fw-bold">Delivered</div>
+                    <div class="stat-value text-white h4 mb-0 fw-bold mt-1">@(Model?.Count(o => o.Status == "Delivered") ?? 0)</div>
                 </div>
-                <div class="stat-value text-white h2 mb-0 fw-bold">@(Model?.Count(o => o.Status == "Delivered") ?? 0)</div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="glass-card p-3 border-0 border-start border-warning border-4 d-flex justify-content-between align-items-center" style="background: rgba(255, 255, 255, 0.01);">
+        <div class="col-12 col-md-4">
+            <div class="glass-card p-3 border-0 border-start border-warning border-4 d-flex justify-content-between align-items-center h-100" style="background: rgba(255, 255, 255, 0.01);">
                 <div>
-                    <div class="stat-label text-warning">RETURNS / ISSUES</div>
-                    <div class="text-secondary x-small mt-1">Action Needed</div>
+                    <div class="stat-label text-warning x-small text-uppercase fw-bold">Issues / Returns</div>
+                    <div class="stat-value text-white h4 mb-0 fw-bold mt-1">@(Model?.Count(o => o.Status.Contains("Return")) ?? 0)</div>
                 </div>
-                <div class="stat-value text-white h2 mb-0 fw-bold">@(Model?.Count(o => o.Status.Contains("Return")) ?? 0)</div>
             </div>
         </div>
     </div>

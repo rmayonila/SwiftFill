@@ -212,10 +212,17 @@
                         <div class="col-md-3">
                             <label class="text-secondary x-small mb-1">Category</label>
                             <select name="ItemCategory" id="editCategory" class="minimal-input w-100">
-                                <option value="General">General Merchandise</option>
-                                <option value="Electronics">Electronics</option>
-                                <option value="Apparel">Apparel</option>
-                                <option value="Documents">Documents</option>
+                                @foreach (var cat in (List<SwiftFill.Models.ItemCategory>)(ViewBag.ItemCategories ?? new List<SwiftFill.Models.ItemCategory>()))
+                                {
+                                    <option value="@cat.Name">@cat.Name</option>
+                                }
+                                @if (!(ViewBag.ItemCategories as List<SwiftFill.Models.ItemCategory>)?.Any() ?? true)
+                                {
+                                    <option value="General Merchandise">General Merchandise</option>
+                                    <option value="Electronics">Electronics</option>
+                                    <option value="Apparel">Apparel</option>
+                                    <option value="Documents">Documents</option>
+                                }
                             </select>
                             <div class="form-check mt-2">
                                 <input class="form-check-input" type="checkbox" name="IsFragile" id="editIsFragile" value="true">
@@ -361,18 +368,18 @@
                     <!-- Step 2: Sender -->
                     <div id="step2" class="d-none animate-fade-in">
                         <h6 class="text-white mb-3"><i class="bi bi-2-circle text-orange me-2"></i> Sender Information</h6>
-                        <input type="text" name="SenderName" class="minimal-input w-100 mb-3" placeholder="Full Name" required>
-                        <input type="text" name="SenderPhone" class="minimal-input w-100 mb-3" placeholder="Contact Number (+63...)" required>
-                        <textarea name="SenderAddress" class="minimal-input w-100" placeholder="Street Address, Barangay, City" rows="3" required></textarea>
+                        <div class="v-group"><input type="text" name="SenderName" class="minimal-input w-100 mb-3" placeholder="Full Name" required></div>
+                        <div class="v-group"><input type="text" name="SenderPhone" class="minimal-input w-100 mb-3" placeholder="Contact Number (+63...)" required></div>
+                        <div class="v-group"><textarea name="SenderAddress" class="minimal-input w-100" placeholder="Street Address, Barangay, City" rows="3" required></textarea></div>
                     </div>
 
                     <!-- Step 3: Receiver -->
                     <div id="step3" class="d-none animate-fade-in">
                         <h6 class="text-white mb-3"><i class="bi bi-3-circle text-orange me-2"></i> Receiver Information</h6>
-                        <input type="text" name="ReceiverName" class="minimal-input w-100 mb-3" placeholder="Full Name" required>
-                        <input type="text" name="ReceiverPhone" class="minimal-input w-100 mb-3" placeholder="Contact Number (+63...)" required>
-                        <textarea name="ReceiverAddress" class="minimal-input w-100 mb-3" placeholder="Complete Delivery Address" rows="3" required></textarea>
-                        <input type="text" name="ReceiverLandmark" class="minimal-input w-100" placeholder="Landmark (e.g. Near City Hall)" required>
+                        <div class="v-group"><input type="text" name="ReceiverName" class="minimal-input w-100 mb-3" placeholder="Full Name" required></div>
+                        <div class="v-group"><input type="text" name="ReceiverPhone" class="minimal-input w-100 mb-3" placeholder="Contact Number (+63...)" required></div>
+                        <div class="v-group"><textarea name="ReceiverAddress" class="minimal-input w-100 mb-3" placeholder="Complete Delivery Address" rows="3" required></textarea></div>
+                        <div class="v-group"><input type="text" name="ReceiverLandmark" class="minimal-input w-100" placeholder="Landmark (e.g. Near City Hall)" required></div>
                     </div>
 
                     <!-- Step 4: Package & Payment -->
@@ -386,10 +393,17 @@
                             <div class="col-md-6">
                                 <label class="text-secondary x-small mb-1">Item Category</label>
                                 <select name="ItemCategory" class="minimal-input w-100" id="manCategorySelect">
-                                    <option value="General">General Merchandise</option>
-                                    <option value="Electronics">Electronics</option>
-                                    <option value="Apparel">Apparel</option>
-                                    <option value="Documents">Documents</option>
+                                    @foreach (var cat in (List<SwiftFill.Models.ItemCategory>)(ViewBag.ItemCategories ?? new List<SwiftFill.Models.ItemCategory>()))
+                                    {
+                                        <option value="@cat.Name">@cat.Name</option>
+                                    }
+                                    @if (!(ViewBag.ItemCategories as List<SwiftFill.Models.ItemCategory>)?.Any() ?? true)
+                                    {
+                                        <option value="General Merchandise">General Merchandise</option>
+                                        <option value="Electronics">Electronics</option>
+                                        <option value="Apparel">Apparel</option>
+                                        <option value="Documents">Documents</option>
+                                    }
                                 </select>
                                 <div class="form-check mt-2">
                                     <input class="form-check-input" type="checkbox" name="isFragile" id="manIsFragile" value="true">
@@ -445,6 +459,66 @@
 
         if (nextBtn) {
             nextBtn.addEventListener('click', () => {
+                // Validation: Check if current step's required inputs are filled
+                const currentStepDiv = document.getElementById(`step${currentStep}`);
+                const inputs = currentStepDiv.querySelectorAll('input[required], select[required], textarea[required]');
+                let isValid = true;
+
+                // Clear existing error messages
+                currentStepDiv.querySelectorAll('.error-tooltip-v2').forEach(el => el.remove());
+
+                inputs.forEach(input => {
+                    let fieldValid = true;
+                    let title = "";
+                    let subtitle = "";
+                    const val = input.value.trim();
+
+                    if (!val) {
+                        fieldValid = false;
+                        title = "Please fill out this field.";
+                    } else if (input.name.toLowerCase().includes('phone')) {
+                        const digits = val.replace(/\D/g, '');
+                        if (digits.length !== 11) {
+                            fieldValid = false;
+                            title = "Please match the requested format.";
+                            subtitle = "Phone number must be exactly 11 digits";
+                        }
+                    }
+
+                    if (!fieldValid) {
+                        isValid = false;
+                        input.style.borderColor = '#FF8C00'; // Match theme orange
+                        input.classList.add('animate-shake');
+                        
+                        // Create Tooltip Container
+                        const tooltip = document.createElement('div');
+                        tooltip.className = 'error-tooltip-v2';
+                        tooltip.innerHTML = `
+                            <div class="error-arrow"></div>
+                            <div class="error-body">
+                                <div class="error-icon-box">
+                                    <i class="bi bi-exclamation-square-fill"></i>
+                                </div>
+                                <div class="error-text-box">
+                                    <div class="error-title-v2">${title}</div>
+                                    ${subtitle ? `<div class="error-subtitle-v2">${subtitle}</div>` : ''}
+                                </div>
+                            </div>
+                        `;
+                        
+                        input.parentNode.appendChild(tooltip);
+                        
+                        setTimeout(() => input.classList.remove('animate-shake'), 500);
+                    } else {
+                        input.style.borderColor = ''; // Reset if valid
+                    }
+                });
+
+                if (!isValid) {
+                    // Optional: Show a small toast or message
+                    return;
+                }
+
                 if (currentStep < totalSteps) {
                     document.getElementById(`step${currentStep}`).classList.add('d-none');
                     document.getElementById(`dot${currentStep}`).classList.remove('active');
@@ -676,6 +750,70 @@
     .step-dot.active { background: #FF8C00; box-shadow: 0 0 10px rgba(255,140,0,0.5); width: 24px; border-radius: 4px; }
     .animate-fade-in { animation: fadeIn 0.3s ease-out; }
     @@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .animate-shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; transform: translate3d(0, 0, 0); backface-visibility: hidden; perspective: 1000px; }
+    @@keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
+
+    .v-group { position: relative; width: 100%; }
+
+    /* Premium Error Tooltip (V2) */
+    .error-tooltip-v2 {
+        position: absolute;
+        bottom: 0px;
+        left: 50%;
+        transform: translate(-50%, 100%);
+        margin-top: 5px;
+        z-index: 1050;
+        filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
+        pointer-events: none;
+        animation: tooltipIn 0.2s ease-out;
+    }
+    @@keyframes tooltipIn { from { opacity: 0; transform: translate(-50%, -5px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+    .error-arrow {
+        width: 0; height: 0;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 8px solid #ffffff;
+        margin: 0 auto;
+    }
+
+    .error-body {
+        background: #ffffff;
+        border-radius: 6px;
+        padding: 8px 14px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 250px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .error-icon-box {
+        color: #FF8C00;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .error-text-box {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .error-title-v2 {
+        color: #000000;
+        font-size: 0.85rem;
+        font-weight: 400;
+        white-space: nowrap;
+    }
+
+    .error-subtitle-v2 {
+        color: #666666;
+        font-size: 0.75rem;
+        font-weight: 400;
+    }
     
     @@media print {
         body * { visibility: hidden; }

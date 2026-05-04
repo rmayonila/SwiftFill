@@ -28,12 +28,12 @@
                         <div class="row g-3 mb-4">
                             <div class="col-md-6">
                                 <label asp-for="FirstName" class="form-label text-secondary small"></label>
-                                <input asp-for="FirstName" class="form-control bg-dark border-secondary text-white shadow-none" />
+                                <input asp-for="FirstName" class="form-control bg-dark border-secondary text-white shadow-none" required />
                                 <span asp-validation-for="FirstName" class="text-danger small"></span>
                             </div>
                             <div class="col-md-6">
                                 <label asp-for="LastName" class="form-label text-secondary small"></label>
-                                <input asp-for="LastName" class="form-control bg-dark border-secondary text-white shadow-none" />
+                                <input asp-for="LastName" class="form-control bg-dark border-secondary text-white shadow-none" required />
                                 <span asp-validation-for="LastName" class="text-danger small"></span>
                             </div>
                         </div>
@@ -46,7 +46,7 @@
 
                         <div class="mb-4">
                             <label asp-for="PhoneNumber" class="form-label text-secondary small"></label>
-                            <input asp-for="PhoneNumber" class="form-control bg-dark border-secondary text-white shadow-none" placeholder="+63 9XX XXX XXXX" />
+                            <input asp-for="PhoneNumber" class="form-control bg-dark border-secondary text-white shadow-none" placeholder="09123456789" required pattern="^\d{11}$" title="Phone number must be exactly 11 digits" />
                             <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
                         </div>
 

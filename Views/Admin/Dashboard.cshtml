@@ -9,73 +9,80 @@
 <div class="animate-fade-up">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-speedometer2 me-2"></i> System Overview</h1>
-        <div class="text-secondary small">Last Updated: @(DateTime.Now.ToString("HH:mm:ss"))</div>
     </div>
 
     <div class="row g-4 mb-5">
-        <div class="col-md-3">
-            <div class="glass-card p-3 border-0 border-start border-warning border-4 d-flex justify-content-between align-items-center" style="background: rgba(255, 255, 255, 0.02);">
-                <div>
-                    <div class="stat-label text-orange">Current Volume</div>
-                    <div class="text-secondary x-small">Active Shipments</div>
+        <div class="col-6 col-md-3">
+            <a asp-action="Shipments" class="text-decoration-none h-100 d-block hover-scale">
+                <div class="glass-card active-border-orange p-4 h-100 d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-label text-orange fw-bold">TOTAL ORDERS</div>
+                        <div class="stat-subtitle mt-1">Active Table</div>
+                    </div>
+                    <div class="stat-value text-white display-6 fw-bold mb-0">@Model.TotalOrders</div>
                 </div>
-                <div class="stat-value text-white h2 mb-0">@Model.TotalOrders</div>
-            </div>
+            </a>
         </div>
-        <div class="col-md-3">
-            <div class="glass-card p-3 border-0 border-start border-info border-4 d-flex justify-content-between align-items-center" style="background: rgba(255, 255, 255, 0.02);">
-                <div>
-                    <div class="stat-label text-info">In Logistics</div>
-                    <div class="text-secondary x-small">In Transit Hubs</div>
+        <div class="col-6 col-md-3">
+            <a asp-action="Pack" class="text-decoration-none h-100 d-block hover-scale">
+                <div class="glass-card p-4 h-100 d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-label text-info fw-bold">ORDER PACKING</div>
+                        <div class="stat-subtitle mt-1">In Processing</div>
+                    </div>
+                    <div class="stat-value text-white display-6 fw-bold mb-0">@Model.PackingCount</div>
                 </div>
-                <div class="stat-value text-white h2 mb-0">@Model.InTransit</div>
-            </div>
+            </a>
         </div>
-        <div class="col-md-3">
-            <div class="glass-card p-3 border-0 border-start border-success border-4 d-flex justify-content-between align-items-center" style="background: rgba(255, 255, 255, 0.02);">
-                <div>
-                    <div class="stat-label text-success">Total Revenue</div>
-                    <div class="text-secondary x-small">Settled COD</div>
+        <div class="col-6 col-md-3">
+            <a asp-action="Payments" class="text-decoration-none h-100 d-block hover-scale">
+                <div class="glass-card p-4 h-100 d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-label text-success fw-bold">TOTAL REVENUE</div>
+                        <div class="stat-subtitle mt-1">Settled Only</div>
+                    </div>
+                    <div class="stat-value text-white display-6 fw-bold mb-0">₱@Model.TotalRevenue.ToString("N0")</div>
                 </div>
-                <div class="stat-value text-white h2 mb-0">₱@Model.TotalRevenue.ToString("N0")</div>
-            </div>
+            </a>
         </div>
-        <div class="col-md-3">
-            <div class="glass-card p-3 border-0 border-start border-danger border-4 d-flex justify-content-between align-items-center" style="background: rgba(255, 255, 255, 0.02);">
-                <div>
-                    <div class="stat-label text-danger">Action Items</div>
-                    <div class="text-secondary x-small">Pending Pickup</div>
+        <div class="col-6 col-md-3">
+            <a asp-action="Returns" class="text-decoration-none h-100 d-block hover-scale">
+                <div class="glass-card p-4 h-100 d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-label text-danger fw-bold">RETURN ORDERS</div>
+                        <div class="stat-subtitle mt-1">Pending Action</div>
+                    </div>
+                    <div class="stat-value text-white display-6 fw-bold mb-0">@Model.TotalReturns</div>
                 </div>
-                <div class="stat-value text-white h2 mb-0">@Model.PendingOrders</div>
-            </div>
+            </a>
         </div>
     </div>
 
     <!-- Quick Actions -->
     <h6 class="text-uppercase text-secondary ls-1 mb-3">Quick Logistics Actions</h6>
     <div class="row g-3 mb-5">
-        <div class="col-md-3">
-            <a asp-action="Shipments" class="glass-card p-3 d-flex align-items-center text-decoration-none hover-scale" style="background: rgba(255,140,0,0.05); border: 1px solid rgba(255,140,0,0.2);">
-                <div class="rounded-circle bg-orange p-2 me-3"><i class="bi bi-box-seam text-dark"></i></div>
-                <div class="text-white fw-bold small">New Shipment</div>
+        <div class="col-6 col-md-3">
+            <a asp-action="Shipments" class="glass-card p-3 d-flex flex-column flex-md-row align-items-center text-decoration-none hover-scale h-100" style="background: rgba(255,140,0,0.05); border: 1px solid rgba(255,140,0,0.2);">
+                <div class="rounded-circle bg-orange p-2 mb-2 mb-md-0 me-md-3"><i class="bi bi-box-seam text-dark"></i></div>
+                <div class="text-white fw-bold x-small text-center text-md-start">New Shipment</div>
             </a>
         </div>
-        <div class="col-md-3">
-            <a asp-action="Payments" class="glass-card p-3 d-flex align-items-center text-decoration-none hover-scale" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
-                <div class="rounded-circle bg-dark p-2 me-3"><i class="bi bi-receipt text-orange"></i></div>
-                <div class="text-white fw-bold small">Audit Payments</div>
+        <div class="col-6 col-md-3">
+            <a asp-action="Payments" class="glass-card p-3 d-flex flex-column flex-md-row align-items-center text-decoration-none hover-scale h-100" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                <div class="rounded-circle bg-dark p-2 mb-2 mb-md-0 me-md-3"><i class="bi bi-receipt text-orange"></i></div>
+                <div class="text-white fw-bold x-small text-center text-md-start">Audit Payments</div>
             </a>
         </div>
-        <div class="col-md-3">
-            <a asp-action="Reports" class="glass-card p-3 d-flex align-items-center text-decoration-none hover-scale" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
-                <div class="rounded-circle bg-dark p-2 me-3"><i class="bi bi-file-earmark-bar-graph text-orange"></i></div>
-                <div class="text-white fw-bold small">Analytical Reports</div>
+        <div class="col-6 col-md-3">
+            <a asp-action="Reports" class="glass-card p-3 d-flex flex-column flex-md-row align-items-center text-decoration-none hover-scale h-100" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                <div class="rounded-circle bg-dark p-2 mb-2 mb-md-0 me-md-3"><i class="bi bi-file-earmark-bar-graph text-orange"></i></div>
+                <div class="text-white fw-bold x-small text-center text-md-start">Analytical Reports</div>
             </a>
         </div>
-        <div class="col-md-3">
-            <a asp-controller="Account" asp-action="Settings" class="glass-card p-3 d-flex align-items-center text-decoration-none hover-scale" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
-                <div class="rounded-circle bg-dark p-2 me-3"><i class="bi bi-gear-fill text-orange"></i></div>
-                <div class="text-white fw-bold small">Settings</div>
+        <div class="col-6 col-md-3">
+            <a asp-controller="Account" asp-action="Settings" class="glass-card p-3 d-flex flex-column flex-md-row align-items-center text-decoration-none hover-scale h-100" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                <div class="rounded-circle bg-dark p-2 mb-2 mb-md-0 me-md-3"><i class="bi bi-gear-fill text-orange"></i></div>
+                <div class="text-white fw-bold x-small text-center text-md-start">Settings</div>
             </a>
         </div>
     </div>
@@ -149,8 +156,31 @@
 <style>
     .ls-1 { letter-spacing: 1px; }
     .x-small { font-size: 0.75rem; }
+    .stat-subtitle { font-size: 0.8rem; color: #3b82f6 !important; font-weight: 500; }
+    .stat-label { font-size: 0.7rem; letter-spacing: 0.5px; opacity: 0.9; }
     .hover-scale { transition: transform 0.2s; }
     .hover-scale:hover { transform: translateY(-3px); }
+    
+    .glass-card {
+        background: #0d1117;
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 16px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .active-border-orange::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: #ff8c00;
+        border-radius: 16px 16px 0 0;
+        box-shadow: 0 0 15px rgba(255,140,0,0.2);
+    }
+
     .cursor-pointer { cursor: pointer; }
     .hover-white:hover { color: white !important; }
     .bg-dark-soft { background: rgba(255,255,255,0.02); }
@@ -218,11 +248,12 @@
                 const data = await response.json();
 
                 // Update Stat Cards
-                const statCards = document.querySelectorAll('.stat-value.text-white.h2');
-                statCards[0].textContent = data.totalOrders;
-                statCards[1].textContent = data.inTransit;
-                statCards[2].textContent = '₱' + data.totalRevenue.toLocaleString('en-US');
-                statCards[3].textContent = data.pendingOrders;
+                // Update Stat Cards
+                const statValues = document.querySelectorAll('.stat-value');
+                statValues[0].textContent = data.totalOrders;
+                statValues[1].textContent = data.packingCount;
+                statValues[2].textContent = '₱' + data.totalRevenue.toLocaleString('en-US');
+                statValues[3].textContent = data.totalReturns;
 
                 // Update Charts
                 trendChart.data.labels = data.dailyTrend.map(d => d.date);
@@ -259,9 +290,7 @@
                     </tr>
                 `).join('');
 
-                // Update "Last Updated" timestamp
-                const now = new Date();
-                document.querySelector('.text-secondary.small').textContent = 'Last Updated: ' + now.toLocaleTimeString('en-GB');
+                // No longer updating Last Updated timestamp
             } catch (error) {
                 console.error('Error refreshing dashboard:', error);
             }
