@@ -22,6 +22,8 @@ namespace SwiftFill.Models
         public string? PhoneNumber { get; set; }
 
         public string? Hub { get; set; }
+        public string? Route { get; set; }
+
 
         [DataType(DataType.Password)]
         [Display(Name = "Current Password")]

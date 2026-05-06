@@ -94,7 +94,9 @@
                                         }
                                         else
                                         {
-                                            <button type="button" class="btn btn-sm btn-outline-secondary border-0 px-2 opacity-50" onclick="viewReturnDetails('@item.TrackingId')">Details</button>
+                                        <button type="button" class="btn btn-sm btn-link text-info p-0 action-icon" onclick="viewReturnDetails('@item.TrackingId')" title="View Details">
+                                            <i class="bi bi-info-circle-fill"></i>
+                                        </button>
                                         }
 
                                         <button type="button" class="btn btn-sm btn-outline-danger border-0 p-1 opacity-50" 

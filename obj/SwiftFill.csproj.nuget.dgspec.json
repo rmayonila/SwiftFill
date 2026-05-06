@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "c:\\Users\\PERSONAL\\SwiftFill\\SwiftFill.csproj": {}
+    "C:\\Users\\PERSONAL\\SwiftFill\\SwiftFill.csproj": {}
   },
   "projects": {
-    "c:\\Users\\PERSONAL\\SwiftFill\\SwiftFill.csproj": {
+    "C:\\Users\\PERSONAL\\SwiftFill\\SwiftFill.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "c:\\Users\\PERSONAL\\SwiftFill\\SwiftFill.csproj",
+        "projectUniqueName": "C:\\Users\\PERSONAL\\SwiftFill\\SwiftFill.csproj",
         "projectName": "SwiftFill",
-        "projectPath": "c:\\Users\\PERSONAL\\SwiftFill\\SwiftFill.csproj",
+        "projectPath": "C:\\Users\\PERSONAL\\SwiftFill\\SwiftFill.csproj",
         "packagesPath": "C:\\Users\\PERSONAL\\.nuget\\packages\\",
-        "outputPath": "c:\\Users\\PERSONAL\\SwiftFill\\obj\\",
+        "outputPath": "C:\\Users\\PERSONAL\\SwiftFill\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\PERSONAL\\AppData\\Roaming\\NuGet\\NuGet.Config"

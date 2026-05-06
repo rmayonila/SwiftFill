@@ -68,31 +68,67 @@
     .stat-value { font-family: 'Sora', sans-serif; font-weight: 800; }
 </style>
 
+@{
+    var totalOrders = Model.Count();
+    var deliveredToday = Model.Count(o => o.Status == "Out for Delivery");
+    var codTotal = Model.Where(o => o.Payment?.Method == "COD").Sum(o => o.Payment?.Amount ?? 0);
+    var riderHub = ViewBag.RiderHub as string ?? "Hub";
+}
+
 <div class="animate-fade-up">
-    <!-- Daily Summary (Admin Cards Copy) -->
-    <div class="row g-3 g-md-4 mb-5">
+    <!-- Dashboard Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold fs-3 mt-2 mb-0 text-white">
+            <i class="bi bi-truck text-orange me-2"></i> Rider Dashboard
+        </h2>
+        <div class="text-secondary small">Hub: <span class="text-orange fw-bold">@riderHub</span></div>
+    </div>
+
+    <!-- KPI Cards — Admin-style responsive grid -->
+    <div class="row g-3 mb-4">
         <div class="col-6 col-md-3">
-            <div class="glass-card p-3 border-0 border-start border-warning border-4 d-flex justify-content-between align-items-center h-100">
-                <div>
-                    <div class="stat-label text-orange x-small fw-bold text-uppercase">Remaining</div>
-                    <div class="stat-value text-white h4 mb-0 mt-1">@Model.Count()</div>
+            <div class="glass-card p-3 h-100 position-relative overflow-hidden" style="border-left: 3px solid #ff8c00;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-secondary x-small text-uppercase fw-bold ls-1 mb-1">Remaining</div>
+                        <div class="text-white fw-bold" style="font-size: 2rem; line-height: 1;">@totalOrders</div>
+                        <div class="text-secondary x-small mt-1">Active deliveries</div>
+                    </div>
+                    <div class="text-orange opacity-25" style="font-size: 2.5rem;"><i class="bi bi-box-seam"></i></div>
                 </div>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="glass-card p-3 border-0 border-start border-success border-4 d-flex justify-content-between align-items-center h-100">
-                <div>
-                    <div class="stat-label text-success x-small fw-bold text-uppercase">Collected</div>
-                    <div class="stat-value text-white h5 mb-0 mt-1">₱@Model.Where(o => o.Payment?.Method == "COD").Sum(o => o.Payment?.Amount ?? 0).ToString("N0")</div>
+            <div class="glass-card p-3 h-100 position-relative overflow-hidden" style="border-left: 3px solid #28a745;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-secondary x-small text-uppercase fw-bold ls-1 mb-1">Out for Delivery</div>
+                        <div class="text-white fw-bold" style="font-size: 2rem; line-height: 1;">@deliveredToday</div>
+                        <div class="text-secondary x-small mt-1">In progress</div>
+                    </div>
+                    <div class="text-success opacity-25" style="font-size: 2.5rem;"><i class="bi bi-truck"></i></div>
                 </div>
             </div>
         </div>
-        <div class="col-12 col-md-6">
-            <div class="glass-card p-3 h-100 d-flex align-items-center">
-                <i class="bi bi-info-circle text-info me-3 fs-4"></i>
-                <div class="text-secondary small">
-                    <b class="text-white-50">Rider Note:</b> Capture a clear POD photo for each successful delivery. 
-                    Ensure the parcel and recipient are visible.
+        <div class="col-6 col-md-3">
+            <a asp-action="Remittance" class="text-decoration-none h-100 d-block hover-scale">
+                <div class="glass-card p-3 h-100 position-relative overflow-hidden" style="border-left: 3px solid #17a2b8;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-secondary x-small text-uppercase fw-bold ls-1 mb-1">COD Collected</div>
+                            <div class="text-white fw-bold" style="font-size: 1.6rem; line-height: 1;">₱@codTotal.ToString("N0")</div>
+                            <div class="text-secondary x-small mt-1">Cash on hand</div>
+                        </div>
+                        <div class="text-info opacity-25" style="font-size: 2.5rem;"><i class="bi bi-cash-stack"></i></div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="glass-card p-3 h-100 d-flex align-items-center gap-3" style="border-left: 3px solid #6c757d;">
+                <i class="bi bi-info-circle text-info fs-4 flex-shrink-0"></i>
+                <div class="text-secondary" style="font-size: 0.78rem;">
+                    <b class="text-white-50">Rider Note:</b> Capture a clear POD photo for each successful delivery. Ensure the parcel and recipient are visible.
                 </div>
             </div>
         </div>
@@ -164,47 +200,61 @@
                             </div>
                         </td>
                         <td>
-                            @if (order.AssignedRiderId != null)
-                            {
-                                <form asp-action="UpdateStatus" method="post" enctype="multipart/form-data" id="form-@order.TrackingId" class="m-0">
-                                    <input type="hidden" name="trackingId" value="@order.TrackingId" />
-                                    <input type="file" id="file-@order.TrackingId" name="proofPhoto" class="d-none" accept="image/*">
-                                    
-                                    <div class="d-flex align-items-center gap-2">
                                         <div class="btn-group flex-grow-1 shadow-sm">
-                                            <button type="button" class="btn btn-sm btn-dark border-secondary border-opacity-50 py-2 dropdown-toggle w-100" data-bs-toggle="dropdown" id="label-@order.TrackingId" style="font-size: 0.75rem;">
-                                                CAPTURE
-                                            </button>
-                                            <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow border-secondary">
-                                                <li><button type="button" class="dropdown-item x-small py-2" onclick="openCamera('@order.TrackingId')">
-                                                    <i class="bi bi-camera-fill text-orange me-2"></i> Camera
-                                                </button></li>
-                                                <li><label class="dropdown-item x-small cursor-pointer py-2 mb-0">
-                                                    <i class="bi bi-folder2-open text-primary me-2"></i> Gallery
-                                                    <input type="file" class="d-none" accept="image/*" onchange="handleFileSelect('@order.TrackingId', this)">
-                                                </label></li>
-                                            </ul>
+                                            @if (order.AssignedRiderId == null)
+                                            {
+                                                <form asp-action="AcceptTask" method="post" class="m-0 w-100">
+                                                    <input type="hidden" name="trackingId" value="@order.TrackingId" />
+                                                    <button type="submit" class="btn btn-sm btn-orange fw-bold py-2 w-100" style="font-size: 0.75rem;">
+                                                        ACCEPT TASK
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <form asp-action="UpdateStatus" method="post" enctype="multipart/form-data" id="form-@order.TrackingId" class="m-0 w-100">
+                                                    <input type="hidden" name="trackingId" value="@order.TrackingId" />
+                                                    <input type="hidden" name="status" id="status-field-@order.TrackingId" value="Delivered" />
+                                                    <input type="file" id="file-@order.TrackingId" name="proofPhoto" class="d-none" accept="image/*">
+                                                    
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <div class="btn-group flex-grow-1 shadow-sm">
+                                                            <button type="button" class="btn btn-sm btn-dark border-secondary border-opacity-50 py-2 dropdown-toggle w-100" data-bs-toggle="dropdown" id="label-@order.TrackingId" style="font-size: 0.75rem;">
+                                                                CAPTURE
+                                                            </button>
+                                                            <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow border-secondary">
+                                                                <li><button type="button" class="dropdown-item x-small py-2" onclick="openCamera('@order.TrackingId')">
+                                                                    <i class="bi bi-camera-fill text-orange me-2"></i> Camera
+                                                                </button></li>
+                                                                <li><label class="dropdown-item x-small cursor-pointer py-2 mb-0">
+                                                                    <i class="bi bi-folder2-open text-primary me-2"></i> Gallery
+                                                                    <input type="file" class="d-none" accept="image/*" onchange="handleFileSelect('@order.TrackingId', this)">
+                                                                </label></li>
+                                                            </ul>
+                                                        </div>
+                                                        <div class="btn-group shadow-sm">
+                                                            <button type="submit" id="btn-deliver-@order.TrackingId" 
+                                                                    class="btn btn-sm btn-success fw-bold px-3 py-2"
+                                                                    onclick="return validateDelivery('@order.TrackingId')"
+                                                                    style="font-size: 0.75rem;">
+                                                                COMPLETE
+                                                            </button>
+                                                            <button type="button" class="btn btn-sm btn-dark border-secondary border-opacity-50 px-2 dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                                                                <span class="visually-hidden">Toggle Dropdown</span>
+                                                            </button>
+                                                            <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow border-secondary">
+                                                                <li><a class="dropdown-item text-warning x-small py-2" href="#" onclick="showStatusModal('@order.TrackingId', 'Failed')">
+                                                                    <i class="bi bi-exclamation-circle me-2"></i> Failed Delivery
+                                                                </a></li>
+                                                                <li><a class="dropdown-item text-danger x-small py-2" href="#" onclick="showStatusModal('@order.TrackingId', 'Returned')">
+                                                                    <i class="bi bi-arrow-return-left me-2"></i> Return to Sender
+                                                                </a></li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            }
                                         </div>
-                                        <div class="btn-group shadow-sm">
-                                            <button type="submit" name="status" value="Delivered" id="btn-deliver-@order.TrackingId" 
-                                                    class="btn btn-sm btn-success fw-bold px-3 py-2" disabled style="font-size: 0.75rem;">
-                                                COMPLETE
-                                            </button>
-                                            <button type="button" class="btn btn-sm btn-dark border-secondary border-opacity-50 px-2 dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <span class="visually-hidden">Toggle Dropdown</span>
-                                            </button>
-                                            <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow border-secondary">
-                                                <li><a class="dropdown-item text-warning x-small py-2" href="#" onclick="showStatusModal('@order.TrackingId', 'Failed')">
-                                                    <i class="bi bi-exclamation-circle me-2"></i> Failed Delivery
-                                                </a></li>
-                                                <li><a class="dropdown-item text-danger x-small py-2" href="#" onclick="showStatusModal('@order.TrackingId', 'Returned')">
-                                                    <i class="bi bi-arrow-return-left me-2"></i> Return to Sender
-                                                </a></li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </form>
-                            }
                         </td>
                     </tr>
                 }
@@ -303,6 +353,22 @@
     </div>
 </div>
 
+<!-- Validation Modal (Replaces Alert) -->
+<div class="modal fade" id="validationModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+        <div class="modal-content bg-dark border-orange" style="border-radius: 24px; border: 1px solid rgba(255,140,0,0.3) !important;">
+            <div class="modal-body p-4 text-center">
+                <div class="display-4 text-orange mb-3">
+                    <i class="bi bi-camera-fill"></i>
+                </div>
+                <h5 class="text-white fw-bold mb-2">Photo Required</h5>
+                <p class="text-secondary small mb-4">Please capture or upload a Proof of Delivery (POD) photo before completing this delivery.</p>
+                <button type="button" class="btn btn-orange w-100 py-3 fw-bold" data-bs-dismiss="modal" style="border-radius: 12px;">Got it</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         function toggleOtherReason(val) {
@@ -392,17 +458,25 @@
             }
         }
 
+        function validateDelivery(id) {
+            const fileInput = document.getElementById('file-' + id);
+            if (!fileInput.files || fileInput.files.length === 0) {
+                const valModal = new bootstrap.Modal(document.getElementById('validationModal'));
+                valModal.show();
+                return false;
+            }
+            return true;
+        }
+
         function updatePreview(id, dataUrl) {
             const preview = document.getElementById('preview-' + id);
             const label = document.getElementById('label-' + id);
-            const btn = document.getElementById('btn-deliver-' + id);
             const removeBtn = document.getElementById('remove-' + id);
             preview.src = dataUrl;
             preview.style.display = 'block';
             removeBtn.style.setProperty('display', 'flex', 'important');
             label.innerText = "READY";
             label.classList.replace('btn-dark', 'btn-success');
-            if(btn) btn.disabled = false;
         }
 
         function clearPhoto(id) {
@@ -410,22 +484,33 @@
             const preview = document.getElementById('preview-' + id);
             const removeBtn = document.getElementById('remove-' + id);
             const label = document.getElementById('label-' + id);
-            const btn = document.getElementById('btn-deliver-' + id);
             fileInput.value = "";
             preview.style.display = 'none';
             removeBtn.style.setProperty('display', 'none', 'important');
             label.innerText = "CAPTURE";
             label.classList.replace('btn-success', 'btn-dark');
-            if(btn) btn.disabled = true;
         }
 
         async function showMapModal(address, name) {
             const modal = new bootstrap.Modal(document.getElementById('mapModal'));
             modal.show();
+            document.getElementById('etaValue').innerText = "Calculating ETA...";
+
             if (map === null) {
                 map = L.map('map').setView([14.5995, 120.9842], 13);
                 L.tileLayer(`https://{s}.tile.jawg.io/jawg-sunny/{z}/{x}/{y}{r}.png?access-token=${JAWG_TOKEN}`).addTo(map);
             }
+
+            // Fetch real-time ETA from server
+            fetch(`/Rider/GetEta?destination=${encodeURIComponent(address)}`)
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('etaValue').innerText = data.eta;
+                })
+                .catch(() => {
+                    document.getElementById('etaValue').innerText = "ETA Unavailable";
+                });
+
             try {
                 const query = address.toLowerCase().includes("philippines") ? address : address + ", Philippines";
                 const geocodeUrl = `https://api.jawg.io/places/v1/search?text=${encodeURIComponent(query)}&access-token=${JAWG_TOKEN}&size=1`;
@@ -436,6 +521,7 @@
                     const dest = [coords[1], coords[0]];
                     if (marker) map.removeLayer(marker);
                     marker = L.marker(dest).addTo(map).bindPopup(address).openPopup();
+                    map.setView(dest, 14);
                     document.getElementById('externalNavBtn').href = `https://waze.com/ul?ll=${dest[0]},${dest[1]}&navigate=yes`;
                 }
             } catch (e) {}

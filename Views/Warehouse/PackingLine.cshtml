@@ -14,13 +14,20 @@
     <!-- Integrated Filter Bar -->
     <div class="d-flex justify-content-between align-items-center mb-4 gap-3 bg-dark-soft p-2 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
         <div class="d-flex align-items-center flex-grow-1 gap-3">
-            <form method="get" class="d-flex align-items-center flex-grow-1">
+            <form method="get" class="d-flex align-items-center flex-grow-1 gap-2">
                 <div class="search-wrapper flex-grow-1" style="max-width: 400px; position: relative;">
                     <i class="bi bi-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #6c757d;"></i>
                     <input type="text" name="search" value="@ViewBag.Search" class="minimal-input w-100" 
                            style="background: #111; border: 1px solid #222; border-radius: 8px; padding: 10px 15px 10px 40px; color: #fff; outline: none;"
                            placeholder="Search Tracking ID, Receiver...">
                 </div>
+                <select name="status" class="minimal-input" style="background: #111; border: 1px solid #222; border-radius: 8px; padding: 10px; color: #fff; outline: none; min-width: 150px;" onchange="this.form.submit()">
+                    <option value="">All Statuses</option>
+                    <option value="Pending" selected='@(ViewBag.Status == "Pending")'>Pending</option>
+                    <option value="Picked" selected='@(ViewBag.Status == "Picked")'>Picked</option>
+                    <option value="Packed in Store" selected='@(ViewBag.Status == "Packed in Store")'>Packed in Store</option>
+                    <option value="Sent to Warehouse Packing" selected='@(ViewBag.Status == "Sent to Warehouse Packing")'>Warehouse Packing</option>
+                </select>
             </form>
         </div>
         <div class="d-flex align-items-center gap-3">
@@ -76,7 +83,11 @@
                                         <button class="btn btn-link text-info p-0 action-icon" onclick="openPackingModal('@item.TrackingId', '@item.Status')" title="Packing Control">
                                             <i class="bi bi-lightning-charge-fill"></i>
                                         </button>
-                                        <button class="btn btn-link text-warning p-0 action-icon" onclick="openAssignModal('@item.TrackingId')" title="Assign Rider">
+                                        <button class="btn btn-link text-warning p-0 action-icon"
+                                                onclick="openAssignModal(this.dataset.tracking, this.dataset.address)"
+                                                data-tracking="@item.TrackingId"
+                                                data-address="@item.ReceiverAddress"
+                                                title="Assign Rider">
                                             <i class="bi bi-person-badge-fill"></i>
                                         </button>
                                     </div>
@@ -137,10 +148,30 @@
             modal.show();
         }
 
-        function openAssignModal(trackingId) {
+        function openAssignModal(trackingId, address) {
             const modal = new bootstrap.Modal(document.getElementById('assignModal'));
             document.getElementById('assignTrackingId').textContent = '#' + trackingId;
             document.getElementById('assignFormTrackingId').value = trackingId;
+
+            const select = document.getElementById('assignRiderSelect');
+            select.innerHTML = '<option value="">Loading riders...</option>';
+
+            fetch('/RiderInfo/GetRidersForRoute?address=' + encodeURIComponent(address || ''))
+                .then(r => r.json())
+                .then(riders => {
+                    select.innerHTML = '<option value="">Choose Rider...</option>';
+                    if (riders.length === 0) {
+                        select.innerHTML += '<option disabled>No riders assigned to this area</option>';
+                    } else {
+                        riders.forEach(r => {
+                            select.innerHTML += `<option value="manual_${r.id}">${r.name}</option>`;
+                        });
+                    }
+                })
+                .catch(() => {
+                    select.innerHTML = '<option value="">Choose Rider...</option>';
+                });
+
             modal.show();
         }
 
@@ -241,10 +272,14 @@
                         <select name="riderId" id="assignRiderSelect" class="form-select bg-dark text-white border-secondary border-opacity-25" style="border-radius: 10px;">
                             <option value="">Choose Rider...</option>
                             @foreach (var r in (ViewBag.AvailableRiders as IEnumerable<SwiftFill.Models.ApplicationUser> ?? new List<SwiftFill.Models.ApplicationUser>())) {
-                                <option value="user_@r.Id">@r.FirstName @r.LastName</option>
+                                if (currentHub == "Davao Hub") {
+                                    <option value="user_@r.Id" data-route="@r.Route">@r.FirstName @r.LastName (@(r.Route ?? "No Area"))</option>
+                                } else {
+                                    <option value="user_@r.Id" data-route="@r.Route">@r.FirstName @r.LastName</option>
+                                }
                             }
                             @foreach (var r in (ViewBag.ManualRiders as IEnumerable<SwiftFill.Models.ManualRider> ?? new List<SwiftFill.Models.ManualRider>())) {
-                                <option value="manual_@r.Id">@r.Name</option>
+                                <option value="manual_@r.Id" data-route="@r.Route">@r.Name</option>
                             }
                         </select>
                     </div>

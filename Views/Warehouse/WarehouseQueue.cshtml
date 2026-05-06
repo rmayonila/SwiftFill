@@ -15,13 +15,21 @@
     <!-- Integrated Filter Bar -->
     <div class="d-flex justify-content-between align-items-center mb-4 gap-3 bg-dark-soft p-2 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
         <div class="d-flex align-items-center flex-grow-1 gap-3">
-            <form method="get" class="d-flex align-items-center flex-grow-1">
+            <form method="get" class="d-flex align-items-center flex-grow-1 gap-2">
                 <div class="search-wrapper flex-grow-1" style="max-width: 400px; position: relative;">
                     <i class="bi bi-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #6c757d;"></i>
                     <input type="text" name="search" value="@ViewBag.Search" class="minimal-input w-100" 
                            style="background: #111; border: 1px solid #222; border-radius: 8px; padding: 10px 15px 10px 40px; color: #fff; outline: none;"
                            placeholder="Search Tracking ID, Receiver...">
                 </div>
+                <select name="status" class="minimal-input" style="background: #111; border: 1px solid #222; border-radius: 8px; padding: 10px; color: #fff; outline: none; min-width: 150px;" onchange="this.form.submit()">
+                    <option value="">All Stages</option>
+                    <option value="Packed in Warehouse" selected='@(Context.Request.Query["status"] == "Packed in Warehouse")'>Packed</option>
+                    <option value="Sorted for Transfer" selected='@(Context.Request.Query["status"] == "Sorted for Transfer")'>Sorted</option>
+                    <option value="Arrived" selected='@(Context.Request.Query["status"] == "Arrived")'>Arrived</option>
+                    <option value="Out for Delivery" selected='@(Context.Request.Query["status"] == "Out for Delivery")'>Out for Delivery</option>
+                    <option value="Returning to Sender" selected='@(Context.Request.Query["status"] == "Returning to Sender")'>Returning</option>
+                </select>
             </form>
         </div>
         <div class="d-flex align-items-center gap-3">
@@ -88,10 +96,15 @@
                                     }
                                     
                                     <div class="d-flex gap-2">
-                                        <button class="btn btn-link text-info p-0 action-icon" onclick="openLogisticsModal('@item.TrackingId', '@item.Status', '@destHub', @((!isSorted && !isFinalDest).ToString().ToLower()), @((isSorted && !isFinalDest).ToString().ToLower()), '@(item.Status == "Returning to Sender" ? "true" : "false")')" title="Logistics Control">
-                                            <i class="bi bi-lightning-charge-fill"></i>
-                                        </button>
-                                        <button class="btn btn-link text-warning p-0 action-icon" onclick="openAssignModal('@item.TrackingId')" title="Assign Rider">
+                                        @if (currentHub == "Davao Hub")
+                                        {
+                                        @* Logistics Control removed as per request *@
+                                        }
+                                        <button class="btn btn-link text-warning p-0 action-icon"
+                                                onclick="openAssignModal(this.dataset.tracking, this.dataset.address)"
+                                                data-tracking="@item.TrackingId"
+                                                data-address="@item.ReceiverAddress"
+                                                title="Assign Rider">
                                             <i class="bi bi-person-badge-fill"></i>
                                         </button>
                                     </div>
@@ -153,10 +166,35 @@
             modal.show();
         }
 
-        function openAssignModal(trackingId) {
+        function openAssignModal(trackingId, address) {
             const modal = new bootstrap.Modal(document.getElementById('assignModal'));
             document.getElementById('assignTrackingId').textContent = '#' + trackingId;
             document.getElementById('assignFormTrackingId').value = trackingId;
+
+            const select = document.getElementById('assignRiderSelect');
+            select.innerHTML = '<option value="">Loading riders...</option>';
+
+            // Fetch riders matched to this address from the server
+            fetch('/RiderInfo/GetRidersForRoute?address=' + encodeURIComponent(address || ''))
+                .then(r => r.json())
+                .then(riders => {
+                    select.innerHTML = '<option value="">Choose Rider...</option>';
+                    if (riders.length === 0) {
+                        select.innerHTML += '<option disabled>No riders assigned to this area</option>';
+                    } else {
+                        riders.forEach(r => {
+                            select.innerHTML += `<option value="manual_${r.id}">${r.name}</option>`;
+                        });
+                    }
+                })
+                .catch(() => {
+                    // Fallback: show all pre-loaded riders if fetch fails
+                    select.innerHTML = '';
+                    const fallback = document.getElementById('allRidersData');
+                    if (fallback) select.innerHTML = fallback.innerHTML;
+                    else select.innerHTML = '<option value="">Choose Rider...</option>';
+                });
+
             modal.show();
         }
 
@@ -271,12 +309,16 @@
                             <option value="">Choose Rider...</option>
                             <optgroup label="System User Riders">
                                 @foreach (var r in (ViewBag.AvailableRiders as IEnumerable<ApplicationUser> ?? new List<ApplicationUser>())) {
-                                    <option value="user_@r.Id">@r.FirstName @r.LastName</option>
+                                    if (currentHub == "Davao Hub") {
+                                        <option value="user_@r.Id" data-route="@r.Route">@r.FirstName @r.LastName (@(r.Route ?? "No Area"))</option>
+                                    } else {
+                                        <option value="user_@r.Id" data-route="@r.Route">@r.FirstName @r.LastName</option>
+                                    }
                                 }
                             </optgroup>
                             <optgroup label="Manual Riders">
                                 @foreach (var r in (ViewBag.ManualRiders as IEnumerable<ManualRider> ?? new List<ManualRider>())) {
-                                    <option value="manual_@r.Id">@r.Name</option>
+                                    <option value="manual_@r.Id" data-route="@r.Route">@r.Name</option>
                                 }
                             </optgroup>
                         </select>

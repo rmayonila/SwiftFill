@@ -28,7 +28,7 @@ namespace SwiftFill.Controllers
             return hub ?? "Davao Hub";
         }
 
-        public async Task<IActionResult> Index(string search, int page = 1)
+        public async Task<IActionResult> Index(string search, string status, int page = 1)
         {
             int pageSize = 10;
             var currentHub = GetCurrentHub();
@@ -39,6 +39,12 @@ namespace SwiftFill.Controllers
 
             if (!string.IsNullOrEmpty(search))
                 query = query.Where(r => r.Name.Contains(search) || r.Route.Contains(search));
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                bool active = status == "Active";
+                query = query.Where(r => r.IsActive == active);
+            }
 
             var totalItems = await query.CountAsync();
             var riders = await query.OrderBy(r => r.Route)
@@ -132,13 +138,28 @@ namespace SwiftFill.Controllers
                 .Where(r => r.Hub == currentHub && r.IsActive)
                 .ToListAsync();
 
-            // Simple filtering logic: if any part of the route name is in the address
-            var filtered = riders.Where(r => address.Contains(r.Route, StringComparison.OrdinalIgnoreCase)).ToList();
-            
-            // If no match, return all for that hub as fallback? 
-            // The prompt says "only see in that route assign address not all rider will show".
-            // So if no match, maybe empty list? 
-            
+            var addressLower = (address ?? "").ToLower();
+
+            // Flexible matching: split the rider's route by comma and check each keyword
+            // against the delivery address. "Makati City, Metro Manila" =>
+            // keywords: ["makati", "manila"] (after stripping 'city'/'metro')
+            // Both must appear somewhere in the address.
+            var filtered = riders.Where(r =>
+            {
+                var routeParts = r.Route.Split(',')
+                    .Select(p => p.Trim()
+                        .Replace("city", "", StringComparison.OrdinalIgnoreCase)
+                        .Replace("metro", "", StringComparison.OrdinalIgnoreCase)
+                        .Trim())
+                    .Where(p => p.Length > 2)
+                    .ToList();
+
+                if (routeParts.Count == 0) return false;
+
+                // ALL extracted keywords must appear in the address
+                return routeParts.All(keyword => addressLower.Contains(keyword.ToLower()));
+            }).ToList();
+
             return Json(filtered.Select(r => new { r.Id, r.Name, r.Phone, r.Route }));
         }
     }

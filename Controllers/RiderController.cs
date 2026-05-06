@@ -43,9 +43,12 @@ namespace SwiftFill.Controllers
             if (rider == null) return RedirectToAction("Login", "Account");
 
             string riderRoute = rider.Route ?? string.Empty;
+            string riderFullName = $"{rider.FirstName} {rider.LastName}";
+
             var riderOrders = await _context.Orders
                 .Include(o => o.Payment)
                 .Include(o => o.AssignedRider)
+                .Include(o => o.ManualRider)
                 .Where(o => !o.IsArchived && o.DeliveryAttempts < 3)
                 .Where(o => o.Status != "Delivered" && o.Status != "Returned")
                 .ToListAsync();
@@ -53,17 +56,22 @@ namespace SwiftFill.Controllers
             // Filter in memory for maximum reliability
             var filteredOrders = riderOrders.Where(o => 
             {
+                // 1. Direct system-user assignment
                 bool isDirect = o.AssignedRiderId != null && o.AssignedRiderId.Trim() == userId?.Trim();
-                
                 if (isDirect) Console.WriteLine($"[DEBUG] Direct Match Found: {o.TrackingId}");
-                
-                // Show in pool only if matching hub/route
+
+                // 2. Manual rider name match — warehouse assigns manual_ID, this ensures the order appears for the named rider
+                bool isManualNameMatch = o.ManualRider != null &&
+                    string.Equals(o.ManualRider.Name.Trim(), riderFullName.Trim(), StringComparison.OrdinalIgnoreCase);
+                if (isManualNameMatch) Console.WriteLine($"[DEBUG] Manual Name Match: {o.TrackingId}");
+
+                // 3. Show in pool only if matching hub/route
                 bool isPool = o.AssignedRiderId == null && o.ManualRiderId == null &&
                               o.CurrentLocation == rider.Hub && 
                               !string.IsNullOrEmpty(riderRoute) && 
                               o.ReceiverAddress.Contains(riderRoute, StringComparison.OrdinalIgnoreCase);
 
-                return isDirect || isPool;
+                return isDirect || isManualNameMatch || isPool;
             }).ToList();
 
             Console.WriteLine($"[DEBUG] Total Orders Found: {riderOrders.Count}, Filtered for Rider: {filteredOrders.Count}");
@@ -120,9 +128,15 @@ namespace SwiftFill.Controllers
 
             if (status == "Delivered")
             {
+                if (proofPhoto == null || proofPhoto.Length == 0)
+                {
+                    TempData["ErrorMessage"] = "POD Photo is required for completion.";
+                    return RedirectToAction(nameof(Index));
+                }
+
                 order.Status = "Delivered";
                 order.DeliveryAttempts++;
-                if (order.Payment != null) {
+                if (order.Payment != null && order.Payment.Method == "COD") {
                     order.Payment.IsPaid = true;
                     order.Payment.PaidAt = DateTime.UtcNow;
                     order.Payment.CollectedByUserId = userId;
@@ -194,11 +208,10 @@ namespace SwiftFill.Controllers
         public async Task<IActionResult> Remittance()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var today = DateTime.UtcNow.Date;
 
             var pendingPayments = await _context.Payments
                 .Include(p => p.Order)
-                .Where(p => p.CollectedByUserId == userId && p.PaidAt >= today && p.Method == "COD")
+                .Where(p => p.CollectedByUserId == userId && p.Method == "COD" && !p.IsArchived)
                 .OrderByDescending(p => p.PaidAt)
                 .ToListAsync();
 
@@ -233,8 +246,34 @@ namespace SwiftFill.Controllers
                 attempts = order.DeliveryAttempts,
                 notes = order.Notes,
                 amount = order.Payment?.Amount.ToString("N2") ?? "0.00",
+                paymentMethod = order.Payment?.Method ?? "Unspecified",
                 photo = order.ProofImagePath
             });
+        }
+        // --- 7. MARK AS REMITTED ---
+        [HttpPost]
+        public async Task<IActionResult> MarkAsRemitted()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var pendingPayments = await _context.Payments
+                .Where(p => p.CollectedByUserId == userId && p.Method == "COD" && !p.IsArchived)
+                .ToListAsync();
+
+            if (pendingPayments.Any())
+            {
+                foreach (var payment in pendingPayments)
+                {
+                    payment.IsArchived = true; // Archive them so they disappear from the rider's list
+                }
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Remittance recorded. Please ensure you have handed over the cash to the hub staff.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "No pending collections found to remit.";
+            }
+
+            return RedirectToAction(nameof(Remittance));
         }
     }
 }

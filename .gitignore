@@ -3,7 +3,7 @@ appsettings.json
 appsettings.Development.json
 .env
 
-# Ignore build folders (IMPORTANT)
+# Ignore build folders
 bin/
 obj/
 

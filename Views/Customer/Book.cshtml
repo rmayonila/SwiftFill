@@ -24,7 +24,7 @@
                     </div>
                     <div class="mb-4">
                         <label class="text-secondary x-small mb-1">Contact Number</label>
-                        <input asp-for="SenderPhone" class="minimal-input w-100" placeholder="09123456789" required pattern="^\d{11}$" title="Phone number must be exactly 11 digits" />
+                        <input asp-for="SenderPhone" class="minimal-input w-100" placeholder="09123456789" required maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11);" title="Phone number must be exactly 11 digits" />
                     </div>
                 </div>
 
@@ -41,7 +41,7 @@
                     </div>
                     <div class="mb-4">
                         <label class="text-secondary x-small mb-1">Contact Number</label>
-                        <input asp-for="ReceiverPhone" class="minimal-input w-100" placeholder="09123456789" required pattern="^\d{11}$" title="Phone number must be exactly 11 digits" />
+                        <input asp-for="ReceiverPhone" class="minimal-input w-100" placeholder="09123456789" required maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11);" title="Phone number must be exactly 11 digits" />
                     </div>
                 </div>
             </div>

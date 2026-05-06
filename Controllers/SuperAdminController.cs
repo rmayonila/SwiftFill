@@ -328,7 +328,7 @@ namespace SwiftFill.Controllers
         public async Task<IActionResult> SystemLogs(string search, string role, int page = 1)
         {
             int pageSize = 15;
-            var query = _context.AuditLogs.Where(l => l.Type == AuditLogType.System).AsQueryable();
+            var query = _context.AuditLogs.Where(l => l.Type == AuditLogType.System && !l.IsArchived).AsQueryable();
 
             if (!string.IsNullOrEmpty(search))
             {
@@ -357,7 +357,7 @@ namespace SwiftFill.Controllers
         public async Task<IActionResult> SecurityLogs(string search, string role, int page = 1)
         {
             int pageSize = 15;
-            var query = _context.AuditLogs.Where(l => l.Type == AuditLogType.Security).AsQueryable();
+            var query = _context.AuditLogs.Where(l => l.Type == AuditLogType.Security && !l.IsArchived).AsQueryable();
 
             if (!string.IsNullOrEmpty(search))
             {
@@ -377,6 +377,38 @@ namespace SwiftFill.Controllers
 
             ViewBag.Search = search;
             ViewBag.Role = role;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            return View(logs);
+        }
+
+        public async Task<IActionResult> ArchivedLogs(string search, string type, int page = 1)
+        {
+            int pageSize = 20;
+            var query = _context.AuditLogs.Where(l => l.IsArchived).AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(l => l.Action.Contains(search) || l.Detail.Contains(search) || l.Actor.Contains(search));
+            }
+
+            if (!string.IsNullOrEmpty(type))
+            {
+                if (Enum.TryParse<AuditLogType>(type, out var logType))
+                {
+                    query = query.Where(l => l.Type == logType);
+                }
+            }
+
+            var totalItems = await query.CountAsync();
+            var logs = await query.OrderByDescending(l => l.Timestamp)
+                                  .Skip((page - 1) * pageSize)
+                                  .Take(pageSize)
+                                  .ToListAsync();
+
+            ViewBag.Search = search;
+            ViewBag.Type = type;
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 

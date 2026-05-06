@@ -15,23 +15,38 @@
 </style>
 
 <div class="animate-fade-up">
-    <div class="mb-4">
-        <h2 class="fw-bold text-white mb-1">Delivery Log</h2>
-        <p class="text-secondary small">History of your completed assignments.</p>
+    <!-- Dashboard Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold fs-3 mt-2 mb-0 text-white">
+            <i class="bi bi-clock-history text-orange me-2"></i> Delivery Log
+        </h2>
+        <div class="text-secondary small">History of completed assignments</div>
     </div>
 
-    <!-- Summary Stats -->
+    <!-- KPI Cards — Admin-style responsive grid -->
     <div class="row g-3 mb-4">
-        <div class="col-6">
-            <div class="glass-card p-3 text-center border-0" style="background: rgba(25, 135, 84, 0.05);">
-                <div class="smaller text-success fw-bold text-uppercase">Delivered</div>
-                <div class="h3 mb-0 fw-bold text-white">@Model.Count(o => o.Status == "Delivered")</div>
+        <div class="col-6 col-md-6">
+            <div class="glass-card p-3 h-100 position-relative overflow-hidden" style="border-left: 3px solid #28a745;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-secondary x-small text-uppercase fw-bold ls-1 mb-1">Delivered</div>
+                        <div class="text-white fw-bold" style="font-size: 2rem; line-height: 1;">@Model.Count(o => o.Status == "Delivered")</div>
+                        <div class="text-secondary x-small mt-1">Successfully completed</div>
+                    </div>
+                    <div class="text-success opacity-25" style="font-size: 2.5rem;"><i class="bi bi-check-circle"></i></div>
+                </div>
             </div>
         </div>
-        <div class="col-6">
-            <div class="glass-card p-3 text-center border-0" style="background: rgba(220, 53, 69, 0.05);">
-                <div class="smaller text-danger fw-bold text-uppercase">Returned</div>
-                <div class="h3 mb-0 fw-bold text-white">@Model.Count(o => o.Status == "Returned")</div>
+        <div class="col-6 col-md-6">
+            <div class="glass-card p-3 h-100 position-relative overflow-hidden" style="border-left: 3px solid #dc3545;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-secondary x-small text-uppercase fw-bold ls-1 mb-1">Returned</div>
+                        <div class="text-white fw-bold" style="font-size: 2rem; line-height: 1;">@Model.Count(o => o.Status == "Returned")</div>
+                        <div class="text-secondary x-small mt-1">Failed or rejected</div>
+                    </div>
+                    <div class="text-danger opacity-25" style="font-size: 2.5rem;"><i class="bi bi-x-circle"></i></div>
+                </div>
             </div>
         </div>
     </div>
@@ -53,7 +68,7 @@
                     </div>
                     <div class="text-end">
                         <div class="text-white fw-bold">₱@order.Payment?.Amount.ToString("N0")</div>
-                        <i class="bi bi-chevron-right text-secondary small"></i>
+                        <div class="text-secondary" style="font-size: 0.65rem;">@order.Payment?.Method</div>
                     </div>
                 </div>
             </div>
@@ -103,8 +118,9 @@
                         </div>
                         <div class="col-6">
                             <div class="glass-card p-2 text-center border-0" style="background: rgba(255, 255, 255, 0.03);">
-                                <label class="text-secondary smaller d-block">COD Amount</label>
-                                <span class="text-orange fw-bold">₱${data.amount}</span>
+                                <label class="text-secondary smaller d-block">${data.paymentMethod === 'COD' ? 'COD Amount' : 'Paid Amount'}</label>
+                                <div class="text-orange fw-bold">₱${data.amount}</div>
+                                ${data.paymentMethod !== 'COD' ? `<div class="text-secondary" style="font-size: 0.65rem;">${data.paymentMethod}</div>` : ''}
                             </div>
                         </div>
                     </div>

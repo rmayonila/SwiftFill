@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SwiftFill.Data;
 
@@ -11,9 +12,11 @@ using SwiftFill.Data;
 namespace SwiftFill.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260504131321_AddIsArchivedToAuditLogs")]
+    partial class AddIsArchivedToAuditLogs
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -52,35 +55,35 @@ namespace SwiftFill.Migrations
                         new
                         {
                             Id = "1",
-                            ConcurrencyStamp = "80eb31f6-e542-4978-9b02-ee7008302446",
+                            ConcurrencyStamp = "553f6195-aa86-4d92-a131-a66f9d66a41b",
                             Name = "SuperAdmin",
                             NormalizedName = "SUPERADMIN"
                         },
                         new
                         {
                             Id = "2",
-                            ConcurrencyStamp = "35f9bfa6-c8c4-4458-9b82-ed6db236a711",
+                            ConcurrencyStamp = "6af62540-ed7e-4b92-b691-454815d14932",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
                             Id = "3",
-                            ConcurrencyStamp = "e71469d7-490c-4374-a12b-ac0bf19f774b",
+                            ConcurrencyStamp = "3e2b5591-81c8-460f-ae5f-78a7e7b7cac6",
                             Name = "WarehouseStaff",
                             NormalizedName = "WAREHOUSESTAFF"
                         },
                         new
                         {
                             Id = "4",
-                            ConcurrencyStamp = "3697195e-1285-4a8a-a7c2-ad0edb9b0752",
+                            ConcurrencyStamp = "e75ccb1b-5a31-4895-9990-5fb0a49d59bb",
                             Name = "DeliveryRider",
                             NormalizedName = "DELIVERYRIDER"
                         },
                         new
                         {
                             Id = "5",
-                            ConcurrencyStamp = "5ee6d197-98e3-4b42-94a2-f6b02a94e1e8",
+                            ConcurrencyStamp = "0bb8c101-2416-4166-ab56-0a4fdb58d1ce",
                             Name = "Customer",
                             NormalizedName = "CUSTOMER"
                         });
@@ -313,8 +316,8 @@ namespace SwiftFill.Migrations
                         {
                             Id = "a18be9c0-aa65-4af8-bd17-00bd9344e575",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "ef20ef9e-2668-4991-8c98-812449c33be3",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            ConcurrencyStamp = "6608056c-59b5-4e6f-9947-c7ea69fe980a",
+                            CreatedAt = new DateTime(2026, 5, 4, 13, 13, 17, 473, DateTimeKind.Utc).AddTicks(952),
                             Email = "superadmin@swiftfill.com",
                             EmailConfirmed = true,
                             FirstName = "System",
@@ -323,7 +326,7 @@ namespace SwiftFill.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "SUPERADMIN@SWIFTFILL.COM",
                             NormalizedUserName = "SUPERADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEHu0Fx+RfU+pW9MTFY66WVV2+X/ociv9804ljeWiURSTgzL0mOTIrD5wZL+XzXfkvw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEIJbCEK3JNhi3HqxpgmwM4o594Tp2aexV5Ma8JbF9bjnysLUt+VO/tToL+8rsxdqnA==",
                             PhoneNumber = "800-555-0199",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "",
@@ -335,8 +338,8 @@ namespace SwiftFill.Migrations
                         {
                             Id = "b18be9c0-aa65-4af8-bd17-00bd9344e576",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "d06de3ba-5fed-48b1-96e0-52477b496df8",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            ConcurrencyStamp = "09db9462-4172-47de-aed5-59b3d9eacc04",
+                            CreatedAt = new DateTime(2026, 5, 4, 13, 13, 17, 645, DateTimeKind.Utc).AddTicks(6584),
                             Email = "admin@swiftfill.com",
                             EmailConfirmed = true,
                             FirstName = "Warehouse",
@@ -345,7 +348,7 @@ namespace SwiftFill.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@SWIFTFILL.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEIUU7dEpkJ5mqLtDntn87OS8De8LRQnw4FJlT3Sic2PMfsZIo4XdHEDwjtufvtwb6g==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEPFnjfFO3YooYmF8i3xyulll2Dy0KuSRBglEsM/Vr7m+5V25X3A0fwjUohsQ1gV0LA==",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "",
                             TotalFailedLogins = 0,
@@ -356,8 +359,8 @@ namespace SwiftFill.Migrations
                         {
                             Id = "c18be9c0-aa65-4af8-bd17-00bd9344e577",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "8ce49dec-f75e-4bc9-85a3-f79ef42db86d",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            ConcurrencyStamp = "00560b78-b00e-42c1-b26b-36792d27bf69",
+                            CreatedAt = new DateTime(2026, 5, 4, 13, 13, 17, 778, DateTimeKind.Utc).AddTicks(4826),
                             Email = "staff@swiftfill.com",
                             EmailConfirmed = true,
                             FirstName = "Warehouse",
@@ -366,7 +369,7 @@ namespace SwiftFill.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "STAFF@SWIFTFILL.COM",
                             NormalizedUserName = "STAFF",
-                            PasswordHash = "AQAAAAIAAYagAAAAENx6xJxirifsytcWG7557gd5ayO814boiM2rua3khnVfpWS6aL3VBs7OXhdYOPdEdA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAECdFUjhOU872Vo1pug0bdqSjkV8pv1xEWd3Rm3/XKglB9L/k+ZbamEuLmGRiFU1r2A==",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "",
                             TotalFailedLogins = 0,
@@ -377,8 +380,8 @@ namespace SwiftFill.Migrations
                         {
                             Id = "d18be9c0-aa65-4af8-bd17-00bd9344e578",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "849785fd-bab2-4ba6-b678-822513862992",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            ConcurrencyStamp = "577cce80-14ff-4e85-87e4-2f52d56c94a0",
+                            CreatedAt = new DateTime(2026, 5, 4, 13, 13, 17, 896, DateTimeKind.Utc).AddTicks(8138),
                             Email = "rider@swiftfill.com",
                             EmailConfirmed = true,
                             FirstName = "Delivery",
@@ -387,7 +390,7 @@ namespace SwiftFill.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "RIDER@SWIFTFILL.COM",
                             NormalizedUserName = "RIDER",
-                            PasswordHash = "AQAAAAIAAYagAAAAEPlvPbIQ8KGyN7tFqRn52z0GeWvkB05RMo1kf4QgraPqwGxjw8k7w7Hzq6bv3pSDYw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEFOfWgMNob0DogypGxkz4/L5X7cWbDN/v3qSPPAIBTg0g3VwQSQfy2zFFC7qNEf3/w==",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "",
                             TotalFailedLogins = 0,
@@ -398,8 +401,8 @@ namespace SwiftFill.Migrations
                         {
                             Id = "e18be9c0-aa65-4af8-bd17-00bd9344e579",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "6da77578-30f1-458c-a4cf-a5b5566776b8",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            ConcurrencyStamp = "8242d462-5f28-4a77-b41e-b43b185a8536",
+                            CreatedAt = new DateTime(2026, 5, 4, 13, 13, 18, 48, DateTimeKind.Utc).AddTicks(1486),
                             Email = "customer@swiftfill.com",
                             EmailConfirmed = true,
                             FirstName = "Alex",
@@ -408,7 +411,7 @@ namespace SwiftFill.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "CUSTOMER@SWIFTFILL.COM",
                             NormalizedUserName = "CUSTOMER",
-                            PasswordHash = "AQAAAAIAAYagAAAAEKkrewM1bZntq+wysrq+xwzM2EzUU0tumgTxloLemFrj1nwLt7DwWjI0IhIZqWm7FQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEHTW1ArDuMFpW9QeWiESF5kPY0CZiMbTo70jnzgmXmP73NBJa9TjBeFUO3PiB41fyA==",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "",
                             TotalFailedLogins = 0,
@@ -503,7 +506,7 @@ namespace SwiftFill.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(2026, 5, 4, 13, 13, 17, 469, DateTimeKind.Utc).AddTicks(8323),
                             Description = "Common household and commercial goods.",
                             IsActive = true,
                             IsArchived = false,
@@ -512,7 +515,7 @@ namespace SwiftFill.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(2026, 5, 4, 13, 13, 17, 470, DateTimeKind.Utc).AddTicks(1221),
                             Description = "Devices, gadgets, and computer parts.",
                             IsActive = true,
                             IsArchived = false,
@@ -521,7 +524,7 @@ namespace SwiftFill.Migrations
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(2026, 5, 4, 13, 13, 17, 470, DateTimeKind.Utc).AddTicks(1225),
                             Description = "Clothing, shoes, and textiles.",
                             IsActive = true,
                             IsArchived = false,
@@ -530,7 +533,7 @@ namespace SwiftFill.Migrations
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(2026, 5, 4, 13, 13, 17, 470, DateTimeKind.Utc).AddTicks(1227),
                             Description = "Paper-based items and files.",
                             IsActive = true,
                             IsArchived = false,

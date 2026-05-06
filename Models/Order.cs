@@ -68,7 +68,7 @@ namespace SwiftFill.Models
         // --- NEW PROPERTIES FOR RIDER LOGIC ---
         public string? Notes { get; set; } 
         
-        [Range(0, 3)]
+        [Range(0, 10)]
         public int DeliveryAttempts { get; set; } = 0;
         
         public string? ProofImagePath { get; set; } 

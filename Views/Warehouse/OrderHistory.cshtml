@@ -14,13 +14,18 @@
     <!-- Integrated Filter Bar -->
     <div class="d-flex justify-content-between align-items-center mb-4 gap-3 bg-dark-soft p-2 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
         <div class="d-flex align-items-center flex-grow-1 gap-3">
-            <form method="get" class="d-flex align-items-center flex-grow-1">
+            <form method="get" class="d-flex align-items-center flex-grow-1 gap-2">
                 <div class="search-wrapper flex-grow-1" style="max-width: 400px; position: relative;">
                     <i class="bi bi-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #6c757d;"></i>
                     <input type="text" name="search" value="@ViewBag.Search" class="minimal-input w-100" 
                            style="background: #111; border: 1px solid #222; border-radius: 8px; padding: 10px 15px 10px 40px; color: #fff; outline: none;"
                            placeholder="Search Tracking ID, Receiver...">
                 </div>
+                <select name="status" class="minimal-input" style="background: #111; border: 1px solid #222; border-radius: 8px; padding: 10px; color: #fff; outline: none; min-width: 150px;" onchange="this.form.submit()">
+                    <option value="">All Statuses</option>
+                    <option value="Delivered" selected='@(Context.Request.Query["status"] == "Delivered")'>Delivered</option>
+                    <option value="Returned" selected='@(Context.Request.Query["status"] == "Returned")'>Returned</option>
+                </select>
             </form>
         </div>
         <div class="d-flex align-items-center gap-3">
@@ -55,6 +60,15 @@
                                 <div class="text-secondary x-small">
                                     Attempts: @item.DeliveryAttempts • @(item.ItemCategory ?? "General")
                                 </div>
+                                @if (item.AssignedRider != null || item.ManualRider != null)
+                                {
+                                    string riderName = item.AssignedRider != null 
+                                        ? $"{item.AssignedRider.FirstName} {item.AssignedRider.LastName}" 
+                                        : item.ManualRider?.Name ?? "N/A";
+                                    <div class="text-orange x-small fw-bold mt-1">
+                                        <i class="bi bi-truck me-1"></i> @riderName
+                                    </div>
+                                }
                             </td>
                             <td class="py-3">
                                 @{

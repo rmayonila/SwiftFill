@@ -14,7 +14,7 @@
     </div>
 
     <div class="row g-4 mb-5">
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-@(currentHub == "Davao Hub" ? "3" : "4")">
             <a asp-action="HubTransfers" class="text-decoration-none h-100 d-block hover-scale">
                 <div class="glass-card active-border-orange p-4 h-100 d-flex justify-content-between align-items-center">
                     <div>
@@ -25,7 +25,7 @@
                 </div>
             </a>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-@(currentHub == "Davao Hub" ? "3" : "4")">
             <a asp-action="HubTransfers" class="text-decoration-none h-100 d-block hover-scale">
                 <div class="glass-card p-4 h-100 d-flex justify-content-between align-items-center">
                     <div>
@@ -36,18 +36,21 @@
                 </div>
             </a>
         </div>
-        <div class="col-6 col-md-3">
-            <a asp-action="PackingLine" class="text-decoration-none h-100 d-block hover-scale">
-                <div class="glass-card p-4 h-100 d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="stat-label text-info fw-bold">SORTING</div>
-                        <div class="stat-subtitle mt-1">In Packing Line</div>
+        @if (currentHub == "Davao Hub")
+        {
+            <div class="col-6 col-md-3">
+                <a asp-action="PackingLine" class="text-decoration-none h-100 d-block hover-scale">
+                    <div class="glass-card p-4 h-100 d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="stat-label text-info fw-bold">SORTING</div>
+                            <div class="stat-subtitle mt-1">In Packing Line</div>
+                        </div>
+                        <div class="stat-value text-white display-6 fw-bold mb-0">@Model.PendingPickOrders.Count</div>
                     </div>
-                    <div class="stat-value text-white display-6 fw-bold mb-0">@Model.PendingPickOrders.Count</div>
-                </div>
-            </a>
-        </div>
-        <div class="col-6 col-md-3">
+                </a>
+            </div>
+        }
+        <div class="col-6 col-md-@(currentHub == "Davao Hub" ? "3" : "4")">
             <a asp-action="HubTransfers" class="text-decoration-none h-100 d-block hover-scale">
                 <div class="glass-card p-4 h-100 d-flex justify-content-between align-items-center">
                     <div>
@@ -92,11 +95,22 @@
 <div class="glass-card p-0 overflow-hidden border-0 mb-5" style="background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.05) !important;">
     <div class="d-flex justify-content-between align-items-center p-4 pb-3">
         <h6 class="text-uppercase text-secondary ls-1 mb-0">Recent Hub Activity — @currentHub</h6>
-        <a asp-action="HubTransfers" class="text-orange text-decoration-none small">View All <i class="bi bi-arrow-right ms-1"></i></a>
+        <div class="d-flex align-items-center gap-3">
+            @if (currentHub != "Davao Hub")
+            {
+                <div class="search-wrapper" style="position: relative; width: 250px;">
+                    <i class="bi bi-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #6c757d; font-size: 0.8rem;"></i>
+                    <input type="text" id="dashboardSearch" class="minimal-input w-100 ps-5 py-1" 
+                           style="background: #111; border: 1px solid #222; border-radius: 6px; color: #fff; outline: none; font-size: 0.8rem;"
+                           placeholder="Filter recent activity..." onkeyup="filterTable('recentActivityTable', this.value)">
+                </div>
+            }
+            <a asp-action="HubTransfers" class="text-orange text-decoration-none small">View All <i class="bi bi-arrow-right ms-1"></i></a>
+        </div>
     </div>
 
     <div class="table-responsive">
-        <table class="table table-dark table-hover mb-0">
+        <table class="table table-dark table-hover mb-0" id="recentActivityTable">
             <thead style="background: rgba(255,140,0,0.03);">
                 <tr class="text-secondary small text-uppercase">
                     <th class="border-0 ps-4 py-3">Tracking ID</th>
@@ -213,9 +227,9 @@
             form.submit();
         }
 
-        function filterTable(query) {
+        function filterTable(tableId, query) {
             const q = query.toLowerCase();
-            document.querySelectorAll('#queueTable tbody tr').forEach(row => {
+            document.querySelectorAll(`#${tableId} tbody tr`).forEach(row => {
                 row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
             });
         }

@@ -16,13 +16,21 @@
     <!-- Integrated Filter Bar -->
     <div class="d-flex justify-content-between align-items-center mb-4 gap-3 bg-dark-soft p-2 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
         <div class="d-flex align-items-center flex-grow-1 gap-3">
-            <form method="get" class="d-flex align-items-center flex-grow-1">
+            <form method="get" class="d-flex align-items-center flex-grow-1 gap-2">
                 <div class="search-wrapper flex-grow-1" style="max-width: 400px; position: relative;">
                     <i class="bi bi-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #6c757d;"></i>
                     <input type="text" name="search" value="@ViewBag.Search" class="minimal-input w-100" 
                            style="background: #111; border: 1px solid #222; border-radius: 8px; padding: 10px 15px 10px 40px; color: #fff; outline: none;"
                            placeholder="Search Tracking ID, Receiver...">
                 </div>
+                <select name="status" class="minimal-input" style="background: #111; border: 1px solid #222; border-radius: 8px; padding: 10px; color: #fff; outline: none; min-width: 150px;" onchange="this.form.submit()">
+                    <option value="">All Statuses</option>
+                    <option value="Transit" selected='@(Context.Request.Query["status"] == "Transit")'>In Transit</option>
+                    <option value="Sorted" selected='@(Context.Request.Query["status"] == "Sorted")'>Sorted</option>
+                    <option value="Packed" selected='@(Context.Request.Query["status"] == "Packed")'>Packed</option>
+                    <option value="Returned" selected='@(Context.Request.Query["status"] == "Returned")'>Returned</option>
+                    <option value="Returning" selected='@(Context.Request.Query["status"] == "Returning")'>Returning to Sender</option>
+                </select>
             </form>
         </div>
         <div class="d-flex align-items-center gap-3">
@@ -30,99 +38,135 @@
         </div>
     </div>
 
-    <div class="glass-card p-0 overflow-hidden" style="background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.05);">
-        <div class="table-responsive">
-            <table class="table table-dark table-hover mb-0">
-                <thead style="background: rgba(255,140,0,0.03);">
-                    <tr class="text-secondary small text-uppercase">
-                        <th class="ps-4 py-3">Shipment Identity</th>
-                        <th class="py-3">Transit Route</th>
-                        <th class="py-3">Status</th>
-                        <th class="py-3 pe-4 text-end">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model)
-                    {
-                        var destHub = HubRegistry.ResolveDestinationHub(item.DestinationRegion);
-                        var isInbound = item.Status.Contains($"Transit to {currentHub}") || item.Status.Contains($"Transit back to {currentHub}");
-                        var isOutbound = item.Status == "Sorted for Transfer";
+@{
+        var inboundItems = Model.Where(item => item.Status.Contains($"Transit to {currentHub}") || item.Status.Contains($"Transit back to {currentHub}")).ToList();
+        var outboundItems = Model.Except(inboundItems).ToList();
+        var tabs = new[] {
+            new { Id = "inbound", Items = inboundItems, IsActive = true },
+            new { Id = "outbound", Items = outboundItems, IsActive = false }
+        };
+    }
 
-                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
-                            <td class="ps-4 py-3">
-                                <code class="text-orange fw-bold d-block">#@item.TrackingId</code>
-                                <div class="text-white small">@item.ReceiverName</div>
-                                <div class="text-secondary x-small"><i class="bi bi-geo-alt me-1"></i>@item.ReceiverAddress</div>
-                            </td>
-                            <td class="py-3">
-                                <div class="text-white small">
-                                    @if (isInbound) {
-                                        <span><i class="bi bi-arrow-down-left text-success me-1"></i> INBOUND</span>
-                                    } else {
-                                        <span><i class="bi bi-arrow-up-right text-info me-1"></i> OUTBOUND</span>
-                                    }
-                                </div>
-                                <div class="text-secondary x-small">
-                                    @if (isInbound) {
-                                        <span>Origin: @(item.OriginHub ?? "Davao")</span>
-                                    } else {
-                                        <span>Target: @destHub</span>
-                                    }
-                                </div>
-                            </td>
-                            <td class="py-3">
-                                @{
-                                    var statusClass = item.Status == "Delivered" ? "border-success text-success" : 
-                                                     (item.Status.Contains("Arrived") ? "border-primary text-primary" : 
-                                                     (item.Status.Contains("Transit") ? "border-info text-info" : 
-                                                     (item.Status == "Returning to Sender" ? "border-danger text-danger" : "border-warning text-warning")));
+    <!-- Tabs Navigation -->
+    <ul class="nav nav-tabs nav-tabs-custom mb-3 border-0 gap-2" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active rounded-3 px-4 py-2 border-0 fw-bold d-flex align-items-center gap-2" id="inbound-tab" data-bs-toggle="tab" data-bs-target="#inbound" type="button" role="tab" aria-controls="inbound" aria-selected="true" style="background: rgba(255,255,255,0.05); color: #fff;">
+                <i class="bi bi-arrow-down-left text-success"></i> INBOUND
+                <span class="badge bg-success text-dark ms-1">@inboundItems.Count</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-3 px-4 py-2 border-0 fw-bold d-flex align-items-center gap-2" id="outbound-tab" data-bs-toggle="tab" data-bs-target="#outbound" type="button" role="tab" aria-controls="outbound" aria-selected="false" style="background: rgba(255,255,255,0.05); color: #fff;">
+                <i class="bi bi-arrow-up-right text-info"></i> OUTBOUND
+                <span class="badge bg-info text-dark ms-1">@outboundItems.Count</span>
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="transferTabsContent">
+        @foreach (var tab in tabs)
+        {
+            <div class="tab-pane fade @(tab.IsActive ? "show active" : "")" id="@tab.Id" role="tabpanel" aria-labelledby="@tab.Id-tab">
+                <div class="glass-card p-0 overflow-hidden" style="background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.05);">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover mb-0">
+                            <thead style="background: rgba(255,140,0,0.03);">
+                                <tr class="text-secondary small text-uppercase">
+                                    <th class="ps-4 py-3">Shipment Identity</th>
+                                    <th class="py-3">Transit Route</th>
+                                    <th class="py-3">Status</th>
+                                    <th class="py-3 pe-4 text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in tab.Items)
+                                {
+                                    var destHub = HubRegistry.ResolveDestinationHub(item.DestinationRegion);
+                                    var isInbound = item.Status.Contains($"Transit to {currentHub}") || item.Status.Contains($"Transit back to {currentHub}");
+                                    var isOutbound = item.Status == "Sorted for Transfer";
+
+                                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
+                                        <td class="ps-4 py-3">
+                                            <code class="text-orange fw-bold d-block">#@item.TrackingId</code>
+                                            <div class="text-white small">@item.ReceiverName</div>
+                                            <div class="text-secondary x-small"><i class="bi bi-geo-alt me-1"></i>@item.ReceiverAddress</div>
+                                        </td>
+                                        <td class="py-3">
+                                            <div class="text-white small">
+                                                @if (isInbound) {
+                                                    <span><i class="bi bi-arrow-down-left text-success me-1"></i> INBOUND</span>
+                                                } else {
+                                                    <span><i class="bi bi-arrow-up-right text-info me-1"></i> OUTBOUND</span>
+                                                }
+                                            </div>
+                                            <div class="text-secondary x-small">
+                                                @if (isInbound) {
+                                                    <span>Origin: @(item.OriginHub ?? "Davao")</span>
+                                                } else {
+                                                    <span>Target: @destHub</span>
+                                                }
+                                            </div>
+                                        </td>
+                                        <td class="py-3">
+                                            @{
+                                                var statusClass = item.Status == "Delivered" ? "border-success text-success" : 
+                                                                 (item.Status.Contains("Arrived") ? "border-primary text-primary" : 
+                                                                 (item.Status.Contains("Transit") ? "border-info text-info" : 
+                                                                 (item.Status == "Returning to Sender" || item.Status == "Returned" ? "border-danger text-danger" : "border-warning text-warning")));
+                                            }
+                                            <span class="badge border bg-transparent px-2 py-1 @statusClass" style="font-size: 0.65rem;">
+                                                @item.Status
+                                            </span>
+                                        </td>
+                                        <td class="py-3 pe-4 text-end">
+                                            <div class="d-flex justify-content-end align-items-center gap-3">
+                                                @if (item.AssignedRiderId != null || item.ManualRiderId != null)
+                                                {
+                                                    <div class="text-success x-small fw-bold border-end border-secondary border-opacity-25 pe-3 d-none d-md-block">
+                                                        <i class="bi bi-truck me-1"></i>Assigned
+                                                    </div>
+                                                }
+                                                <div class="d-flex gap-2">
+                                                    @if (isInbound || isOutbound || item.Status == "Returning to Sender" || item.Status == "Returned")
+                                                    {
+                                                        <button class="btn btn-link text-info p-0 action-icon" onclick="openTransferModal('@item.TrackingId', @isInbound.ToString().ToLower(), @isOutbound.ToString().ToLower(), '@((item.Status == "Returning to Sender" || item.Status == "Returned") ? "true" : "false")', '@destHub')" title="Transfer Control">
+                                                            <i class="bi bi-lightning-charge-fill"></i>
+                                                        </button>
+                                                    }
+                                                    @if (item.CurrentLocation == currentHub && !item.Status.Contains("In Transit"))
+                                                    {
+                                                        <button class="btn btn-link text-warning p-0 action-icon"
+                                                                onclick="openAssignModal(this.dataset.tracking, this.dataset.address)"
+                                                                data-tracking="@item.TrackingId"
+                                                                data-address="@item.ReceiverAddress"
+                                                                title="Assign Rider">
+                                                            <i class="bi bi-person-badge-fill"></i>
+                                                        </button>
+                                                    }
+                                                    @if (!isInbound && !isOutbound && item.Status.Contains("In Transit"))
+                                                    {
+                                                        <span class="text-secondary x-small"><i class="bi bi-clock-history me-1"></i>En Route</span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 }
-                                <span class="badge border bg-transparent px-2 py-1 @statusClass" style="font-size: 0.65rem;">
-                                    @item.Status
-                                </span>
-                            </td>
-                            <td class="py-3 pe-4 text-end">
-                                <div class="d-flex justify-content-end align-items-center gap-3">
-                                    @if (item.AssignedRiderId != null || item.ManualRiderId != null)
-                                    {
-                                        <div class="text-success x-small fw-bold border-end border-secondary border-opacity-25 pe-3 d-none d-md-block">
-                                            <i class="bi bi-truck me-1"></i>Assigned
-                                        </div>
-                                    }
-                                    <div class="d-flex gap-2">
-                                        @if (isInbound || isOutbound || item.Status == "Returning to Sender")
-                                        {
-                                            <button class="btn btn-link text-info p-0 action-icon" onclick="openTransferModal('@item.TrackingId', @isInbound.ToString().ToLower(), @isOutbound.ToString().ToLower(), '@(item.Status == "Returning to Sender" ? "true" : "false")', '@destHub')" title="Transfer Control">
-                                                <i class="bi bi-lightning-charge-fill"></i>
-                                            </button>
-                                        }
-                                        @if (item.CurrentLocation == currentHub && !item.Status.Contains("In Transit"))
-                                        {
-                                            <button class="btn btn-link text-warning p-0 action-icon" onclick="openAssignModal('@item.TrackingId')" title="Assign Rider">
-                                                <i class="bi bi-person-badge-fill"></i>
-                                            </button>
-                                        }
-                                        @if (!isInbound && !isOutbound && item.Status.Contains("In Transit"))
-                                        {
-                                            <span class="text-secondary x-small"><i class="bi bi-clock-history me-1"></i>En Route</span>
-                                        }
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                    @if (!Model.Any())
-                    {
-                        <tr>
-                            <td colspan="4" class="text-center py-5 text-secondary border-0">
-                                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-                                No active transfers for this hub.
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+                                @if (!tab.Items.Any())
+                                {
+                                    <tr>
+                                        <td colspan="4" class="text-center py-5 text-secondary border-0">
+                                            <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                                            No active transfers for this category.
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 
     <!-- Pagination -->
@@ -174,10 +218,30 @@
             modal.show();
         }
 
-        function openAssignModal(trackingId) {
+        function openAssignModal(trackingId, address) {
             const modal = new bootstrap.Modal(document.getElementById('assignModal'));
             document.getElementById('assignTrackingId').textContent = '#' + trackingId;
             document.getElementById('assignFormTrackingId').value = trackingId;
+
+            const select = document.getElementById('assignRiderSelect');
+            select.innerHTML = '<option value="">Loading riders...</option>';
+
+            fetch('/RiderInfo/GetRidersForRoute?address=' + encodeURIComponent(address || ''))
+                .then(r => r.json())
+                .then(riders => {
+                    select.innerHTML = '<option value="">Choose Rider...</option>';
+                    if (riders.length === 0) {
+                        select.innerHTML += '<option disabled>No riders assigned to this area</option>';
+                    } else {
+                        riders.forEach(r => {
+                            select.innerHTML += `<option value="manual_${r.id}">${r.name}</option>`;
+                        });
+                    }
+                })
+                .catch(() => {
+                    select.innerHTML = '<option value="">Choose Rider...</option>';
+                });
+
             modal.show();
         }
 
@@ -218,6 +282,17 @@
         background: rgba(255,140,0,0.1);
         border-color: #ff8c00;
         color: #ff8c00;
+    }
+    .nav-tabs-custom .nav-link {
+        transition: all 0.3s ease;
+    }
+    .nav-tabs-custom .nav-link.active {
+        background: rgba(255,140,0,0.15) !important;
+        color: #ff8c00 !important;
+        border: 1px solid rgba(255,140,0,0.3) !important;
+    }
+    .nav-tabs-custom .nav-link:hover:not(.active) {
+        background: rgba(255,255,255,0.1) !important;
     }
 </style>
 
@@ -296,10 +371,14 @@
                         <select name="riderId" id="assignRiderSelect" class="form-select bg-dark text-white border-secondary border-opacity-25" style="border-radius: 10px;">
                             <option value="">Choose Rider...</option>
                             @foreach (var r in (ViewBag.AvailableRiders as IEnumerable<ApplicationUser> ?? new List<ApplicationUser>())) {
-                                <option value="user_@r.Id">@r.FirstName @r.LastName</option>
+                                if (currentHub == "Davao Hub") {
+                                    <option value="user_@r.Id" data-route="@r.Route">@r.FirstName @r.LastName (@(r.Route ?? "No Area"))</option>
+                                } else {
+                                    <option value="user_@r.Id" data-route="@r.Route">@r.FirstName @r.LastName</option>
+                                }
                             }
                             @foreach (var r in (ViewBag.ManualRiders as IEnumerable<ManualRider> ?? new List<ManualRider>())) {
-                                <option value="manual_@r.Id">@r.Name</option>
+                                <option value="manual_@r.Id" data-route="@r.Route">@r.Name</option>
                             }
                         </select>
                     </div>

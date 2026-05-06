@@ -223,6 +223,13 @@ namespace SwiftFill.Controllers
         {
             if (!await IsReCaptchaValid())
             {
+                var ipAddr = HttpContext.Connection.RemoteIpAddress?.ToString();
+                if (ipAddr == "::1") ipAddr = "127.0.0.1";
+
+                _audit.Log(username, "Unknown", "reCAPTCHA Failed", 
+                    $"Failed reCAPTCHA verification for login attempt by {username} from {ipAddr}.", 
+                    AuditLogType.Security);
+
                 TempData["ErrorMessage"] = "Please complete the reCAPTCHA verification.";
                 return RedirectToAction("Login");
             }
@@ -256,11 +263,14 @@ namespace SwiftFill.Controllers
                 var displayName = $"{user.FirstName} {user.LastName}".Trim();
                 if (string.IsNullOrWhiteSpace(displayName)) displayName = user.Email ?? user.UserName ?? "Unknown";
 
+                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                if (ipAddress == "::1") ipAddress = "127.0.0.1";
+
                 _audit.Log(
                     actor: displayName,
                     role: roleName,
                     action: "Login",
-                    detail: $"{displayName} ({roleName}) signed in from {HttpContext.Connection.RemoteIpAddress}",
+                    detail: $"{displayName} ({roleName}) signed in from {ipAddress}",
                     type: AuditLogType.Security
                 );
 
@@ -305,11 +315,14 @@ namespace SwiftFill.Controllers
                 await _userManager.UpdateAsync(user);
             }
 
+            var ipAddressErr = HttpContext.Connection.RemoteIpAddress?.ToString();
+            if (ipAddressErr == "::1") ipAddressErr = "127.0.0.1";
+
             _audit.Log(
                 actor: username,
                 role: "Unknown",
                 action: "Login Failed",
-                detail: $"Failed login attempt for username: {username} from {HttpContext.Connection.RemoteIpAddress}",
+                detail: $"Failed login attempt for username: {username} from {ipAddressErr}",
                 type: AuditLogType.Security
             );
 
@@ -364,7 +377,8 @@ namespace SwiftFill.Controllers
                 LastName = user.LastName ?? "",
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
-                Hub = user.Hub
+                Hub = user.Hub,
+                Route = user.Route
             };
 
             return GetSettingsView(model);
@@ -381,6 +395,8 @@ namespace SwiftFill.Controllers
                 user.FirstName = model.FirstName;
                 user.LastName = model.LastName;
                 user.PhoneNumber = model.PhoneNumber;
+                user.Hub = model.Hub;
+                user.Route = model.Route;
 
                 var result = await _userManager.UpdateAsync(user);
                 if (!result.Succeeded)

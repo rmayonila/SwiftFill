@@ -121,10 +121,10 @@ namespace SwiftFill.Data
             );
 
             builder.Entity<ItemCategory>().HasData(
-                new ItemCategory { Id = 1, Name = "General Merchandise", Description = "Common household and commercial goods." },
-                new ItemCategory { Id = 2, Name = "Electronics", Description = "Devices, gadgets, and computer parts." },
-                new ItemCategory { Id = 3, Name = "Apparel", Description = "Clothing, shoes, and textiles." },
-                new ItemCategory { Id = 4, Name = "Documents", Description = "Paper-based items and files." }
+                new ItemCategory { Id = 1, Name = "General Merchandise", Description = "Common household and commercial goods.", CreatedAt = new DateTime(2026, 1, 1) },
+                new ItemCategory { Id = 2, Name = "Electronics", Description = "Devices, gadgets, and computer parts.", CreatedAt = new DateTime(2026, 1, 1) },
+                new ItemCategory { Id = 3, Name = "Apparel", Description = "Clothing, shoes, and textiles.", CreatedAt = new DateTime(2026, 1, 1) },
+                new ItemCategory { Id = 4, Name = "Documents", Description = "Paper-based items and files.", CreatedAt = new DateTime(2026, 1, 1) }
             );
 
             // Seed Roles
@@ -151,7 +151,8 @@ namespace SwiftFill.Data
                     EmailConfirmed = true,
                     PasswordHash = hasher.HashPassword(null!, "SuperAdmin123!"),
                     SecurityStamp = string.Empty,
-                    PhoneNumber = "800-555-0199"
+                    PhoneNumber = "800-555-0199",
+                    CreatedAt = new DateTime(2026, 1, 1)
                 }
             );
 
@@ -176,7 +177,8 @@ namespace SwiftFill.Data
                     LastName = "Manager",
                     EmailConfirmed = true,
                     PasswordHash = hasher.HashPassword(null!, "Admin123!"),
-                    SecurityStamp = string.Empty
+                    SecurityStamp = string.Empty,
+                    CreatedAt = new DateTime(2026, 1, 1)
                 },
                 new ApplicationUser
                 {
@@ -189,7 +191,8 @@ namespace SwiftFill.Data
                     LastName = "Staff",
                     EmailConfirmed = true,
                     PasswordHash = hasher.HashPassword(null!, "Staff123!"),
-                    SecurityStamp = string.Empty
+                    SecurityStamp = string.Empty,
+                    CreatedAt = new DateTime(2026, 1, 1)
                 },
                 new ApplicationUser
                 {
@@ -202,7 +205,8 @@ namespace SwiftFill.Data
                     LastName = "Rider",
                     EmailConfirmed = true,
                     PasswordHash = hasher.HashPassword(null!, "Rider123!"),
-                    SecurityStamp = string.Empty
+                    SecurityStamp = string.Empty,
+                    CreatedAt = new DateTime(2026, 1, 1)
                 },
                 new ApplicationUser
                 {
@@ -215,7 +219,8 @@ namespace SwiftFill.Data
                     LastName = "Doe",
                     EmailConfirmed = true,
                     PasswordHash = hasher.HashPassword(null!, "Customer123!"),
-                    SecurityStamp = string.Empty
+                    SecurityStamp = string.Empty,
+                    CreatedAt = new DateTime(2026, 1, 1)
                 }
             );
         }

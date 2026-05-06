@@ -6,6 +6,8 @@ C:\Users\PERSONAL\SwiftFill\bin\Release\net10.0\publish\SwiftFill.runtimeconfig.
 C:\Users\PERSONAL\SwiftFill\bin\Release\net10.0\publish\SwiftFill.pdb
 C:\Users\PERSONAL\SwiftFill\bin\Release\net10.0\publish\Azure.Core.dll
 C:\Users\PERSONAL\SwiftFill\bin\Release\net10.0\publish\Azure.Identity.dll
+C:\Users\PERSONAL\SwiftFill\bin\Release\net10.0\publish\CloudinaryDotNet.dll
+C:\Users\PERSONAL\SwiftFill\bin\Release\net10.0\publish\DotNetEnv.dll
 C:\Users\PERSONAL\SwiftFill\bin\Release\net10.0\publish\Humanizer.dll
 C:\Users\PERSONAL\SwiftFill\bin\Release\net10.0\publish\Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
 C:\Users\PERSONAL\SwiftFill\bin\Release\net10.0\publish\Microsoft.AspNetCore.Razor.Language.dll
@@ -58,6 +60,7 @@ C:\Users\PERSONAL\SwiftFill\bin\Release\net10.0\publish\NuGet.Packaging.dll
 C:\Users\PERSONAL\SwiftFill\bin\Release\net10.0\publish\NuGet.ProjectModel.dll
 C:\Users\PERSONAL\SwiftFill\bin\Release\net10.0\publish\NuGet.Protocol.dll
 C:\Users\PERSONAL\SwiftFill\bin\Release\net10.0\publish\NuGet.Versioning.dll
+C:\Users\PERSONAL\SwiftFill\bin\Release\net10.0\publish\Sprache.dll
 C:\Users\PERSONAL\SwiftFill\bin\Release\net10.0\publish\System.ClientModel.dll
 C:\Users\PERSONAL\SwiftFill\bin\Release\net10.0\publish\System.CodeDom.dll
 C:\Users\PERSONAL\SwiftFill\bin\Release\net10.0\publish\System.Composition.AttributedModel.dll

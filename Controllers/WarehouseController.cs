@@ -56,7 +56,7 @@ namespace SwiftFill.Controllers
         }
 
         // --- 2. WAREHOUSE QUEUE (Ready to Sort/Ship) ---
-        public async Task<IActionResult> WarehouseQueue(string search, int page = 1)
+        public async Task<IActionResult> WarehouseQueue(string search, string status, int page = 1)
         {
             int pageSize = 10;
             var currentHub = GetCurrentHub();
@@ -74,6 +74,9 @@ namespace SwiftFill.Controllers
 
             if (!string.IsNullOrEmpty(search))
                 query = query.Where(o => o.TrackingId.Contains(search) || o.ReceiverName.Contains(search) || o.ReceiverAddress.Contains(search));
+
+            if (!string.IsNullOrEmpty(status))
+                query = query.Where(o => o.Status == status || o.Status.Contains(status));
 
             var totalItems = await query.CountAsync();
             var orders = await query.OrderByDescending(o => o.UpdatedAt)
@@ -102,7 +105,7 @@ namespace SwiftFill.Controllers
         }
 
         // --- 3. PACKING LINE ---
-        public async Task<IActionResult> PackingLine(string search, int page = 1)
+        public async Task<IActionResult> PackingLine(string search, string status, int page = 1)
         {
             int pageSize = 10;
             var currentHub = GetCurrentHub();
@@ -115,6 +118,9 @@ namespace SwiftFill.Controllers
             if (!string.IsNullOrEmpty(search))
                 query = query.Where(o => o.TrackingId.Contains(search) || o.ReceiverName.Contains(search));
 
+            if (!string.IsNullOrEmpty(status))
+                query = query.Where(o => o.Status == status);
+
             var totalItems = await query.CountAsync();
             var orders = await query.OrderByDescending(o => o.CreatedAt)
                 .Skip((page - 1) * pageSize)
@@ -123,6 +129,7 @@ namespace SwiftFill.Controllers
 
             ViewBag.CurrentHub = currentHub;
             ViewBag.Search = search;
+            ViewBag.Status = status;
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 
@@ -135,18 +142,21 @@ namespace SwiftFill.Controllers
         }
 
         // --- 4. HUB TRANSFERS (Inbound/Outbound/Transit) ---
-        public async Task<IActionResult> HubTransfers(string search, int page = 1)
+        public async Task<IActionResult> HubTransfers(string search, string status, int page = 1)
         {
             int pageSize = 10;
             var currentHub = GetCurrentHub();
 
             var query = _context.Orders.Where(o => !o.IsArchived && (
-                (o.CurrentLocation == currentHub && (o.Status == "Sorted for Transfer" || o.Status == "Packed in Warehouse" || o.Status.Contains("In Transit to") || o.Status.Contains("In Transit back to"))) ||
-                (o.Status == $"In Transit to {currentHub}" || o.Status == $"In Transit back to {currentHub}")
+                (o.CurrentLocation == currentHub && (o.Status == "Sorted for Transfer" || o.Status == "Packed in Warehouse" || o.Status == "Returning to Sender" || (currentHub != "Davao Hub" && o.Status == "Returned") || o.Status.Contains("In Transit"))) ||
+                (o.Status.Contains("In Transit") && o.Status.Contains(currentHub))
             )).AsQueryable();
 
             if (!string.IsNullOrEmpty(search))
                 query = query.Where(o => o.TrackingId.Contains(search) || o.ReceiverName.Contains(search));
+
+            if (!string.IsNullOrEmpty(status))
+                query = query.Where(o => o.Status == status || o.Status.Contains(status));
 
             var totalItems = await query.CountAsync();
             var orders = await query.OrderByDescending(o => o.UpdatedAt)
@@ -167,21 +177,27 @@ namespace SwiftFill.Controllers
         }
 
         // --- 5. ORDER HISTORY (Delivered/Returned) ---
-        public async Task<IActionResult> OrderHistory(string search, int page = 1)
+        public async Task<IActionResult> OrderHistory(string search, string status, int page = 1)
         {
             int pageSize = 10;
             var currentHub = GetCurrentHub();
             
             // Only allow non-Davao hubs to see history (per user request)
-            if (currentHub == "Davao Hub") return RedirectToAction(nameof(Dashboard));
+            // Davao Hub is allowed to see Order History for returns tracking
+            // if (currentHub == "Davao Hub") return RedirectToAction(nameof(Dashboard));
 
             var query = _context.Orders
                 .Include(o => o.Payment)
+                .Include(o => o.AssignedRider)
+                .Include(o => o.ManualRider)
                 .Where(o => o.CurrentLocation == currentHub && (o.Status == "Delivered" || o.Status == "Returned"))
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(search))
                 query = query.Where(o => o.TrackingId.Contains(search) || o.ReceiverName.Contains(search));
+
+            if (!string.IsNullOrEmpty(status))
+                query = query.Where(o => o.Status == status);
 
             var totalItems = await query.CountAsync();
             var orders = await query.OrderByDescending(o => o.UpdatedAt)
@@ -311,7 +327,7 @@ namespace SwiftFill.Controllers
             var currentHub = GetCurrentHub();
             var order = await _context.Orders.FirstOrDefaultAsync(o => o.TrackingId == trackingId);
             
-            if (order != null && order.CurrentLocation == currentHub && order.Status == "Returning to Sender")
+            if (order != null && order.CurrentLocation == currentHub && (order.Status == "Returning to Sender" || order.Status == "Returned"))
             {
                 var originHub = order.OriginHub ?? "Davao Hub";
                 order.Status = $"In Transit back to {originHub}";
@@ -355,8 +371,22 @@ namespace SwiftFill.Controllers
                 {
                     if (int.TryParse(riderId.Replace("manual_", ""), out int mId))
                     {
+                        var manualRider = await _context.ManualRiders.FindAsync(mId);
                         order.ManualRiderId = mId;
-                        order.AssignedRiderId = null;
+
+                        // Try to link to a system DeliveryRider account by matching name
+                        if (manualRider != null)
+                        {
+                            var systemRiders = await _userManager.GetUsersInRoleAsync("DeliveryRider");
+                            var matchedUser = systemRiders.FirstOrDefault(u =>
+                                string.Equals($"{u.FirstName} {u.LastName}", manualRider.Name, StringComparison.OrdinalIgnoreCase));
+                            order.AssignedRiderId = matchedUser?.Id;
+                            Console.WriteLine($"[DEBUG] Manual Rider '{manualRider.Name}' linked to system user: {matchedUser?.Id ?? "none"}");
+                        }
+                        else
+                        {
+                            order.AssignedRiderId = null;
+                        }
                         Console.WriteLine($"[DEBUG] Assigned to MANUAL Rider: {mId}");
                     }
                 }
@@ -387,8 +417,25 @@ namespace SwiftFill.Controllers
                 .Where(o => (o.CurrentLocation == currentHub || o.Status.Contains(currentHub)) && !o.IsArchived)
                 .ToListAsync();
 
-            var inbound = await _context.Orders
-                .CountAsync(o => (o.Status == $"In Transit to {currentHub}" || o.Status == $"In Transit back to {currentHub}") && !o.IsArchived);
+            // Accurate card counts that match the linked tables
+            var inbound = localOrders.Count(o => o.Status.Contains("In Transit to " + currentHub));
+            
+            var outbound = localOrders.Count(o => 
+                o.CurrentLocation == currentHub && 
+                (o.Status == "Sorted for Transfer" || 
+                 (o.Status == "Packed in Warehouse" && HubRegistry.ResolveDestinationHub(o.DestinationRegion) != currentHub) ||
+                 (o.Status.StartsWith("In Transit to ") && !o.Status.Contains(currentHub))));
+
+            var sorting = localOrders.Where(o => 
+                o.CurrentLocation == currentHub && 
+                (o.Status == "Pending" || o.Status == "Picked" || o.Status == "Sent to Warehouse Packing" || o.Status == "Packed in Store"))
+                .ToList();
+
+            var returning = localOrders.Where(o => 
+                o.Status.Contains("In Transit back to " + currentHub) || 
+                (o.CurrentLocation == currentHub && o.Status == "Returning to Sender") ||
+                (o.CurrentLocation == currentHub && o.Status.StartsWith("In Transit back to ")))
+                .ToList();
 
             var allRiders = await _userManager.GetUsersInRoleAsync("DeliveryRider");
             var filteredRiders = allRiders.Where(r => r.Hub == currentHub).ToList();
@@ -406,12 +453,12 @@ namespace SwiftFill.Controllers
             {
                 CurrentHub = currentHub,
                 RecentShipments = localOrders.Where(o => o.CurrentLocation == currentHub).OrderByDescending(o => o.UpdatedAt).Take(10).ToList(),
-                PendingPickOrders = localOrders.Where(o => o.CurrentLocation == currentHub && (o.Status == "Pending" || o.Status == "Picked")).ToList(),
+                PendingPickOrders = sorting,
                 PickedOrders = localOrders.Where(o => o.CurrentLocation == currentHub && o.Status == "Packed in Warehouse").ToList(),
                 PackedOrders = localOrders.Where(o => o.CurrentLocation == currentHub && o.Status == "Sorted for Transfer").ToList(),
-                ReturningOrders = localOrders.Where(o => o.Status.Contains("back to " + currentHub) || (o.CurrentLocation == currentHub && o.Status == "Returning to Sender")).ToList(),
+                ReturningOrders = returning,
                 InTransit = inbound,
-                OutboundCount = localOrders.Count(o => o.CurrentLocation == currentHub && o.Status == "Sorted for Transfer"),
+                OutboundCount = outbound,
                 AvailableRiders = filteredRiders,
                 ManualRiders = filteredManualRiders,
                 Hubs = HubRegistry.Names

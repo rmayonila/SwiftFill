@@ -1,119 +1,130 @@
 @model SwiftFill.Models.SettingsViewModel
 @{
-    ViewData["Title"] = "Admin Account Settings";
+    ViewData["Title"] = "Account Settings";
     Layout = "_AdminLayout";
 }
 
-<div class="animate-fade-up container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-dark pb-3">
-        <div>
-            <h2 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-person-gear text-orange me-3"></i>ACCOUNT SETTINGS ADMIN</h2>
-            <p class="text-secondary mt-1">Manage your administrative profile information and security preferences.</p>
-        </div>
-    </div>
+<div class="settings-page pt-4 pb-2 position-relative overflow-hidden">
+    <!-- Subtle Background Enhancements -->
+    <div class="bg-blob blob-top-right"></div>
+    <div class="bg-blob blob-bottom-left"></div>
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success bg-success bg-opacity-10 border-success border-opacity-25 text-success alert-dismissible fade show mb-4" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger bg-danger bg-opacity-10 border-danger border-opacity-25 text-danger alert-dismissible fade show mb-4" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-
-    <div class="row g-4">
-        <div class="col-md-8">
-            <div class="card premium-card border-0 shadow-lg" style="background: rgba(22, 27, 34, 0.9); backdrop-filter: blur(14px); border-radius: 12px; border: 1px solid #30363d !important;">
-                <div class="card-header bg-transparent border-bottom border-dark py-3 px-4">
-                    <h6 class="mb-0 fw-bold text-white">Profile Information</h6>
-                </div>
-                <div class="card-body p-4">
-                    <form asp-action="Settings" method="post">
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-6">
-                                <label asp-for="FirstName" class="form-label text-secondary small"></label>
-                                <input asp-for="FirstName" class="form-control bg-dark border-secondary text-white shadow-none" />
-                                <span asp-validation-for="FirstName" class="text-danger small"></span>
-                            </div>
-                            <div class="col-md-6">
-                                <label asp-for="LastName" class="form-label text-secondary small"></label>
-                                <input asp-for="LastName" class="form-control bg-dark border-secondary text-white shadow-none" />
-                                <span asp-validation-for="LastName" class="text-danger small"></span>
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label asp-for="Email" class="form-label text-secondary small"></label>
-                            <input asp-for="Email" class="form-control bg-dark border-secondary text-secondary shadow-none" readonly />
-                            <div class="form-text text-muted smaller">Email cannot be changed. Contact support if needed.</div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label asp-for="PhoneNumber" class="form-label text-secondary small"></label>
-                            <input asp-for="PhoneNumber" class="form-control bg-dark border-secondary text-white shadow-none" placeholder="+63 9XX XXX XXXX" />
-                            <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
-                        </div>
-
-                        <hr class="border-dark my-5" />
-
-                        <h6 class="mb-4 fw-bold text-white"><i class="bi bi-shield-lock me-2 text-warning"></i>Security & Password</h6>
-                        
-                        <div class="mb-3">
-                            <label asp-for="CurrentPassword" class="form-label text-secondary small"></label>
-                            <input asp-for="CurrentPassword" class="form-control bg-dark border-secondary text-white shadow-none" />
-                            <span asp-validation-for="CurrentPassword" class="text-danger small"></span>
-                        </div>
-
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-6">
-                                <label asp-for="NewPassword" class="form-label text-secondary small"></label>
-                                <input asp-for="NewPassword" class="form-control bg-dark border-secondary text-white shadow-none" />
-                                <span asp-validation-for="NewPassword" class="text-danger small"></span>
-                            </div>
-                            <div class="col-md-6">
-                                <label asp-for="ConfirmPassword" class="form-label text-secondary small"></label>
-                                <input asp-for="ConfirmPassword" class="form-control bg-dark border-secondary text-white shadow-none" />
-                                <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
-                            </div>
-                        </div>
-
-                        <div class="mt-5">
-                            <button type="submit" class="btn btn-warning px-5 fw-bold" style="border-radius: 8px; color: #000;">
-                                <i class="bi bi-save me-2"></i> Save Changes
-                            </button>
-                        </div>
-                    </form>
-                </div>
+    <div class="container position-relative z-1">
+        <!-- Header -->
+        <div class="mb-4 d-flex justify-content-between align-items-end">
+            <div>
+                <h1 class="h2 fw-bold text-white mb-0">Settings</h1>
+                <p class="text-secondary small mb-0">Manage your profile details and security settings.</p>
+            </div>
+            <div class="breadcrumb-nav">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="/Admin/Dashboard" class="text-orange text-decoration-none small">Dashboard</a></li>
+                        <li class="breadcrumb-item active text-secondary small" aria-current="page">Account</li>
+                    </ol>
+                </nav>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card premium-card border-0 shadow-sm" style="background: rgba(255, 140, 0, 0.05); border: 1px solid rgba(255, 140, 0, 0.1) !important; border-radius: 12px;">
-                <div class="card-body p-4 text-center">
-                    <div class="rounded-circle d-flex justify-content-center align-items-center mx-auto mb-3 fw-bold shadow-lg" style="width: 80px; height: 80px; background: #ff8c00; color: #000; font-size: 2rem;">
-                        @((User.Identity?.Name ?? "U").Substring(0,1).ToUpper())
-                    </div>
-                    <h5 class="text-white fw-bold mb-1">@User.Identity?.Name</h5>
-                    <p class="text-secondary small mb-3">
-                        <span class="badge bg-orange">System Admin</span>
-                    </p>
-                    <div class="text-start mt-4">
-                        <div class="d-flex align-items-center mb-2">
-                            <i class="bi bi-shield-check text-orange me-2"></i>
-                            <span class="text-secondary small">Access Level: <strong>Admin</strong></span>
+        <div class="row g-4">
+            <!-- Sidebar -->
+            <div class="col-lg-3">
+                <div class="profile-sidebar-card p-4 text-center">
+                    <div class="avatar-container mb-3 mx-auto">
+                        <div class="avatar-circle shadow-sm mx-auto">
+                            @((User.Identity?.Name ?? "U").Substring(0,1).ToUpper())
                         </div>
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-calendar-check text-orange me-2"></i>
-                            <span class="text-secondary small">Member since: <strong>2024</strong></span>
+                        <div class="avatar-edit-icon">
+                            <i class="bi bi-camera-fill"></i>
                         </div>
                     </div>
+                    <h5 class="fw-bold text-white mb-1">@User.Identity?.Name</h5>
+                    <p class="text-secondary small mb-4">Administrator</p>
+
+                    <div class="stats-list text-start mb-4">
+                        <div class="d-flex justify-content-between py-2 border-bottom-dark">
+                            <span class="text-secondary small">Permissions</span>
+                            <span class="badge bg-dark text-orange rounded-pill">Root</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 border-bottom-dark">
+                            <span class="text-secondary small">Security</span>
+                            <span class="text-success small"><i class="bi bi-shield-check me-1"></i>High</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-2">
+                            <span class="text-secondary small">Status</span>
+                            <span class="text-white small">Verified</span>
+                        </div>
+                    </div>
+
+                    <a href="/Admin/Dashboard" class="btn btn-outline-orange w-100 rounded-3 small">Back to Dashboard</a>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-lg-9">
+                <div class="content-card">
+                    <!-- Tabs -->
+                    <div class="tabs-nav d-flex gap-4 mb-4 border-bottom-dark">
+                        <div class="tab-item active" onclick="switchTab('profile')">Account Settings</div>
+                        <div class="tab-item text-secondary" onclick="switchTab('security')">Security</div>
+                    </div>
+
+                    <form asp-action="Settings" method="post" id="settingsForm">
+                        <!-- Profile Tab -->
+                        <div id="tab-profile" class="tab-content">
+                            <h6 class="text-white mb-3 fw-bold">Personal Information</h6>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label asp-for="FirstName" class="form-label text-secondary small fw-bold">First Name</label>
+                                    <input asp-for="FirstName" class="form-control settings-input" />
+                                    <span asp-validation-for="FirstName" class="text-danger x-small"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="LastName" class="form-label text-secondary small fw-bold">Last Name</label>
+                                    <input asp-for="LastName" class="form-control settings-input" />
+                                    <span asp-validation-for="LastName" class="text-danger x-small"></span>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label asp-for="PhoneNumber" class="form-label text-secondary small fw-bold">Phone Number</label>
+                                    <input asp-for="PhoneNumber" class="form-control settings-input" placeholder="09XXXXXXXXX" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11);" />
+                                    <span asp-validation-for="PhoneNumber" class="text-danger x-small"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="Email" class="form-label text-secondary small fw-bold">Email address</label>
+                                    <input asp-for="Email" class="form-control settings-input" placeholder="Enter email address" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security Tab -->
+                        <div id="tab-security" class="tab-content d-none">
+                            <h6 class="text-white mb-3 fw-bold">Password Settings</h6>
+                            <div class="mb-4">
+                                <label class="form-label text-secondary small fw-bold">Current Password</label>
+                                <input asp-for="CurrentPassword" type="password" class="form-control settings-input" placeholder="Enter current password" />
+                                <span asp-validation-for="CurrentPassword" class="text-danger x-small"></span>
+                            </div>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label text-secondary small fw-bold">New Password</label>
+                                    <input asp-for="NewPassword" type="password" class="form-control settings-input" placeholder="New password" />
+                                    <span asp-validation-for="NewPassword" class="text-danger x-small"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-secondary small fw-bold">Confirm Password</label>
+                                    <input asp-for="ConfirmPassword" type="password" class="form-control settings-input" placeholder="Confirm new password" />
+                                    <span asp-validation-for="ConfirmPassword" class="text-danger x-small"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 border-top-dark pt-4">
+                            <button type="submit" class="btn btn-orange px-5 py-2 fw-bold">Save Changes</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -122,15 +133,99 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        function switchTab(tabId) {
+            // Update tabs UI
+            document.querySelectorAll('.tab-item').forEach(el => {
+                el.classList.remove('active');
+                el.classList.add('text-secondary');
+            });
+            event.target.classList.add('active');
+            event.target.classList.remove('text-secondary');
+
+            // Update content UI
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('d-none'));
+            document.getElementById('tab-' + tabId).classList.remove('d-none');
+        }
+    </script>
 }
 
 <style>
-    .text-orange { color: #ff8c00; }
-    .bg-orange { background-color: #ff8c00; color: #000; }
-    .premium-card { transition: all 0.3s ease; }
-    .form-control:focus {
-        background-color: #1a1f26 !important;
-        border-color: #ff8c00 !important;
-        color: #fff !important;
+    .settings-page { background-color: #0a0c10; font-family: 'Inter', sans-serif; color: #c9d1d9; }
+    
+    /* Background Enhancements */
+    .bg-blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.15; z-index: 0; pointer-events: none; }
+    .blob-top-right { width: 400px; height: 400px; background: #ff9800; top: -100px; right: -100px; animation: float 10s ease-in-out infinite; }
+    .blob-bottom-left { width: 500px; height: 500px; background: #ff9800; bottom: -150px; left: -150px; animation: float 12s ease-in-out infinite reverse; }
+    @@keyframes float { 0% { transform: translateY(0px) scale(1); } 50% { transform: translateY(30px) scale(1.05); } 100% { transform: translateY(0px) scale(1); } }
+    .z-1 { z-index: 1; }
+
+    .profile-sidebar-card { 
+        background: #161b22; 
+        border-radius: 16px; 
+        border: 1px solid #30363d;
     }
+
+    .avatar-circle {
+        width: 100px; height: 100px;
+        background: #21262d;
+        color: #ff9800;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 2.5rem; font-weight: bold;
+        border: 3px solid #30363d;
+    }
+
+    .avatar-container { position: relative; width: 100px; }
+    .avatar-edit-icon {
+        position: absolute; bottom: 0; right: 0;
+        background: #ff9800; color: #000;
+        width: 30px; height: 30px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        border: 3px solid #161b22; font-size: 0.8rem;
+    }
+
+    .content-card { background: transparent; }
+
+    .tab-item {
+        padding-bottom: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        position: relative;
+        font-size: 0.95rem;
+        transition: color 0.2s;
+    }
+    .tab-item.active { color: #ff9800 !important; }
+    .tab-item.active::after {
+        content: ''; position: absolute; bottom: -1px; left: 0;
+        width: 100%; height: 2px; background: #ff9800;
+    }
+
+    .settings-input {
+        background-color: #0d1117;
+        border: 1px solid #30363d;
+        border-radius: 8px;
+        padding: 10px 14px;
+        color: #f0f6fc;
+        font-size: 0.9rem;
+    }
+    .settings-input:focus {
+        background-color: #0d1117;
+        border-color: #ff9800;
+        box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.15);
+        color: #f0f6fc;
+    }
+    .bg-dark-subtle { background-color: #161b22 !important; color: #8b949e !important; }
+
+    .btn-orange { background-color: #ff9800; border: none; color: #000; border-radius: 8px; transition: all 0.2s; }
+    .btn-orange:hover { background-color: #ffa726; transform: translateY(-1px); color: #000; }
+    
+    .btn-outline-orange { border: 1px solid #30363d; color: #c9d1d9; background: transparent; }
+    .btn-outline-orange:hover { border-color: #ff9800; color: #ff9800; }
+
+    .border-bottom-dark { border-bottom: 1px solid #30363d !important; }
+    .border-top-dark { border-top: 1px solid #30363d !important; }
+    .text-orange { color: #ff9800 !important; }
+    .x-small { font-size: 0.75rem; }
 </style>

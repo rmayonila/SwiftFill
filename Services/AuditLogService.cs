@@ -34,66 +34,71 @@ namespace SwiftFill.Services
                     Role = role,
                     Action = action,
                     Detail = detail,
-                    Type = type
+                    Type = type,
+                    IsArchived = false
                 };
 
                 context.AuditLogs.Add(entry);
                 context.SaveChanges();
 
-                // Point 4: Limit to 100 activity. If exceeded or after 1 week, trim to 50.
-                var totalCount = context.AuditLogs.Count();
-                var oneWeekAgo = DateTime.Now.AddDays(-7);
-                var oldLogs = context.AuditLogs.Where(l => l.Timestamp < oneWeekAgo).ToList();
-
-                if (totalCount > 100 || oldLogs.Any())
+                // Auto-Archive Logic: Limit active logs to 100. 
+                // If exceeded, mark the oldest 50 as archived.
+                var activeLogsCount = context.AuditLogs.Count(l => !l.IsArchived && l.Type == type);
+                
+                if (activeLogsCount > 100)
                 {
-                    // Dispose the first 50 (oldest) or all old logs
-                    var logsToRemove = context.AuditLogs
+                    var logsToArchive = context.AuditLogs
+                        .Where(l => !l.IsArchived && l.Type == type)
                         .OrderBy(l => l.Timestamp)
-                        .Take(totalCount > 100 ? 50 : oldLogs.Count)
+                        .Take(50)
                         .ToList();
 
-                    context.AuditLogs.RemoveRange(logsToRemove);
+                    foreach (var log in logsToArchive)
+                    {
+                        log.IsArchived = true;
+                    }
+                    
                     context.SaveChanges();
                 }
             }
         }
 
-        /// <summary>Returns recent Security-type events from DB.</summary>
+        /// <summary>Returns active Security-type events from DB.</summary>
         public IEnumerable<AuditLogEntry> GetSecurityLogs()
         {
             using (var scope = _scopeFactory.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 return context.AuditLogs
-                    .Where(e => e.Type == AuditLogType.Security)
+                    .Where(e => e.Type == AuditLogType.Security && !e.IsArchived)
                     .OrderByDescending(e => e.Timestamp)
                     .Take(100)
                     .ToList();
             }
         }
 
-        /// <summary>Returns recent System-type events from DB.</summary>
+        /// <summary>Returns active System-type events from DB.</summary>
         public IEnumerable<AuditLogEntry> GetSystemLogs()
         {
             using (var scope = _scopeFactory.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 return context.AuditLogs
-                    .Where(e => e.Type == AuditLogType.System)
+                    .Where(e => e.Type == AuditLogType.System && !e.IsArchived)
                     .OrderByDescending(e => e.Timestamp)
                     .Take(100)
                     .ToList();
             }
         }
 
-        /// <summary>Returns all entries from DB.</summary>
+        /// <summary>Returns all active entries from DB.</summary>
         public IEnumerable<AuditLogEntry> GetAllLogs()
         {
             using (var scope = _scopeFactory.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 return context.AuditLogs
+                    .Where(e => !e.IsArchived)
                     .OrderByDescending(e => e.Timestamp)
                     .Take(200)
                     .ToList();
@@ -115,6 +120,7 @@ namespace SwiftFill.Services
         public string Action { get; set; } = "";       // e.g. "Login", "ArchiveOrder"
         public string Detail { get; set; } = "";       // e.g. "Order SF-2026-12345 archived"
         public AuditLogType Type { get; set; }
+        public bool IsArchived { get; set; } = false;
 
         public string BadgeColor => Type switch
         {
