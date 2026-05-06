@@ -5,6 +5,11 @@ namespace SwiftFill.Models
     public class SettingsViewModel
     {
         [Required]
+        [Display(Name = "Username")]
+        public string UserName { get; set; } = string.Empty;
+        public string? PreferredView { get; set; }
+
+        [Required]
         [Display(Name = "First Name")]
         public string FirstName { get; set; } = string.Empty;
 

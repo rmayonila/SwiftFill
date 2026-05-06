@@ -345,43 +345,62 @@ namespace SwiftFill.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        private IActionResult GetSettingsView(SettingsViewModel model)
+        private async Task<IActionResult> GetSettingsView(ApplicationUser user, SettingsViewModel model)
         {
-            var userName = User.Identity?.Name?.ToLower();
+            var userName = user.UserName?.ToLower();
+            var roles = await _userManager.GetRolesAsync(user);
             
-            // Explicit username overrides to fix local db role issues
+            // Priority 1: Explicit mode from request (if authorized)
+            if (!string.IsNullOrEmpty(model.PreferredView))
+            {
+                if (model.PreferredView == "warehouse" && (roles.Contains("WarehouseStaff") || roles.Contains("WarehouseOperator") || !string.IsNullOrEmpty(user.Hub)))
+                    return View("WarehouseSettings", model);
+                
+                if (model.PreferredView == "admin" && (roles.Contains("Admin") || roles.Contains("SuperAdmin")))
+                    return View("AdminSettings", model);
+                
+                if (model.PreferredView == "superadmin" && roles.Contains("SuperAdmin"))
+                    return View("SuperAdminSettings", model);
+            }
+
+            // Priority 2: Explicit username overrides to fix local db role issues
             if (userName == "superadmin") return View("SuperAdminSettings", model);
             if (userName == "admin") return View("AdminSettings", model);
             if (userName == "staff") return View("WarehouseSettings", model);
             if (userName == "customer") return View("CustomerSettings", model);
             
-            // Standard role checks
-            if (User.IsInRole("SuperAdmin")) return View("SuperAdminSettings", model);
-            if (User.IsInRole("Admin")) return View("AdminSettings", model);
-            if (User.IsInRole("WarehouseStaff") || User.IsInRole("WarehouseOperator")) return View("WarehouseSettings", model);
-            if (User.IsInRole("DeliveryRider")) return View("RiderSettings", model);
-            if (User.IsInRole("Customer")) return View("CustomerSettings", model);
+            // Priority 3: Standard role checks
+            if (roles.Contains("SuperAdmin")) return View("SuperAdminSettings", model);
+            
+            if (roles.Contains("WarehouseStaff") || roles.Contains("WarehouseOperator") || !string.IsNullOrEmpty(user.Hub)) 
+                return View("WarehouseSettings", model);
+
+            if (roles.Contains("Admin")) return View("AdminSettings", model);
+            if (roles.Contains("DeliveryRider")) return View("RiderSettings", model);
+            if (roles.Contains("Customer")) return View("CustomerSettings", model);
                 
-            return View("CustomerSettings", model); // Provide Customer as the ultimate fallback for standard users
+            return View("CustomerSettings", model); // Fallback
         }
 
         [HttpGet]
-        public async Task<IActionResult> Settings()
+        public async Task<IActionResult> Settings(string? view)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return RedirectToAction("Login");
 
             var model = new SettingsViewModel
             {
+                UserName = user.UserName ?? "",
                 FirstName = user.FirstName ?? "",
                 LastName = user.LastName ?? "",
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
                 Hub = user.Hub,
-                Route = user.Route
+                Route = user.Route,
+                PreferredView = view
             };
 
-            return GetSettingsView(model);
+            return await GetSettingsView(user, model);
         }
 
         [HttpPost]
@@ -392,41 +411,79 @@ namespace SwiftFill.Controllers
 
             if (ModelState.IsValid)
             {
+                // Handle Username Change
+                if (user.UserName != model.UserName)
+                {
+                    if (System.Text.RegularExpressions.Regex.IsMatch(model.UserName, @"\d"))
+                    {
+                        TempData["ErrorMessage"] = "Username cannot contain numbers.";
+                        return await GetSettingsView(user, model);
+                    }
+
+                    var existingUser = await _userManager.FindByNameAsync(model.UserName);
+                    if (existingUser != null)
+                    {
+                        TempData["ErrorMessage"] = "Username is already taken.";
+                        return await GetSettingsView(user, model);
+                    }
+
+                    var setUserNameResult = await _userManager.SetUserNameAsync(user, model.UserName);
+                    if (!setUserNameResult.Succeeded)
+                    {
+                        TempData["ErrorMessage"] = "Failed to update username.";
+                        return await GetSettingsView(user, model);
+                    }
+                }
+
                 user.FirstName = model.FirstName;
                 user.LastName = model.LastName;
                 user.PhoneNumber = model.PhoneNumber;
                 user.Hub = model.Hub;
                 user.Route = model.Route;
 
+                // Handle Email Change
+                if (user.Email != model.Email)
+                {
+                    var setEmailResult = await _userManager.SetEmailAsync(user, model.Email);
+                    if (!setEmailResult.Succeeded)
+                    {
+                        TempData["ErrorMessage"] = "Failed to update email address.";
+                        return await GetSettingsView(user, model);
+                    }
+                }
+
                 var result = await _userManager.UpdateAsync(user);
                 if (!result.Succeeded)
                 {
                     TempData["ErrorMessage"] = "Failed to update profile information.";
-                    return GetSettingsView(model);
+                    return await GetSettingsView(user, model);
                 }
+
+                // Refresh sign-in to update the cookie with new username/claims
+                await _signInManager.RefreshSignInAsync(user);
 
                 if (!string.IsNullOrEmpty(model.NewPassword))
                 {
                     if (string.IsNullOrEmpty(model.CurrentPassword))
                     {
                         TempData["ErrorMessage"] = "Current password is required to set a new password.";
-                        return GetSettingsView(model);
+                        return await GetSettingsView(user, model);
                     }
 
                     var changePasswordResult = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
                     if (!changePasswordResult.Succeeded)
                     {
                         TempData["ErrorMessage"] = string.Join(" ", changePasswordResult.Errors.Select(e => e.Description));
-                        return GetSettingsView(model);
+                        return await GetSettingsView(user, model);
                     }
                 }
 
                 _audit.Log(user.UserName ?? "User", "User", "Update Settings", "User updated their profile/password.", AuditLogType.Security);
                 TempData["SuccessMessage"] = "Your settings have been updated successfully.";
-                return RedirectToAction("Settings");
+                return RedirectToAction("Settings", new { view = model.PreferredView });
             }
 
-            return GetSettingsView(model);
+            return await GetSettingsView(user, model);
         }
 
         [HttpGet]

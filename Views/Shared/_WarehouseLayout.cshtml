@@ -216,7 +216,7 @@
                 }
                 <div class="px-4 mt-4 mb-2 text-secondary text-uppercase x-small ls-1">Account</div>
                 <li class="nav-item">
-                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Account" && ViewContext.RouteData.Values["action"]?.ToString() == "Settings" ? "active" : "")" asp-controller="Account" asp-action="Settings">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Account" && ViewContext.RouteData.Values["action"]?.ToString() == "Settings" ? "active" : "")" asp-controller="Account" asp-action="Settings" asp-route-view="warehouse">
                         <i class="bi bi-gear-fill"></i> Account Settings
                     </a>
                 </li>
@@ -237,7 +237,7 @@
     <div class="main-content">
         <!-- Dashboard Top Header -->
         <div class="d-flex justify-content-end align-items-center mb-4 pb-3">
-            <a asp-controller="Account" asp-action="Settings" class="d-flex align-items-center text-decoration-none" title="Account Settings">
+            <a asp-controller="Account" asp-action="Settings" asp-route-view="warehouse" class="d-flex align-items-center text-decoration-none" title="Account Settings">
                 <div class="rounded-circle d-flex justify-content-center align-items-center fw-bold shadow-sm" style="width: 35px; height: 35px; background: #ff8c00; color: #000;">
                     @((User.Identity?.Name ?? "W").Substring(0,1).ToUpper())
                 </div>

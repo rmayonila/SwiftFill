@@ -81,7 +81,18 @@
                     </div>
 
                     <form asp-action="Settings" method="post">
+                        <input type="hidden" asp-for="Hub" />
+                        <input type="hidden" asp-for="Route" />
+                        <input type="hidden" asp-for="PreferredView" />
                         <div id="tab-profile" class="tab-content">
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-12">
+                                    <label asp-for="UserName" class="form-label text-secondary small fw-bold">Username</label>
+                                    <input asp-for="UserName" class="form-control settings-input" />
+                                    <span asp-validation-for="UserName" class="text-danger x-small"></span>
+                                </div>
+                            </div>
+
                             <h6 class="text-white mb-3 fw-bold">Personal Information</h6>
                             <div class="row g-3 mb-4">
                                 <div class="col-md-6">

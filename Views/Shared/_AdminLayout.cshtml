@@ -293,7 +293,12 @@
 
                 <div class="px-4 mt-4 mb-2 text-secondary text-uppercase x-small ls-1">Account</div>
                 <li class="nav-item">
-                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Account" && ViewContext.RouteData.Values["action"]?.ToString() == "Settings" ? "active" : "")" asp-controller="Account" asp-action="Settings">
+                    @{
+                        string viewMode = "admin";
+                        if (User.IsInRole("SuperAdmin")) viewMode = "superadmin";
+                    }
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Account" && ViewContext.RouteData.Values["action"]?.ToString() == "Settings" ? "active" : "")" 
+                       asp-controller="Account" asp-action="Settings" asp-route-view="@viewMode">
                         <i class="bi bi-gear-fill"></i> Account Settings
                     </a>
                 </li>
@@ -315,7 +320,11 @@
     <div class="main-content">
         <!-- Dashboard Top Header -->
         <div class="d-flex justify-content-end align-items-center mb-4 pb-3">
-            <a asp-controller="Account" asp-action="Settings" class="d-flex align-items-center text-decoration-none" title="Account Settings">
+            @{
+                string topViewMode = "admin";
+                if (User.IsInRole("SuperAdmin")) topViewMode = "superadmin";
+            }
+            <a asp-controller="Account" asp-action="Settings" asp-route-view="@topViewMode" class="d-flex align-items-center text-decoration-none" title="Account Settings">
                 <div class="rounded-circle d-flex justify-content-center align-items-center fw-bold shadow-sm" style="width: 35px; height: 35px; background: var(--brand-primary); color: #000;">
                     @((User.Identity?.Name ?? "U").Substring(0,1).ToUpper())
                 </div>
