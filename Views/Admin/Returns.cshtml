@@ -51,7 +51,7 @@
                             <th class="py-3">Address</th>
                             <th class="py-3">Reason</th>
                             <th class="py-3">Status</th>
-                            <th class="py-3 pe-4 text-end">Action</th>
+                            <th class="py-3 pe-4 text-center">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -75,16 +75,9 @@
                                         @item.Status
                                     </span>
                                 </td>
-                                <td class="py-3 pe-4 text-end">
-                                    <div class="d-flex align-items-center justify-content-end gap-2">
-                                        @if (item.Status == "Pending")
-                                        {
-                                            <form asp-action="ProcessReturn" method="post" class="m-0">
-                                                <input type="hidden" name="requestId" value="@item.RequestId" />
-                                                <button type="submit" name="actionType" value="Notify" class="btn btn-sm btn-info border-0 px-2 fw-bold text-dark"><i class="bi bi-bell-fill"></i> Notify Sender</button>
-                                            </form>
-                                        }
-                                        else if (item.Status == "Sender Notified")
+                                <td class="py-3 pe-4 text-center">
+                                    <div class="d-flex align-items-center justify-content-center gap-2">
+                                        @if (item.Status == "Pending" || item.Status == "Sender Notified")
                                         {
                                             <form asp-action="ProcessReturn" method="post" class="m-0">
                                                 <input type="hidden" name="requestId" value="@item.RequestId" />
@@ -95,7 +88,7 @@
                                         else
                                         {
                                         <button type="button" class="btn btn-sm btn-link text-info p-0 action-icon" onclick="viewReturnDetails('@item.TrackingId')" title="View Details">
-                                            <i class="bi bi-info-circle-fill"></i>
+                                            <i class="bi bi-eye-fill"></i>
                                         </button>
                                         }
 
@@ -110,7 +103,7 @@
                         @if (!Model.Any())
                         {
                             <tr>
-                                <td colspan="4" class="text-center py-5 text-secondary">No recorded return requests.</td>
+                                <td colspan="5" class="text-center py-5 text-secondary">No recorded return requests.</td>
                             </tr>
                         }
                     </tbody>

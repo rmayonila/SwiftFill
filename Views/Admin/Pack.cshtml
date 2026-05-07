@@ -52,7 +52,7 @@
                         <th class="py-3">Package Details</th>
                         <th class="py-3">Destination</th>
                         <th class="py-3">Status</th>
-                        <th class="py-3 pe-4 text-end">Action</th>
+                        <th class="py-3 pe-4 text-center">Action</th>
                     </tr>
                 </thead>
             <tbody>
@@ -75,7 +75,7 @@
                         <td class="py-3">
                             <span class="badge border bg-transparent px-2 @(order.Status == "Picked" ? "border-info text-info" : "border-warning text-warning")" style="font-size: 0.65rem;">@order.Status</span>
                         </td>
-                        <td class="py-3 pe-4 text-end">
+                        <td class="py-3 pe-4 text-center">
                             <button class="btn btn-sm btn-outline-orange x-small fw-bold text-uppercase" onclick="openPackModal('@order.TrackingId')">
                                 Update Packing
                             </button>

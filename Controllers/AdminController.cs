@@ -527,9 +527,10 @@ namespace SwiftFill.Controllers
                         TrackingId = order.TrackingId,
                         Reason = "System Auto-Sync Return",
                         Description = order.Notes ?? "Auto-generated from failed delivery state.",
-                        Status = "Pending",
+                        Status = "Sender Notified",
                         CreatedAt = order.UpdatedAt
                     });
+                    order.Status = "Return Notified";
                 }
                 await _context.SaveChangesAsync();
             }

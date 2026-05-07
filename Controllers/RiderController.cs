@@ -171,9 +171,10 @@ namespace SwiftFill.Controllers
                         TrackingId = order.TrackingId,
                         Reason = "Rider Initiated Return",
                         Description = failReason ?? order.Notes ?? "Failed delivery attempts or manual return.",
-                        Status = "Pending",
+                        Status = "Sender Notified",
                         CreatedAt = DateTime.UtcNow
                     });
+                    order.Status = "Return Notified";
                 }
             }
 

@@ -22,15 +22,22 @@ namespace SwiftFill.Controllers
             _userManager = userManager;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string status)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return RedirectToAction("Login", "Account");
 
-            var orders = await _context.Orders
-                .Where(o => o.CustomerId == user.Id)
-                .OrderByDescending(o => o.CreatedAt)
-                .ToListAsync();
+            var query = _context.Orders.Where(o => o.CustomerId == user.Id && !o.IsArchived);
+
+            if (status == "Active")
+                query = query.Where(o => o.Status != "Delivered" && o.Status != "Returned");
+            else if (status == "Delivered")
+                query = query.Where(o => o.Status == "Delivered");
+            else if (status == "Returns")
+                query = query.Where(o => o.Status.Contains("Return"));
+
+            var orders = await query.OrderByDescending(o => o.CreatedAt).ToListAsync();
+            ViewBag.CurrentStatus = status;
             return View(orders);
         }
 
@@ -142,6 +149,30 @@ namespace SwiftFill.Controllers
                 returnReason = returnReq != null ? returnReq.Description ?? returnReq.Reason : "",
                 timeline = timeline
             });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteOrder(string trackingId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.TrackingId == trackingId && o.CustomerId == user.Id);
+            
+            if (order != null)
+            {
+                // Only allow deletion if it's still pending/not yet in transit
+                if (order.Status == "Pending" || order.Status == "Picked")
+                {
+                    order.IsArchived = true;
+                    order.UpdatedAt = DateTime.UtcNow;
+                    await _context.SaveChangesAsync();
+                    TempData["SuccessMessage"] = $"Order {trackingId} has been deleted.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Order cannot be deleted once it is in transit or processed.";
+                }
+            }
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]

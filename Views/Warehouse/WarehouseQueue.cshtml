@@ -45,7 +45,7 @@
                         <th class="ps-4 py-3">Shipment Identity</th>
                         <th class="py-3">Logistics Detail</th>
                         <th class="py-3">Status</th>
-                        <th class="py-3 pe-4 text-end">Action</th>
+                        <th class="py-3 pe-4 text-center">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -83,8 +83,8 @@
                                     @item.Status
                                 </span>
                             </td>
-                            <td class="py-3 pe-4 text-end">
-                                <div class="d-flex justify-content-end align-items-center gap-3">
+                            <td class="py-3 pe-4 text-center">
+                                <div class="d-flex justify-content-center align-items-center gap-3">
                                     @if (isAssigned)
                                     {
                                         string riderName = item.AssignedRider != null 
