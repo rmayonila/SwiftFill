@@ -12,6 +12,10 @@
             {
                 <span class="badge bg-success me-3 p-2">@TempData["SuccessMessage"]</span>
             }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <span class="badge bg-danger me-3 p-2">@TempData["ErrorMessage"]</span>
+            }
         </div>
     </div>
 

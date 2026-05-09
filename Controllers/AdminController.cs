@@ -790,7 +790,6 @@ namespace SwiftFill.Controllers
         public async Task<IActionResult> ItemCategories(string search, string status, int page = 1)
         {
             int pageSize = 10;
-            var query = _context.ItemCategories.AsQueryable();
             
             // Seed defaults if empty
             if (!_context.ItemCategories.Any())
@@ -804,8 +803,32 @@ namespace SwiftFill.Controllers
                 };
                 _context.ItemCategories.AddRange(defaults);
                 await _context.SaveChangesAsync();
-                query = _context.ItemCategories.AsQueryable();
             }
+
+            // Cleanup Duplicates logic: Group by Name, keep latest Id, remove others
+            // Fetch names into memory first to avoid translation errors
+            var allCategories = await _context.ItemCategories.ToListAsync();
+            
+            var duplicateGroups = allCategories
+                .GroupBy(c => c.Name.ToLower().Trim())
+                .Where(g => g.Count() > 1)
+                .ToList();
+
+            if (duplicateGroups.Any())
+            {
+                foreach (var group in duplicateGroups)
+                {
+                    // Sort by Id descending to keep the latest one
+                    var items = group.OrderByDescending(i => i.Id).ToList();
+                    var latest = items.First();
+                    var others = items.Skip(1);
+                    
+                    _context.ItemCategories.RemoveRange(others);
+                }
+                await _context.SaveChangesAsync();
+            }
+
+            var query = _context.ItemCategories.AsQueryable();
 
             if (!string.IsNullOrEmpty(search))
                 query = query.Where(c => c.Name.Contains(search) || (c.Description != null && c.Description.Contains(search)));
@@ -834,6 +857,15 @@ namespace SwiftFill.Controllers
         {
             if (ModelState.IsValid)
             {
+                var normalized = category.Name.ToLower().Trim();
+                var exists = await _context.ItemCategories.AnyAsync(c => c.Name.ToLower().Trim() == normalized);
+                
+                if (exists)
+                {
+                    TempData["ErrorMessage"] = $"Category '{category.Name}' already exists.";
+                    return RedirectToAction(nameof(ItemCategories));
+                }
+
                 category.CreatedAt = DateTime.UtcNow;
                 _context.ItemCategories.Add(category);
                 await _context.SaveChangesAsync();

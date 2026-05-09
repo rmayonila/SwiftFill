@@ -38,48 +38,13 @@
     /* Timeline Stepper */
     .timeline {
         position: relative;
-        padding-left: 30px;
+        padding-left: 0;
         list-style: none;
-    }
-
-    .timeline::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 9px;
-        width: 2px;
-        background: rgba(255, 255, 255, 0.1);
     }
 
     .timeline-item {
         position: relative;
         margin-bottom: 25px;
-    }
-
-    .timeline-item::before {
-        content: '';
-        position: absolute;
-        left: -30px;
-        top: 5px;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background: #000;
-        border: 2px solid rgba(255, 255, 255, 0.2);
-        z-index: 1;
-        transition: 0.3s;
-    }
-
-    .timeline-item.active::before {
-        border-color: #ff8c00;
-        background: #ff8c00;
-        box-shadow: 0 0 10px rgba(255, 140, 0, 0.5);
-    }
-    
-    .timeline-item.completed::before {
-        border-color: #ff8c00;
-        background: #ff8c00;
     }
 
     .timeline-content {

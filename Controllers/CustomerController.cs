@@ -44,7 +44,16 @@ namespace SwiftFill.Controllers
         [HttpGet]
         public async Task<IActionResult> Book()
         {
-            ViewBag.ItemCategories = await _context.ItemCategories.Where(c => c.IsActive).OrderBy(c => c.Name).ToListAsync();
+            var categories = await _context.ItemCategories
+                .Where(c => c.IsActive && !c.IsArchived)
+                .ToListAsync();
+
+            ViewBag.ItemCategories = categories
+                .GroupBy(c => c.Name.ToLower().Trim())
+                .Select(g => g.First())
+                .OrderBy(c => c.Name)
+                .ToList();
+
             return View();
         }
 
