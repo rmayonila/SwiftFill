@@ -29,7 +29,8 @@
             </form>
         </div>
         <div class="d-flex align-items-center gap-3">
-            <button class="btn btn-primary px-4 py-2 shadow-sm border-0 d-flex align-items-center" 
+             <span class="badge bg-warning text-dark px-3 py-2 fw-bold">@(Model.Count() + (ViewBag.SystemRiders as IEnumerable<ApplicationUser>)?.Count() ?? 0) TOTAL RIDERS</span>
+             <button class="btn btn-primary px-4 py-2 shadow-sm border-0 d-flex align-items-center" 
                     style="background: #FF8C00; border-radius: 8px; font-weight: 600; font-size: 0.85rem;" 
                     data-bs-toggle="modal" data-bs-target="#addRiderModal">
                 <i class="bi bi-person-plus-fill me-2"></i> Add Rider
@@ -50,17 +51,52 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @* 1. System Riders (Only for SuperAdmin) *@
+                    @if (User.IsInRole("SuperAdmin"))
+                    {
+                        @foreach (var rider in (ViewBag.SystemRiders as IEnumerable<SwiftFill.Models.ApplicationUser> ?? new List<ApplicationUser>()))
+                        {
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
+                            <td class="ps-4 py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle d-flex justify-content-center align-items-center me-3 shadow-sm" style="width: 35px; height: 35px; background: rgba(0, 210, 255, 0.1); color: #00d2ff; font-weight: bold; border: 1px solid rgba(0,210,255,0.2);">
+                                        @(string.IsNullOrEmpty(rider.FirstName) ? "R" : rider.FirstName.Substring(0,1).ToUpper())
+                                    </div>
+                                    <div>
+                                        <div class="text-white fw-bold">@rider.FirstName @rider.LastName</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-3">
+                                <div class="text-white small">@rider.Email</div>
+                                <div class="text-secondary x-small">@rider.PhoneNumber</div>
+                            </td>
+                            <td class="py-3">
+                                <span class="badge border border-info border-opacity-25 text-info x-small px-2">
+                                    <i class="bi bi-geo-alt me-1"></i>@(rider.Route ?? "All Areas")
+                                </span>
+                            </td>
+                            <td class="py-3">
+                                <span class="badge border border-success text-success px-2 py-1" style="font-size: 0.65rem;">Active</span>
+                            </td>
+                            <td class="py-3 pe-4 text-end text-secondary small">
+                                <!-- System users are managed via Account Settings -->
+                            </td>
+                        </tr>
+                        }
+                    }
+
+                    @* 2. Manual Riders *@
                     @foreach (var rider in Model)
                     {
                         <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
                             <td class="ps-4 py-3">
                                 <div class="d-flex align-items-center">
-                                    <div class="rounded-circle bg-dark border border-secondary border-opacity-25 d-flex align-items-center justify-content-center me-3" style="width: 35px; height: 35px;">
+                                    <div class="rounded-circle bg-dark border border-secondary border-opacity-25 d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 35px; height: 35px;">
                                         <i class="bi bi-person text-secondary"></i>
                                     </div>
                                     <div>
                                         <div class="text-white fw-bold">@rider.Name</div>
-                                        <div class="text-secondary x-small">Manual Entry</div>
                                     </div>
                                 </div>
                             </td>
@@ -105,7 +141,7 @@
                             </td>
                         </tr>
                     }
-                    @if (!Model.Any())
+                    @if (!Model.Any() && !(ViewBag.SystemRiders as IEnumerable<ApplicationUser>)?.Any() == true)
                     {
                         <tr>
                             <td colspan="5" class="text-center py-5 text-secondary border-0">

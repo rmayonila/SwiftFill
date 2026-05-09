@@ -39,7 +39,11 @@
     </div>
 
 @{
-        var inboundItems = Model.Where(item => item.Status.Contains($"Transit to {currentHub}") || item.Status.Contains($"Transit back to {currentHub}")).ToList();
+        var inboundItems = Model.Where(item => 
+            item.Status.Contains($"Transit to {currentHub}") || 
+            item.Status.Contains($"Transit back to {currentHub}") ||
+            (item.Status == "Returning to Sender" && item.OriginHub == currentHub && item.CurrentLocation != currentHub)
+        ).ToList();
         var outboundItems = Model.Except(inboundItems).ToList();
         var tabs = new[] {
             new { Id = "inbound", Items = inboundItems, IsActive = true },
@@ -82,8 +86,13 @@
                                 @foreach (var item in tab.Items)
                                 {
                                     var destHub = HubRegistry.ResolveDestinationHub(item.DestinationRegion);
-                                    var isInbound = item.Status.Contains($"Transit to {currentHub}") || item.Status.Contains($"Transit back to {currentHub}");
-                                    var isOutbound = item.Status == "Sorted for Transfer";
+                                    var isRTS = item.Status == "Returning to Sender" || item.Status.Contains("back to");
+                                    var isInbound = item.Status.Contains($"Transit to {currentHub}") || 
+                                                   item.Status.Contains($"Transit back to {currentHub}") ||
+                                                   (item.Status == "Returning to Sender" && item.OriginHub == currentHub && item.CurrentLocation != currentHub);
+                                    var isOutbound = item.Status == "Sorted for Transfer" || 
+                                                    (item.Status == "Returning to Sender" && item.OriginHub != currentHub && item.CurrentLocation == currentHub);
+                                    var isAssigned = item.AssignedRiderId != null || item.ManualRiderId != null;
 
                                     <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
                                         <td class="ps-4 py-3">
@@ -101,9 +110,9 @@
                                             </div>
                                             <div class="text-secondary x-small">
                                                 @if (isInbound) {
-                                                    <span>Origin: @(item.OriginHub ?? "Davao")</span>
+                                                    <span>From: @(item.CurrentLocation)</span>
                                                 } else {
-                                                    <span>Target: @destHub</span>
+                                                    <span>Target: @(isRTS ? (item.OriginHub ?? "Davao Hub") : destHub)</span>
                                                 }
                                             </div>
                                         </td>
@@ -120,7 +129,7 @@
                                         </td>
                                         <td class="py-3 pe-4 text-center">
                                             <div class="d-flex justify-content-center align-items-center gap-3">
-                                                @if (item.AssignedRiderId != null || item.ManualRiderId != null)
+                                                @if (isAssigned && item.Status != "Returned")
                                                 {
                                                     <div class="text-success x-small fw-bold border-end border-secondary border-opacity-25 pe-3 d-none d-md-block">
                                                         <i class="bi bi-truck me-1"></i>Assigned

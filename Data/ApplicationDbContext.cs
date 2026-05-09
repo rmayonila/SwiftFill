@@ -121,10 +121,10 @@ namespace SwiftFill.Data
             );
 
             builder.Entity<ItemCategory>().HasData(
-                new ItemCategory { Id = 1, Name = "General Merchandise", Description = "Common household and commercial goods.", CreatedAt = new DateTime(2026, 1, 1) },
-                new ItemCategory { Id = 2, Name = "Electronics", Description = "Devices, gadgets, and computer parts.", CreatedAt = new DateTime(2026, 1, 1) },
-                new ItemCategory { Id = 3, Name = "Apparel", Description = "Clothing, shoes, and textiles.", CreatedAt = new DateTime(2026, 1, 1) },
-                new ItemCategory { Id = 4, Name = "Documents", Description = "Paper-based items and files.", CreatedAt = new DateTime(2026, 1, 1) }
+                new ItemCategory { Id = 1, Name = "General Merchandise", Description = "Common household and commercial goods.", CreatedAt = new DateTime(2026, 5, 1) },
+                new ItemCategory { Id = 2, Name = "Electronics", Description = "Devices, gadgets, and computer parts.", CreatedAt = new DateTime(2026, 5, 2) },
+                new ItemCategory { Id = 3, Name = "Apparel", Description = "Clothing, shoes, and textiles.", CreatedAt = new DateTime(2026, 5, 3) },
+                new ItemCategory { Id = 4, Name = "Documents", Description = "Paper-based items and files.", CreatedAt = new DateTime(2026, 5, 4) }
             );
 
             // Seed Roles
@@ -136,93 +136,6 @@ namespace SwiftFill.Data
                 new IdentityRole { Id = "5", Name = "Customer", NormalizedName = "CUSTOMER" }
             );
 
-            // Seed SuperAdmin User
-            var hasher = new PasswordHasher<ApplicationUser>();
-            builder.Entity<ApplicationUser>().HasData(
-                new ApplicationUser
-                {
-                    Id = "a18be9c0-aa65-4af8-bd17-00bd9344e575",
-                    UserName = "superadmin",
-                    NormalizedUserName = "SUPERADMIN",
-                    Email = "superadmin@swiftfill.com",
-                    NormalizedEmail = "SUPERADMIN@SWIFTFILL.COM",
-                    FirstName = "System",
-                    LastName = "Administrator",
-                    EmailConfirmed = true,
-                    PasswordHash = hasher.HashPassword(null!, "SuperAdmin123!"),
-                    SecurityStamp = string.Empty,
-                    PhoneNumber = "800-555-0199",
-                    CreatedAt = new DateTime(2026, 1, 1)
-                }
-            );
-
-            // Link User to Role
-            builder.Entity<IdentityUserRole<string>>().HasData(
-                new IdentityUserRole<string> { UserId = "a18be9c0-aa65-4af8-bd17-00bd9344e575", RoleId = "1" },
-                new IdentityUserRole<string> { UserId = "b18be9c0-aa65-4af8-bd17-00bd9344e576", RoleId = "2" },
-                new IdentityUserRole<string> { UserId = "c18be9c0-aa65-4af8-bd17-00bd9344e577", RoleId = "3" },
-                new IdentityUserRole<string> { UserId = "d18be9c0-aa65-4af8-bd17-00bd9344e578", RoleId = "4" },
-                new IdentityUserRole<string> { UserId = "e18be9c0-aa65-4af8-bd17-00bd9344e579", RoleId = "5" }
-            );
-
-            builder.Entity<ApplicationUser>().HasData(
-                new ApplicationUser
-                {
-                    Id = "b18be9c0-aa65-4af8-bd17-00bd9344e576",
-                    UserName = "admin",
-                    NormalizedUserName = "ADMIN",
-                    Email = "admin@swiftfill.com",
-                    NormalizedEmail = "ADMIN@SWIFTFILL.COM",
-                    FirstName = "Warehouse",
-                    LastName = "Manager",
-                    EmailConfirmed = true,
-                    PasswordHash = hasher.HashPassword(null!, "Admin123!"),
-                    SecurityStamp = string.Empty,
-                    CreatedAt = new DateTime(2026, 1, 1)
-                },
-                new ApplicationUser
-                {
-                    Id = "c18be9c0-aa65-4af8-bd17-00bd9344e577",
-                    UserName = "staff",
-                    NormalizedUserName = "STAFF",
-                    Email = "staff@swiftfill.com",
-                    NormalizedEmail = "STAFF@SWIFTFILL.COM",
-                    FirstName = "Warehouse",
-                    LastName = "Staff",
-                    EmailConfirmed = true,
-                    PasswordHash = hasher.HashPassword(null!, "Staff123!"),
-                    SecurityStamp = string.Empty,
-                    CreatedAt = new DateTime(2026, 1, 1)
-                },
-                new ApplicationUser
-                {
-                    Id = "d18be9c0-aa65-4af8-bd17-00bd9344e578",
-                    UserName = "rider",
-                    NormalizedUserName = "RIDER",
-                    Email = "rider@swiftfill.com",
-                    NormalizedEmail = "RIDER@SWIFTFILL.COM",
-                    FirstName = "Delivery",
-                    LastName = "Rider",
-                    EmailConfirmed = true,
-                    PasswordHash = hasher.HashPassword(null!, "Rider123!"),
-                    SecurityStamp = string.Empty,
-                    CreatedAt = new DateTime(2026, 1, 1)
-                },
-                new ApplicationUser
-                {
-                    Id = "e18be9c0-aa65-4af8-bd17-00bd9344e579",
-                    UserName = "customer",
-                    NormalizedUserName = "CUSTOMER",
-                    Email = "customer@swiftfill.com",
-                    NormalizedEmail = "CUSTOMER@SWIFTFILL.COM",
-                    FirstName = "Alex",
-                    LastName = "Doe",
-                    EmailConfirmed = true,
-                    PasswordHash = hasher.HashPassword(null!, "Customer123!"),
-                    SecurityStamp = string.Empty,
-                    CreatedAt = new DateTime(2026, 1, 1)
-                }
-            );
         }
     }
 }

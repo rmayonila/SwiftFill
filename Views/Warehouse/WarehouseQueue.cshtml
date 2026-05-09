@@ -63,6 +63,17 @@
                                 <code class="text-orange fw-bold d-block">#@item.TrackingId</code>
                                 <div class="text-white small">@item.ReceiverName</div>
                                 <div class="text-secondary x-small"><i class="bi bi-geo-alt me-1"></i>@item.ReceiverAddress</div>
+                                
+                                @if (item.Status == "Returning to Sender" || item.Status == "Returned" || item.Status.Contains("back to"))
+                                {
+                                    <div class="mt-2 pt-2 border-top border-secondary border-opacity-25">
+                                        <div class="text-info x-small fw-bold">
+                                            <i class="bi bi-arrow-return-left me-1"></i>Return to Sender:
+                                        </div>
+                                        <div class="text-white x-small">@item.SenderName</div>
+                                        <div class="text-secondary x-small" style="font-size: 0.65rem;">@item.SenderAddress</div>
+                                    </div>
+                                }
                             </td>
                             <td class="py-3">
                                 <div class="text-white small">@item.DestinationRegion Hub</div>
@@ -85,7 +96,7 @@
                             </td>
                             <td class="py-3 pe-4 text-center">
                                 <div class="d-flex justify-content-center align-items-center gap-3">
-                                    @if (isAssigned)
+                                    @if (isAssigned && item.Status != "Returned" && !(item.Status == "Returning to Sender" && item.CurrentLocation == item.OriginHub))
                                     {
                                         string riderName = item.AssignedRider != null 
                                             ? $"{item.AssignedRider.FirstName} {item.AssignedRider.LastName}" 
@@ -100,13 +111,29 @@
                                         {
                                         @* Logistics Control removed as per request *@
                                         }
+
+                                        @{
+                                            var isRTSAtOrigin = (item.Status == "Returning to Sender" || item.Status == "Returned" || item.Status.Contains("back to")) && item.CurrentLocation == item.OriginHub;
+                                            var targetAddress = isRTSAtOrigin ? item.SenderAddress : item.ReceiverAddress;
+                                        }
+
                                         <button class="btn btn-link text-warning p-0 action-icon"
                                                 onclick="openAssignModal(this.dataset.tracking, this.dataset.address)"
                                                 data-tracking="@item.TrackingId"
-                                                data-address="@item.ReceiverAddress"
+                                                data-address="@targetAddress"
                                                 title="Assign Rider">
                                             <i class="bi bi-person-badge-fill"></i>
                                         </button>
+
+                                        @if (item.Status == "Returning to Sender" && item.CurrentLocation == item.OriginHub)
+                                        {
+                                            <form asp-action="MarkForPickUp" method="post" class="d-inline">
+                                                <input type="hidden" name="trackingId" value="@item.TrackingId" />
+                                                <button type="submit" class="btn btn-link text-info p-0 action-icon" title="Branch Pick Up">
+                                                    <i class="bi bi-shop"></i>
+                                                </button>
+                                            </form>
+                                        }
                                     </div>
                                 </div>
                             </td>

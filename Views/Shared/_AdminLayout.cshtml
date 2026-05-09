@@ -17,7 +17,7 @@
         }
 
         /* ===== GLOBAL SIDEBAR LAYOUT ===== */
-        body { background-color: var(--brand-bg); color: #ffffff; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--brand-bg); color: #ffffff; font-family: 'Inter', sans-serif; overflow-x: hidden; }
 
         .sidebar {
             width: 260px;
@@ -27,10 +27,11 @@
             background: var(--sidebar-bg);
             border-right: 1px solid rgba(255,140,0,0.15);
             padding-top: 0;
-            z-index: 1000;
+            z-index: 1050; /* Above regular content */
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         /* Scrollable nav list keeps sidebar stable even with many items */
@@ -48,6 +49,40 @@
             padding: 20px 36px;
             min-height: 100vh;
             background: #000000;
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Responsive Breakpoints */
+        @@media (max-width: 991.98px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.show { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 15px; }
+            .sidebar-toggler { display: block !important; }
+            .top-header-mobile { display: flex !important; }
+        }
+
+        /* Sidebar Toggler */
+        .sidebar-toggler {
+            display: none;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            margin-right: 15px;
+        }
+
+        .top-header-mobile {
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: var(--sidebar-bg);
+            border-bottom: 1px solid rgba(255,140,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
         /* Brand / Logo */
@@ -119,8 +154,21 @@
     </style>
 </head>
 <body>
+    <!-- Mobile Top Header -->
+    <div class="top-header-mobile">
+        <div class="d-flex align-items-center">
+            <button class="sidebar-toggler" onclick="toggleSidebar()">
+                <i class="bi bi-list"></i>
+            </button>
+            <img src="~/images/logo.png" style="height:30px;" alt="Logo" />
+        </div>
+        <div class="rounded-circle d-flex justify-content-center align-items-center fw-bold" style="width: 32px; height: 32px; background: var(--brand-primary); color: #000; font-size: 0.8rem;">
+            @((User.Identity?.Name ?? "U").Substring(0,1).ToUpper())
+        </div>
+    </div>
+
     <!-- Left Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
         <a href="/" class="sidebar-brand">
             <img src="~/images/logo.png" style="height:40px;" alt="SwiftFill" />
             <span class="brand-text ms-2">SwiftFill</span>
@@ -319,7 +367,13 @@
     <!-- Main Content Area -->
     <div class="main-content">
         <!-- Dashboard Top Header -->
-        <div class="d-flex justify-content-end align-items-center mb-4 pb-3">
+        <div class="d-flex justify-content-between justify-content-md-end align-items-center mb-4 pb-3">
+            <div class="d-md-none d-flex align-items-center">
+                <button class="sidebar-toggler" onclick="toggleSidebar()" style="display:none;">
+                    <i class="bi bi-list"></i>
+                </button>
+                <h5 class="m-0 fw-bold text-orange">Admin Panel</h5>
+            </div>
             @{
                 string topViewMode = "admin";
                 if (User.IsInRole("SuperAdmin")) topViewMode = "superadmin";
@@ -328,7 +382,7 @@
                 <div class="rounded-circle d-flex justify-content-center align-items-center fw-bold shadow-sm" style="width: 35px; height: 35px; background: var(--brand-primary); color: #000;">
                     @((User.Identity?.Name ?? "U").Substring(0,1).ToUpper())
                 </div>
-                <span class="ms-2 fw-semibold text-white">@User.Identity?.Name</span>
+                <span class="ms-2 fw-semibold text-white d-none d-sm-inline">@User.Identity?.Name</span>
             </a>
         </div>
 
@@ -354,29 +408,40 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
     <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('show');
+        }
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const toggler = document.querySelector('.sidebar-toggler');
+            const mobileHeader = document.querySelector('.top-header-mobile');
+            
+            if (window.innerWidth < 992 && sidebar.classList.contains('show')) {
+                if (!sidebar.contains(event.target) && !mobileHeader.contains(event.target)) {
+                    sidebar.classList.remove('show');
+                }
+            }
+        });
+
         // ── Sidebar scroll persistence ──
-        // Saves the sidebar scroll position before nav and restores it on load.
-        // This prevents the sidebar from jumping to the top when clicking a menu item.
         (function () {
             var wrap = document.querySelector('.nav-sidebar-wrap');
             if (!wrap) return;
 
-            // Restore position on page load
             var saved = sessionStorage.getItem('sidebarScroll');
             if (saved) wrap.scrollTop = parseInt(saved, 10);
 
-            // Highlight the active link and scroll it into view
             var activeLink = wrap.querySelector('.nav-link.active');
             if (activeLink) {
                 var linkTop = activeLink.offsetTop;
                 var wrapHeight = wrap.clientHeight;
-                // Only scroll if the active link is not visible
                 if (linkTop < wrap.scrollTop || linkTop > wrap.scrollTop + wrapHeight - 50) {
                     wrap.scrollTop = linkTop - wrapHeight / 3;
                 }
             }
 
-            // Save position before navigating away
             wrap.addEventListener('scroll', function () {
                 sessionStorage.setItem('sidebarScroll', wrap.scrollTop);
             });

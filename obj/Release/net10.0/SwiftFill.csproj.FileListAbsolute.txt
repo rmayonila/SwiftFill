@@ -324,10 +324,13 @@ C:\Users\PERSONAL\SwiftFill\bin\Release\net10.0\CloudinaryDotNet.dll
 C:\Users\PERSONAL\SwiftFill\bin\Release\net10.0\DotNetEnv.dll
 C:\Users\PERSONAL\SwiftFill\bin\Release\net10.0\Sprache.dll
 C:\Users\PERSONAL\SwiftFill\obj\Release\net10.0\SwiftFill.sourcelink.json
-C:\Users\PERSONAL\SwiftFill\obj\Release\net10.0\compressed\5r5q39yl56-{0}-qttogkhwe9-qttogkhwe9.gz
 C:\Users\PERSONAL\SwiftFill\obj\Release\net10.0\compressed\aca25jzdyj-{0}-fr7q2aak1r-fr7q2aak1r.gz
 C:\Users\PERSONAL\SwiftFill\obj\Release\net10.0\compressed\tmpg46vyog-{0}-l3n5xuwxn8-l3n5xuwxn8.gz
 C:\Users\PERSONAL\SwiftFill\obj\Release\net10.0\compressed\iw9edrv3fw-{0}-ilo7uva0vt-ilo7uva0vt.gz
 C:\Users\PERSONAL\SwiftFill\obj\Release\net10.0\compressed\kuvuzaif4d-{0}-qlccset4i1-qlccset4i1.gz
 C:\Users\PERSONAL\SwiftFill\obj\Release\net10.0\compressed\nqky0mald0-{0}-xzw0cte36n-xzw0cte36n.gz
 C:\Users\PERSONAL\SwiftFill\obj\Release\net10.0\compressed\dpcn2el5ax-{0}-jfsiqqwiad-jfsiqqwiad.gz
+C:\Users\PERSONAL\SwiftFill\bin\Release\net10.0\BouncyCastle.Cryptography.dll
+C:\Users\PERSONAL\SwiftFill\bin\Release\net10.0\MailKit.dll
+C:\Users\PERSONAL\SwiftFill\bin\Release\net10.0\MimeKit.dll
+C:\Users\PERSONAL\SwiftFill\obj\Release\net10.0\compressed\5r5q39yl56-{0}-s7tuxrht6g-s7tuxrht6g.gz

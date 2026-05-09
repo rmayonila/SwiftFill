@@ -81,20 +81,20 @@
                                         {
                                             <form asp-action="ProcessReturn" method="post" class="m-0">
                                                 <input type="hidden" name="requestId" value="@item.RequestId" />
-                                                <button type="submit" name="actionType" value="Approve" class="btn btn-sm btn-outline-success border-0 px-2 opacity-75">Approve (RTS)</button>
-                                                <button type="submit" name="actionType" value="Reject" class="btn btn-sm btn-outline-danger border-0 px-2 opacity-75">Reject</button>
+                                                <button type="submit" name="actionType" value="Approve" class="btn btn-sm btn-outline-success border-0 px-2 opacity-75 fw-bold">Approve (RTS)</button>
+                                                <button type="submit" name="actionType" value="Reject" class="btn btn-sm btn-outline-danger border-0 px-2 opacity-75 fw-bold">Reject</button>
                                             </form>
                                         }
                                         else
                                         {
                                         <button type="button" class="btn btn-sm btn-link text-info p-0 action-icon" onclick="viewReturnDetails('@item.TrackingId')" title="View Details">
-                                            <i class="bi bi-eye-fill"></i>
+                                            <i class="bi bi-eye-fill" style="font-size: 1.2rem;"></i>
                                         </button>
                                         }
 
-                                        <button type="button" class="btn btn-sm btn-outline-danger border-0 p-1 opacity-50" 
+                                        <button type="button" class="btn btn-sm btn-outline-danger border-0 p-1 opacity-75" 
                                                 onclick="confirmArchiveReturn(@item.RequestId, '@item.TrackingId')" title="Archive Record">
-                                            <i class="bi bi-archive"></i>
+                                            <i class="bi bi-archive" style="font-size: 1.2rem;"></i>
                                         </button>
                                     </div>
                                 </td>

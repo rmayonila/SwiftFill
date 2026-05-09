@@ -12,12 +12,7 @@
         <div class="text-secondary small">Comprehensive financial oversight for all shipment settlements.</div>
     </div>
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success bg-success bg-opacity-10 border-success text-success border-0 mb-4 animate-fade-in">
-            <i class="bi bi-check-circle me-2"></i> @TempData["SuccessMessage"]
-        </div>
-    }
+
 
     <!-- Integrated Filter Bar (Reference-Matched) -->
     <div class="d-flex justify-content-between align-items-center mb-4 gap-3 bg-dark-soft p-2 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
@@ -83,6 +78,12 @@
                                         <i class="bi bi-check-circle-fill me-1"></i> Settled
                                     </span>
                                 }
+                                else if (payment.Order?.Status == "Returning to Sender" || payment.Order?.Status == "Returned" || payment.Order?.Status.Contains("back to") == true)
+                                {
+                                    <span class="badge border border-danger text-danger bg-transparent px-2" style="font-size: 0.65rem;">
+                                        <i class="bi bi-arrow-return-left me-1"></i> RTS / Returned
+                                    </span>
+                                }
                                 else
                                 {
                                     <span class="badge border border-warning text-warning bg-transparent px-2" style="font-size: 0.65rem;">
@@ -94,12 +95,23 @@
                                 <div class="d-flex align-items-center justify-content-end gap-2">
                                     @if (!payment.IsPaid && payment.Method == "COD")
                                     {
-                                        <form asp-action="ConfirmPayment" method="post" class="m-0">
-                                            <input type="hidden" name="paymentId" value="@payment.PaymentId" />
-                                            <button type="submit" class="btn btn-sm btn-outline-orange x-small fw-bold text-uppercase">
-                                                Settle Payment
-                                            </button>
-                                        </form>
+                                        <div class="d-flex gap-1">
+                                            <form asp-action="ConfirmPayment" method="post" class="m-0">
+                                                <input type="hidden" name="paymentId" value="@payment.PaymentId" />
+                                                <button type="submit" class="btn btn-sm btn-outline-orange x-small fw-bold text-uppercase">
+                                                    Settle
+                                                </button>
+                                            </form>
+                                            @if (payment.Order?.Status == "Returning to Sender" || payment.Order?.Status == "Returned" || payment.Order?.Status.Contains("back to") == true)
+                                            {
+                                                <form asp-action="MarkAsReturned" method="post" class="m-0">
+                                                    <input type="hidden" name="paymentId" value="@payment.PaymentId" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger x-small fw-bold text-uppercase">
+                                                        Mark Return
+                                                    </button>
+                                                </form>
+                                            }
+                                        </div>
                                     }
                                     else if (payment.IsPaid)
                                     {
@@ -113,9 +125,9 @@
                                         <span class="text-secondary x-small italic me-2">Awaiting Action</span>
                                     }
                                     
-                                    <button type="button" class="btn btn-sm btn-outline-danger border-0 p-1 opacity-50" 
+                                    <button type="button" class="btn btn-sm btn-outline-danger border-0 p-1 opacity-75" 
                                             onclick="confirmArchivePayment('@payment.TrackingId', @payment.PaymentId)" title="Archive Record">
-                                        <i class="bi bi-archive"></i>
+                                        <i class="bi bi-archive" style="font-size: 1.15rem;"></i>
                                     </button>
                                 </div>
                             </td>

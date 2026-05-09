@@ -47,7 +47,7 @@ namespace SwiftFill.Controllers
 
             if (!string.IsNullOrEmpty(search))
             {
-                usersQuery = usersQuery.Where(u => u.Email.Contains(search) || u.FirstName.Contains(search) || u.LastName.Contains(search));
+                usersQuery = usersQuery.Where(u => (u.Email != null && u.Email.Contains(search)) || (u.FirstName != null && u.FirstName.Contains(search)) || (u.LastName != null && u.LastName.Contains(search)));
             }
 
             var users = await usersQuery.ToListAsync();
@@ -178,7 +178,15 @@ namespace SwiftFill.Controllers
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null) return NotFound();
 
-            user.UserName = userName;
+            if (user.UserName != userName)
+            {
+                var setUserNameResult = await _userManager.SetUserNameAsync(user, userName);
+                if (!setUserNameResult.Succeeded)
+                {
+                    TempData["ErrorMessage"] = "Failed to update username. It may already be taken.";
+                    return RedirectToAction(nameof(Users));
+                }
+            }
             user.FirstName = firstName;
             user.LastName = lastName;
             user.PhoneNumber = phoneNumber;

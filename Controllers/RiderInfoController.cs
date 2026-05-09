@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SwiftFill.Data;
@@ -10,20 +11,21 @@ namespace SwiftFill.Controllers
     public class RiderInfoController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public RiderInfoController(ApplicationDbContext context)
+        public RiderInfoController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
-        private string GetCurrentHub()
+        private async Task<string> GetCurrentHub()
         {
             var hub = HttpContext.Session.GetString("UserHub");
             if (string.IsNullOrEmpty(hub))
             {
-                // We don't have UserManager injected here, but we can use HttpContext if needed.
-                // However, the SelectHub logic now sets this session during login.
-                // As a fallback for this controller, we'll just check the session.
+                var user = await _userManager.GetUserAsync(User);
+                hub = user?.Hub;
             }
             return hub ?? "Davao Hub";
         }
@@ -31,39 +33,59 @@ namespace SwiftFill.Controllers
         public async Task<IActionResult> Index(string search, string status, int page = 1)
         {
             int pageSize = 10;
-            var currentHub = GetCurrentHub();
+            var currentHub = await GetCurrentHub();
 
-            var query = _context.ManualRiders
+            // 1. Manual Riders
+            var manualQuery = _context.ManualRiders
                 .Where(r => r.Hub == currentHub)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(search))
-                query = query.Where(r => r.Name.Contains(search) || r.Route.Contains(search));
+                manualQuery = manualQuery.Where(r => r.Name.Contains(search) || (r.Route != null && r.Route.Contains(search)));
 
             if (!string.IsNullOrEmpty(status))
             {
                 bool active = status == "Active";
-                query = query.Where(r => r.IsActive == active);
+                manualQuery = manualQuery.Where(r => r.IsActive == active);
             }
 
-            var totalItems = await query.CountAsync();
-            var riders = await query.OrderBy(r => r.Route)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            var manualRiders = await manualQuery.OrderBy(r => r.Route).ToListAsync();
 
+            // 2. System Riders (Only visible to SuperAdmin)
+            var filteredSystemRiders = new List<ApplicationUser>();
+            if (User.IsInRole("SuperAdmin"))
+            {
+                var allSystemRiders = await _userManager.GetUsersInRoleAsync("DeliveryRider");
+                filteredSystemRiders = allSystemRiders.Where(r => r.Hub == currentHub).ToList();
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    filteredSystemRiders = filteredSystemRiders.Where(r => 
+                        (r.FirstName != null && r.FirstName.Contains(search, StringComparison.OrdinalIgnoreCase)) || 
+                        (r.LastName != null && r.LastName.Contains(search, StringComparison.OrdinalIgnoreCase)) ||
+                        (r.Email != null && r.Email.Contains(search, StringComparison.OrdinalIgnoreCase))).ToList();
+                }
+            }
+
+            var totalItems = manualRiders.Count + filteredSystemRiders.Count;
+            
+            // Paging for the combined list? 
+            // For now, let's just pass them and show them. 
+            // Usually, there aren't thousands of riders per hub.
+            
+            ViewBag.SystemRiders = filteredSystemRiders;
             ViewBag.CurrentHub = currentHub;
             ViewBag.Search = search;
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 
-            return View(riders);
+            return View(manualRiders);
         }
 
         [HttpPost]
         public async Task<IActionResult> AddRider(ManualRider rider)
         {
-            var currentHub = GetCurrentHub();
+            var currentHub = await GetCurrentHub();
             rider.Hub = currentHub;
             rider.CreatedAt = DateTime.UtcNow;
             rider.IsActive = true;
@@ -93,7 +115,7 @@ namespace SwiftFill.Controllers
         public async Task<IActionResult> EditRider(ManualRider rider)
         {
             var existing = await _context.ManualRiders.FindAsync(rider.Id);
-            if (existing != null && existing.Hub == GetCurrentHub())
+            if (existing != null && existing.Hub == await GetCurrentHub())
             {
                 existing.Name = rider.Name;
                 existing.Phone = rider.Phone;
@@ -108,7 +130,7 @@ namespace SwiftFill.Controllers
         public async Task<IActionResult> ToggleStatus(int id)
         {
             var rider = await _context.ManualRiders.FindAsync(id);
-            if (rider != null && rider.Hub == GetCurrentHub())
+            if (rider != null && rider.Hub == await GetCurrentHub())
             {
                 rider.IsActive = !rider.IsActive;
                 await _context.SaveChangesAsync();
@@ -121,7 +143,7 @@ namespace SwiftFill.Controllers
         public async Task<IActionResult> DeleteRider(int id)
         {
             var rider = await _context.ManualRiders.FindAsync(id);
-            if (rider != null && rider.Hub == GetCurrentHub())
+            if (rider != null && rider.Hub == await GetCurrentHub())
             {
                 _context.ManualRiders.Remove(rider);
                 await _context.SaveChangesAsync();
@@ -133,7 +155,7 @@ namespace SwiftFill.Controllers
         [HttpGet]
         public async Task<JsonResult> GetRidersForRoute(string address)
         {
-            var currentHub = GetCurrentHub();
+            var currentHub = await GetCurrentHub();
             var riders = await _context.ManualRiders
                 .Where(r => r.Hub == currentHub && r.IsActive)
                 .ToListAsync();

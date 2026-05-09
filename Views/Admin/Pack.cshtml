@@ -68,7 +68,7 @@
                             <div class="small text-white">@(order.ItemCategory ?? "General") &bull; @order.Weight kg</div>
                             @if (order.IsFragile)
                             {
-                                <span class="badge bg-warning text-dark" style="font-size:0.6rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>FRAGILE</span>
+                                <span class="badge bg-warning text-dark" style="font-size:0.6rem;"><i class="bi bi-exclamation-triangle-fill me-1" style="font-size: 0.75rem;"></i>FRAGILE</span>
                             }
                         </td>
                         <td class="py-3 text-white small">@order.DestinationRegion</td>
@@ -76,8 +76,8 @@
                             <span class="badge border bg-transparent px-2 @(order.Status == "Picked" ? "border-info text-info" : "border-warning text-warning")" style="font-size: 0.65rem;">@order.Status</span>
                         </td>
                         <td class="py-3 pe-4 text-center">
-                            <button class="btn btn-sm btn-outline-orange x-small fw-bold text-uppercase" onclick="openPackModal('@order.TrackingId')">
-                                Update Packing
+                            <button class="btn btn-sm btn-outline-orange fw-bold text-uppercase d-flex align-items-center justify-content-center mx-auto" style="font-size: 0.75rem; padding: 5px 12px;" onclick="openPackModal('@order.TrackingId')">
+                                <i class="bi bi-box-seam me-2" style="font-size: 1rem;"></i> Update Packing
                             </button>
                         </td>
                     </tr>

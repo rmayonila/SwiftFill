@@ -211,7 +211,12 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label text-secondary small">Password</label>
-                        <input type="password" name="Password" class="form-control bg-dark border-secondary text-white shadow-none" placeholder="Enter password" required>
+                        <div class="position-relative">
+                            <input type="password" name="Password" id="regPassword" class="form-control bg-dark border-secondary text-white shadow-none w-100" placeholder="Enter password" required>
+                            <span class="position-absolute end-0 top-50 translate-middle-y me-3 text-secondary" style="cursor: pointer; z-index: 10;" onclick="togglePassword('regPassword', this)">
+                                <i class="bi bi-eye"></i>
+                            </span>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label text-secondary small">Phone Number</label>
@@ -493,7 +498,12 @@
                         <input type="text" class="form-control bg-dark border-secondary text-secondary mb-3" value="********" readonly>
                         
                         <label class="form-label text-warning small fw-bold">NEW PASSWORD</label>
-                        <input type="password" name="newPassword" class="form-control bg-dark border-warning text-white" placeholder="Enter new password to reset">
+                        <div class="position-relative">
+                            <input type="password" name="newPassword" id="editNewPassword" class="form-control bg-dark border-warning text-white w-100" placeholder="Enter new password to reset">
+                            <span class="position-absolute end-0 top-50 translate-middle-y me-3 text-secondary" style="cursor: pointer; z-index: 10;" onclick="togglePassword('editNewPassword', this)">
+                                <i class="bi bi-eye"></i>
+                            </span>
+                        </div>
                         <div class="form-text text-muted smaller">Leave blank to keep existing password.</div>
                     </div>
                 </div>
@@ -577,5 +587,19 @@
         document.getElementById('edit_hub').value = hub;
         
         new bootstrap.Modal(document.getElementById('editProfileModal')).show();
+    }
+
+    function togglePassword(inputId, iconElement) {
+        const input = document.getElementById(inputId);
+        const icon = iconElement.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
     }
 </script>

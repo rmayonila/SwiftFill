@@ -112,20 +112,27 @@
                                 </div>
                             </td>
                             <td class="py-3">
-                                <span class="badge border bg-transparent px-2 py-1 @(order.Status == "Delivered" ? "border-success text-success" : (order.Status.Contains("Arrived") ? "border-primary text-primary" : (order.Status.Contains("Transit") ? "border-info text-info" : "border-warning text-warning")))" style="font-size: 0.65rem;">
+                                @{
+                                    var bClass = "border-warning text-warning";
+                                    if (order.Status == "Delivered") bClass = "border-success text-success";
+                                    else if (order.Status.Contains("Arrived")) bClass = "border-primary text-primary";
+                                    else if (order.Status.Contains("Transit")) bClass = "border-info text-info";
+                                    else if (order.Status.Contains("Return")) bClass = "border-danger text-danger";
+                                }
+                                <span class="badge border bg-transparent px-2 py-1 @bClass" style="font-size: 0.65rem;">
                                     @order.Status
                                 </span>
                             </td>
                             <td class="py-3 pe-4 text-center">
                                 <div class="d-flex justify-content-center gap-1">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary border-0 p-1" onclick="viewOrderDetails('@order.TrackingId')">
-                                        <i class="bi bi-eye-fill"></i>
+                                    <button type="button" class="btn btn-sm btn-link text-info border-0 p-1 action-icon" onclick="viewOrderDetails('@order.TrackingId')" title="View Details">
+                                        <i class="bi bi-eye-fill" style="font-size: 1.15rem;"></i>
                                     </button>
                                     <button type="button" class="btn btn-sm btn-outline-warning border-0 p-1" onclick="editOrder('@order.TrackingId')">
-                                        <i class="bi bi-pencil-square"></i>
+                                        <i class="bi bi-pencil-square" style="font-size: 1.15rem;"></i>
                                     </button>
                                     <button type="button" class="btn btn-sm btn-outline-danger border-0 p-1" onclick="confirmArchive('@order.TrackingId')">
-                                        <i class="bi bi-archive"></i>
+                                        <i class="bi bi-archive" style="font-size: 1.15rem;"></i>
                                     </button>
                                 </div>
                                 <div class="x-small text-secondary mt-1">@order.UpdatedAt.ToString("MMM dd HH:mm")</div>
@@ -240,14 +247,17 @@
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label class="text-secondary x-small mb-1">Packing Services</label>
-                            <div class="p-2 rounded bg-dark border border-secondary border-opacity-10">
-                                <div class="form-check form-switch mb-0">
-                                    <input class="form-check-input" type="checkbox" name="AvailPacking" id="editAvailPacking" value="true" onchange="calculateEditPrice()">
-                                    <label class="form-check-label text-white-50 x-small" for="editAvailPacking">Apply Packing</label>
-                                </div>
-                                <input type="number" name="PackingFee" id="editPackingFee" class="minimal-input text-end w-100 mt-2" style="font-size: 0.75rem;" value="0" oninput="calculateEditPrice()">
-                            </div>
+                            <label class="text-secondary x-small mb-1">Status Control</label>
+                            <select name="Status" id="editStatus" class="minimal-input w-100 fw-bold border-orange border-opacity-25">
+                                <option value="Pending">Pending</option>
+                                <option value="Picked">Picked</option>
+                                <option value="Packed in Warehouse">Packed in Warehouse</option>
+                                <option value="Out for Delivery">Out for Delivery</option>
+                                <option value="Delivered">Delivered</option>
+                                <option value="Returned">Returned</option>
+                                <option value="Returning to Sender">Returning to Sender</option>
+                                <option value="Return Notified">Return Notified</option>
+                            </select>
                         </div>
                         <div class="col-12 mt-4">
                             <div class="d-flex justify-content-between align-items-center p-3 rounded" style="background: rgba(255,140,0,0.05); border: 1px solid rgba(255,140,0,0.2);">
@@ -644,6 +654,7 @@
                 document.getElementById('editRegion').value = order.destinationRegion;
                  document.getElementById('editPaymentMethod').value = order.payment?.method || 'Pending Hub Verification';
                  document.getElementById('editPackingFee').value = order.packingFee || 0;
+                 document.getElementById('editStatus').value = order.status;
                  calculateEditPrice();
             });
     }

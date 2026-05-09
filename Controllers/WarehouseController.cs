@@ -73,7 +73,11 @@ namespace SwiftFill.Controllers
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(search))
-                query = query.Where(o => o.TrackingId.Contains(search) || o.ReceiverName.Contains(search) || o.ReceiverAddress.Contains(search));
+                query = query.Where(o => o.TrackingId.Contains(search) || 
+                                         o.ReceiverName.Contains(search) || 
+                                         o.ReceiverAddress.Contains(search) ||
+                                         o.SenderName.Contains(search) ||
+                                         o.SenderAddress.Contains(search));
 
             if (!string.IsNullOrEmpty(status))
                 query = query.Where(o => o.Status == status || o.Status.Contains(status));
@@ -293,20 +297,50 @@ namespace SwiftFill.Controllers
         }
 
         [HttpPost]
+        public async Task<IActionResult> MarkForPickUp(string trackingId)
+        {
+            var currentHub = GetCurrentHub();
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.TrackingId == trackingId);
+            if (order != null && order.CurrentLocation == currentHub)
+            {
+                order.Status = "Ready for Pick Up";
+                order.UpdatedAt = DateTime.UtcNow;
+                order.AssignedRiderId = null;
+                order.ManualRiderId = null;
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Parcel #{trackingId} is now ready for branch pick up.";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
         public async Task<IActionResult> MarkReceived(string trackingId)
         {
             var currentHub = GetCurrentHub();
             var order = await _context.Orders.FirstOrDefaultAsync(o => o.TrackingId == trackingId);
 
             // Dynamic check: Does the status contain "Transit" and the name of the current hub?
-            if (order != null && order.Status.Contains("Transit", StringComparison.OrdinalIgnoreCase) 
-                           && order.Status.Contains(currentHub, StringComparison.OrdinalIgnoreCase))
+            if (order != null && 
+                ((order.Status.Contains("Transit", StringComparison.OrdinalIgnoreCase) && order.Status.Contains(currentHub, StringComparison.OrdinalIgnoreCase)) || 
+                 order.Status == "Returning to Sender" || 
+                 order.Status == "Return Notified"))
             {
-                bool isReturningToOrigin = order.Status.Contains("back to", StringComparison.OrdinalIgnoreCase) 
+                bool isReturningToOrigin = (order.Status.Contains("back to", StringComparison.OrdinalIgnoreCase) || 
+                                            order.Status == "Returning to Sender" ||
+                                            order.Status == "Return Notified")
                                            && currentHub.Equals(order.OriginHub ?? "Davao Hub", StringComparison.OrdinalIgnoreCase);
 
                 order.CurrentLocation = currentHub;
-                order.Status = isReturningToOrigin ? "Returned" : $"Arrived at {currentHub}";
+                if (isReturningToOrigin)
+                {
+                    order.Status = "Returned";
+                    order.AssignedRiderId = null;
+                    order.ManualRiderId = null;
+                }
+                else
+                {
+                    order.Status = $"Arrived at {currentHub}";
+                }
                 order.UpdatedAt = DateTime.UtcNow;
                 
                 await _context.SaveChangesAsync();
@@ -358,7 +392,8 @@ namespace SwiftFill.Controllers
             var order = await _context.Orders.FirstOrDefaultAsync(o => o.TrackingId == trackingId);
             if (order != null && order.CurrentLocation == currentHub && 
                 (order.Status.Contains("Arrived") || order.Status == "Packed in Warehouse" || 
-                 order.Status == "Sorted for Transfer" || order.Status == "Out for Delivery"))
+                 order.Status == "Sorted for Transfer" || order.Status == "Out for Delivery" ||
+                 order.Status == "Returned"))
             {
                 Console.WriteLine($"[DEBUG] Valid Order found for assignment. Current Status: {order.Status}");
                 if (riderId.StartsWith("user_"))
@@ -414,11 +449,15 @@ namespace SwiftFill.Controllers
             var localOrders = await _context.Orders
                 .Include(o => o.AssignedRider)
                 .Include(o => o.ManualRider)
-                .Where(o => (o.CurrentLocation == currentHub || o.Status.Contains(currentHub)) && !o.IsArchived)
+                .Where(o => (o.CurrentLocation == currentHub || 
+                             o.Status.Contains(currentHub) || 
+                             (o.Status == "Returning to Sender" && o.OriginHub == currentHub)) && !o.IsArchived)
                 .ToListAsync();
 
             // Accurate card counts that match the linked tables
-            var inbound = localOrders.Count(o => o.Status.Contains("In Transit to " + currentHub));
+            var inbound = localOrders.Count(o => o.Status.Contains("In Transit to " + currentHub) || 
+                                                 o.Status.Contains("In Transit back to " + currentHub) ||
+                                                 (o.Status == "Returning to Sender" && o.OriginHub == currentHub && o.CurrentLocation != currentHub));
             
             var outbound = localOrders.Count(o => 
                 o.CurrentLocation == currentHub && 

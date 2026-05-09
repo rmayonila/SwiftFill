@@ -215,6 +215,13 @@ namespace SwiftFill.Controllers
                 order.DeclaredValue = model.DeclaredValue;
                 order.AvailPacking = model.AvailPacking;
                 order.PackingFee = model.PackingFee;
+                
+                // Allow Admin to override status if provided
+                if (!string.IsNullOrEmpty(model.Status))
+                {
+                    order.Status = model.Status;
+                }
+
                 order.UpdatedAt = DateTime.UtcNow;
 
                 if (!string.IsNullOrEmpty(PaymentMethod))
@@ -445,7 +452,7 @@ namespace SwiftFill.Controllers
             var query = _context.Payments.Include(p => p.Order).Where(p => !p.IsArchived).AsQueryable();
 
             if (!string.IsNullOrEmpty(search))
-                query = query.Where(p => p.TrackingId.Contains(search) || p.Order.ReceiverName.Contains(search));
+                query = query.Where(p => p.TrackingId.Contains(search) || (p.Order != null && p.Order.ReceiverName.Contains(search)));
 
             if (!string.IsNullOrEmpty(status))
             {
@@ -454,7 +461,7 @@ namespace SwiftFill.Controllers
             }
 
             var totalItems = query.Count();
-            var payments = query.OrderByDescending(p => p.IsPaid == false).ThenByDescending(p => p.PaidAt ?? p.Order.CreatedAt)
+            var payments = query.OrderByDescending(p => p.IsPaid == false).ThenByDescending(p => p.PaidAt ?? (p.Order != null ? p.Order.CreatedAt : DateTime.MinValue))
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
@@ -495,6 +502,25 @@ namespace SwiftFill.Controllers
         }
 
         [HttpPost]
+        public async Task<IActionResult> MarkAsReturned(int paymentId)
+        {
+            var payment = await _context.Payments.Include(p => p.Order).FirstOrDefaultAsync(p => p.PaymentId == paymentId);
+            if (payment != null)
+            {
+                // Marking as returned effectively archives it from active billing oversight
+                payment.IsArchived = true;
+                await _context.SaveChangesAsync();
+                
+                _audit.Log(User.Identity?.Name ?? "Admin", "Admin", "Payment Return",
+                    $"Payment for {payment.TrackingId} marked as RETURNED/RTS. No collection expected.",
+                    AuditLogType.Finance);
+                
+                TempData["SuccessMessage"] = $"Payment for {payment.TrackingId} archived as returned.";
+            }
+            return RedirectToAction(nameof(Payments));
+        }
+
+        [HttpPost]
         public async Task<IActionResult> ArchivePayment(int paymentId)
         {
             var payment = await _context.Payments.FindAsync(paymentId);
@@ -513,7 +539,7 @@ namespace SwiftFill.Controllers
 
         public async Task<IActionResult> Returns(string search, string status, int page = 1)
         {
-            // Auto-heal missing ReturnRequests from Orders marked "Returned"
+            // 1. Auto-heal: Link Orders marked "Returned" to ReturnRequests if missing
             var orphanedReturns = await _context.Orders
                 .Where(o => o.Status == "Returned" && !_context.ReturnRequests.Any(r => r.TrackingId == o.TrackingId))
                 .ToListAsync();
@@ -526,11 +552,30 @@ namespace SwiftFill.Controllers
                     {
                         TrackingId = order.TrackingId,
                         Reason = "System Auto-Sync Return",
-                        Description = order.Notes ?? "Auto-generated from failed delivery state.",
-                        Status = "Sender Notified",
+                        Description = order.Notes ?? "Auto-generated from completed return state.",
+                        Status = "Approved", // If it's already "Returned", the request is effectively approved
                         CreatedAt = order.UpdatedAt
                     });
-                    order.Status = "Return Notified";
+                }
+                await _context.SaveChangesAsync();
+            }
+
+            // 2. Data Integrity Sync: Ensure Orders with APPROVED returns show "Returning to Sender"
+            // This fixes cases where an order might show "Delivered" but has an active approved return
+            var misalignedReturns = await _context.ReturnRequests
+                .Include(r => r.Order)
+                .Where(r => r.Status == "Approved" && r.Order != null && 
+                           r.Order.Status != "Returning to Sender" && 
+                           r.Order.Status != "Returned" &&
+                           !r.Order.Status.Contains("In Transit back to"))
+                .ToListAsync();
+
+            if (misalignedReturns.Any())
+            {
+                foreach (var ret in misalignedReturns)
+                {
+                    ret.Order!.Status = "Returning to Sender";
+                    ret.Order.UpdatedAt = DateTime.UtcNow;
                 }
                 await _context.SaveChangesAsync();
             }
@@ -572,12 +617,20 @@ namespace SwiftFill.Controllers
                 else if (actionType == "Approve")
                 {
                     returnReq.Status = "Approved";
-                    if (returnReq.Order != null) returnReq.Order.Status = "Returning to Sender";
+                    if (returnReq.Order != null) 
+                    {
+                        returnReq.Order.Status = "Returning to Sender";
+                        returnReq.Order.UpdatedAt = DateTime.UtcNow;
+                    }
                 }
                 else if (actionType == "Reject")
                 {
                     returnReq.Status = "Rejected";
-                    if (returnReq.Order != null) returnReq.Order.Status = "Return Hold";
+                    if (returnReq.Order != null) 
+                    {
+                        returnReq.Order.Status = "Return Hold";
+                        returnReq.Order.UpdatedAt = DateTime.UtcNow;
+                    }
                 }
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = $"Return #{requestId} updated: {returnReq.Status}.";
@@ -781,6 +834,7 @@ namespace SwiftFill.Controllers
         {
             if (ModelState.IsValid)
             {
+                category.CreatedAt = DateTime.UtcNow;
                 _context.ItemCategories.Add(category);
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = $"Category '{category.Name}' added successfully.";

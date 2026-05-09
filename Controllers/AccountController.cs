@@ -17,6 +17,7 @@ namespace SwiftFill.Controllers
         private readonly AuditLogService _audit;
         private readonly IConfiguration _configuration;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly EmailService _emailService;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
@@ -24,7 +25,8 @@ namespace SwiftFill.Controllers
             ApplicationDbContext context,
             AuditLogService audit,
             IConfiguration configuration,
-            IHttpClientFactory httpClientFactory)
+            IHttpClientFactory httpClientFactory,
+            EmailService emailService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -32,6 +34,7 @@ namespace SwiftFill.Controllers
             _audit = audit;
             _configuration = configuration;
             _httpClientFactory = httpClientFactory;
+            _emailService = emailService;
         }
 
         [HttpGet]
@@ -214,8 +217,121 @@ namespace SwiftFill.Controllers
                 TempData["ErrorMessage"] = "No account found with this email address.";
                 return RedirectToAction("ForgotPassword");
             }
-            TempData["SuccessMessage"] = $"A password reset link has been sent to {email}. Please check your inbox.";
-            return RedirectToAction("Login");
+
+            var roles = await _userManager.GetRolesAsync(user);
+            if (!roles.Contains("Customer"))
+            {
+                TempData["ErrorMessage"] = "This feature is for customers only. Please contact your system administration.";
+                return RedirectToAction("ForgotPassword");
+            }
+
+            // Generate a 6-digit verification code
+            var random = new Random();
+            var code = random.Next(100000, 999999).ToString();
+            
+            // In a real app, you'd email this. For now, we store it in TempData.
+            TempData["ResetEmail"] = email;
+            TempData["ResetCode"] = code;
+
+            // REAL SMTP Email Sending
+            try
+            {
+                var subject = "SwiftFill - Password Reset Verification Code";
+                var body = $@"
+                    <div style='font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;'>
+                        <h2 style='color: #ff8c00;'>SwiftFill Password Reset</h2>
+                        <p>You requested a password reset for your SwiftFill account.</p>
+                        <p>Your 6-digit verification code is:</p>
+                        <div style='font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #333; margin: 20px 0;'>{code}</div>
+                        <p style='color: #777; font-size: 12px;'>If you did not request this, please ignore this email.</p>
+                    </div>";
+                
+                await _emailService.SendEmailAsync(email, subject, body);
+                TempData["SuccessMessage"] = "A 6-digit verification code has been sent to your email.";
+                return RedirectToAction("VerifyCode");
+            }
+            catch (Exception ex)
+            {
+                // FAILSAFE: If SMTP fails, we print the code to the terminal so the user can still proceed!
+                Console.WriteLine("**************************************************");
+                Console.WriteLine($"[SMTP ERROR] Could not send email: {ex.Message}");
+                Console.WriteLine($"[BACKUP] YOUR VERIFICATION CODE IS: {code}");
+                Console.WriteLine("**************************************************");
+                
+                TempData["ErrorMessage"] = "We couldn't send the email, but you can still verify if you have access to the server console. Please check the logs for your code.";
+                return RedirectToAction("VerifyCode");
+            }
+        }
+
+        [HttpGet]
+        public IActionResult VerifyCode()
+        {
+            var email = TempData.Peek("ResetEmail")?.ToString();
+            if (string.IsNullOrEmpty(email)) return RedirectToAction("ForgotPassword");
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult VerifyCodeAction(string code)
+        {
+            var email = TempData.Peek("ResetEmail")?.ToString();
+            var savedCode = TempData.Peek("ResetCode")?.ToString();
+
+            if (code == savedCode)
+            {
+                TempData["VerificationVerified"] = "true";
+                return RedirectToAction("ResetPassword", new { email = email });
+            }
+
+            TempData["ErrorMessage"] = "Invalid verification code. Please try again.";
+            return RedirectToAction("VerifyCode");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ResetPassword(string email)
+        {
+            var isVerified = TempData.Peek("VerificationVerified")?.ToString();
+            if (isVerified != "true") return RedirectToAction("ForgotPassword");
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null) return RedirectToAction("Login");
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            
+            ViewBag.Email = email;
+            ViewBag.Token = token;
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ResetPasswordAction(string email, string token, string newPassword, string confirmPassword)
+        {
+            var isVerified = TempData.Peek("VerificationVerified")?.ToString();
+            if (isVerified != "true") return RedirectToAction("Login");
+
+            if (newPassword != confirmPassword)
+            {
+                TempData["ErrorMessage"] = "Passwords do not match.";
+                return RedirectToAction("ResetPassword", new { email = email });
+            }
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null) return RedirectToAction("Login");
+
+            var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
+            if (result.Succeeded)
+            {
+                TempData.Remove("ResetEmail");
+                TempData.Remove("ResetCode");
+                TempData.Remove("VerificationVerified");
+
+                _audit.Log(user.UserName ?? email, "Customer", "Password Reset", "User successfully reset their password via OTP flow.", AuditLogType.Security);
+                TempData["SuccessMessage"] = "Your password has been reset successfully. You can now sign in.";
+                return RedirectToAction("Login");
+            }
+
+            TempData["ErrorMessage"] = string.Join(" ", result.Errors.Select(e => e.Description));
+            return RedirectToAction("ResetPassword", new { email = email });
         }
 
         [HttpPost]
@@ -281,7 +397,20 @@ namespace SwiftFill.Controllers
 
                 if (roles.Contains("SuperAdmin")) return RedirectToAction("Index", "SuperAdmin");
                 
-                if (roles.Contains("WarehouseStaff") || roles.Contains("Staff") || roles.Contains("WarehouseOperator") || user.UserName?.ToLower() == "staff")
+                // Priority for Admin role, unless the username explicitly indicates they are staff
+                if (roles.Contains("Admin") && (user.UserName == null || !user.UserName.ToLower().Contains("staff")))
+                {
+                    return RedirectToAction("Dashboard", "Admin");
+                }
+
+                // Determine if user is staff based on role, hub assignment, or username containing 'staff'
+                bool isStaff = roles.Contains("WarehouseStaff") || 
+                               roles.Contains("Staff") || 
+                               roles.Contains("WarehouseOperator") || 
+                               (!roles.Contains("DeliveryRider") && !string.IsNullOrEmpty(user.Hub)) ||
+                               (user.UserName?.ToLower()?.Contains("staff") == true);
+
+                if (isStaff)
                 {
                     if (!string.IsNullOrEmpty(user.Hub))
                     {
@@ -290,7 +419,6 @@ namespace SwiftFill.Controllers
                     return RedirectToAction("Dashboard", "Warehouse");
                 }
                 
-                if (roles.Contains("Admin")) return RedirectToAction("Dashboard", "Admin");
                 if (roles.Contains("DeliveryRider")) return RedirectToAction("Index", "Rider");
                 return RedirectToAction("Index", "Customer");
             }
@@ -363,20 +491,22 @@ namespace SwiftFill.Controllers
                     return View("SuperAdminSettings", model);
             }
 
-            // Priority 2: Explicit username overrides to fix local db role issues
-            if (userName == "superadmin") return View("SuperAdminSettings", model);
-            if (userName == "admin") return View("AdminSettings", model);
-            if (userName == "staff") return View("WarehouseSettings", model);
-            if (userName == "customer") return View("CustomerSettings", model);
+            // Priority 2: Explicit username overrides to fix local db role issues (now more flexible)
+            if (userName != null && userName.Contains("superadmin")) return View("SuperAdminSettings", model);
+            if (userName != null && userName.Contains("admin") && !userName.Contains("staff")) return View("AdminSettings", model);
+            if (userName != null && userName.Contains("staff")) return View("WarehouseSettings", model);
+            if (userName != null && userName.Contains("customer")) return View("CustomerSettings", model);
             
             // Priority 3: Standard role checks
             if (roles.Contains("SuperAdmin")) return View("SuperAdminSettings", model);
+            if (roles.Contains("DeliveryRider")) return View("RiderSettings", model); // Check Rider BEFORE Hub to avoid stealing them to Warehouse
             
+            if (roles.Contains("Admin") && (userName == null || !userName.Contains("staff"))) return View("AdminSettings", model);
+
             if (roles.Contains("WarehouseStaff") || roles.Contains("WarehouseOperator") || !string.IsNullOrEmpty(user.Hub)) 
                 return View("WarehouseSettings", model);
 
             if (roles.Contains("Admin")) return View("AdminSettings", model);
-            if (roles.Contains("DeliveryRider")) return View("RiderSettings", model);
             if (roles.Contains("Customer")) return View("CustomerSettings", model);
                 
             return View("CustomerSettings", model); // Fallback

@@ -66,6 +66,19 @@
 
     .stat-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
     .stat-value { font-family: 'Sora', sans-serif; font-weight: 800; }
+
+    .btn-orange {
+        background: #ff8c00 !important;
+        color: #000 !important;
+        border: none !important;
+        transition: all 0.2s ease;
+    }
+    .btn-orange:hover {
+        background: #ff9d26 !important;
+        color: #000 !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);
+    }
 </style>
 
 @{
@@ -334,10 +347,10 @@
                     <select id="mainReasonSelect" name="failReason" class="form-select bg-black text-white border-secondary mb-3 py-3" onchange="toggleOtherReason(this.value)">
                         <option value="Customer Not Home">Customer Not Home</option>
                         <option value="Refused to Pay (COD)">Refused to Pay (COD)</option>
-                        <option value="Incorrect Address">Incorrect Address</option>
-                        <option value="Consignee Relocated">Consignee Relocated</option>
+                        <option value="Customer unreachable">Customer unreachable</option>
+                        <option value="Customer requested reschedule">Customer requested reschedule</option>
                         <option value="Package Damage (Rejected)">Package Damage (Rejected)</option>
-                        <option value="Forbidden/Illegal Items">Forbidden/Illegal Items</option>
+                        <option value="Bad weather">Bad weather</option>
                         <option value="Others">Others (Please specify)</option>
                     </select>
 

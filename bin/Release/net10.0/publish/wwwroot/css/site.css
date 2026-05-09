@@ -484,3 +484,45 @@ footer {
 .bg-orange { background-color: #ff8c00 !important; }
 .border-orange { border-color: #ff8c00 !important; }
 
+/* Responsive Table Utility */
+.table-responsive-custom {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1rem;
+}
+
+.table-responsive-custom table {
+  min-width: 600px; /* Force scroll on very narrow screens */
+}
+
+/* Mobile Padding & Layout Refinements */
+@media (max-width: 767.98px) {
+  .glass-card {
+    padding: 20px 15px;
+  }
+  .stat-value {
+    font-size: 1.8rem;
+  }
+  .stat-label {
+    font-size: 0.7rem;
+  }
+  .content-wrapper {
+    padding-top: 70px;
+  }
+  .navbar-brand {
+    font-size: 1.2rem;
+  }
+  .brand-logo-img {
+    height: 35px;
+  }
+}
+
+/* Form Responsiveness */
+@media (max-width: 575.98px) {
+  .btn-get-started, .btn-primary-custom {
+    text-align: center;
+    margin-bottom: 10px;
+  }
+}
+

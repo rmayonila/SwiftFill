@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <style>
         /* ===== GLOBAL SIDEBAR LAYOUT ===== */
-        body { background-color: #000000; color: #ffffff; font-family: 'Inter', sans-serif; }
+        body { background-color: #000000; color: #ffffff; font-family: 'Inter', sans-serif; overflow-x: hidden; }
 
         .sidebar {
             width: 260px;
@@ -20,10 +20,11 @@
             background: #0a0a0a;
             border-right: 1px solid rgba(255,140,0,0.15);
             padding-top: 0;
-            z-index: 1000;
+            z-index: 1050;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .sidebar .nav-sidebar-wrap {
@@ -40,6 +41,17 @@
             padding: 20px 36px;
             min-height: 100vh;
             background: #000000;
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Responsive Breakpoints */
+        @@media (max-width: 991.98px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.show { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 15px; }
+            .top-header-mobile { display: flex !important; }
+            .search-container { width: 100% !important; }
+            .module-toolbar { flex-direction: column; gap: 15px; align-items: stretch !important; }
         }
 
         .sidebar-brand {
@@ -96,7 +108,13 @@
         }
         
         .dashboard-title { font-size: 2.2rem; font-weight: 800; color: #ff8c00; margin-bottom: 30px; display: flex; align-items: center; }
-        .table-container { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 15px; padding: 20px; }
+        
+        /* Mobile dashboard title adjustment */
+        @@media (max-width: 767.98px) {
+            .dashboard-title { font-size: 1.5rem; }
+        }
+
+        .table-container { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 15px; padding: 20px; overflow-x: auto; }
         
         /* Module Page Standard Styles */
         .module-toolbar {
@@ -157,11 +175,29 @@
             border-top: 1px solid #1a1a1a;
         }
         .page-info { color: #6c757d; font-size: 0.9rem; }
+        
+        /* Mobile pagination adjustment */
+        @@media (max-width: 575.98px) {
+            .pagination-container { flex-direction: column; gap: 15px; text-align: center; }
+        }
     </style>
 </head>
 <body>
+    <!-- Mobile Top Header -->
+    <div class="top-header-mobile" style="display:none; justify-content: space-between; align-items: center; padding: 15px 20px; background: #0a0a0a; border-bottom: 1px solid rgba(255,140,0,0.1); position: sticky; top: 0; z-index: 1000;">
+        <div class="d-flex align-items-center">
+            <button class="sidebar-toggler" onclick="toggleSidebar()" style="background:transparent; border:none; color:#fff; font-size:1.5rem; margin-right:15px;">
+                <i class="bi bi-list"></i>
+            </button>
+            <img src="~/images/logo.png" style="height:30px;" alt="Logo" />
+        </div>
+        <div class="rounded-circle d-flex justify-content-center align-items-center fw-bold" style="width: 32px; height: 32px; background: #ff8c00; color: #000; font-size: 0.8rem;">
+            @((User.Identity?.Name ?? "W").Substring(0,1).ToUpper())
+        </div>
+    </div>
+
     <!-- Left Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
         <a href="/" class="sidebar-brand">
             <img src="~/images/logo.png" style="height:40px;" alt="SwiftFill" />
             <span class="brand-text ms-2">SwiftFill</span>
@@ -208,12 +244,14 @@
                             <i class="bi bi-clock-history"></i> Order History
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "RiderInfo" ? "active" : "")" asp-controller="RiderInfo" asp-action="Index">
-                            <i class="bi bi-people-fill"></i> Rider List
-                        </a>
-                    </li>
                 }
+
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "RiderInfo" ? "active" : "")" asp-controller="RiderInfo" asp-action="Index">
+                        <i class="bi bi-people-fill"></i> Rider List
+                    </a>
+                </li>
+
                 <div class="px-4 mt-4 mb-2 text-secondary text-uppercase x-small ls-1">Account</div>
                 <li class="nav-item">
                     <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Account" && ViewContext.RouteData.Values["action"]?.ToString() == "Settings" ? "active" : "")" asp-controller="Account" asp-action="Settings" asp-route-view="warehouse">
@@ -236,12 +274,15 @@
     <!-- Main Content Area -->
     <div class="main-content">
         <!-- Dashboard Top Header -->
-        <div class="d-flex justify-content-end align-items-center mb-4 pb-3">
+        <div class="d-flex justify-content-between justify-content-md-end align-items-center mb-4 pb-3">
+            <div class="d-md-none d-flex align-items-center">
+                <h5 class="m-0 fw-bold text-orange">Warehouse Panel</h5>
+            </div>
             <a asp-controller="Account" asp-action="Settings" asp-route-view="warehouse" class="d-flex align-items-center text-decoration-none" title="Account Settings">
                 <div class="rounded-circle d-flex justify-content-center align-items-center fw-bold shadow-sm" style="width: 35px; height: 35px; background: #ff8c00; color: #000;">
                     @((User.Identity?.Name ?? "W").Substring(0,1).ToUpper())
                 </div>
-                <span class="ms-2 fw-semibold text-white">@User.Identity?.Name</span>
+                <span class="ms-2 fw-semibold text-white d-none d-sm-inline">@User.Identity?.Name</span>
             </a>
         </div>
 
@@ -266,5 +307,23 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('show');
+        }
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const toggler = document.querySelector('.sidebar-toggler');
+            const mobileHeader = document.querySelector('.top-header-mobile');
+            
+            if (window.innerWidth < 992 && sidebar && sidebar.classList.contains('show')) {
+                if (!sidebar.contains(event.target) && (!mobileHeader || !mobileHeader.contains(event.target))) {
+                    sidebar.classList.remove('show');
+                }
+            }
+        });
+    </script>
 </body>
 </html>

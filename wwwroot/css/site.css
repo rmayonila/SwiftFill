@@ -484,3 +484,82 @@ footer {
 .bg-orange { background-color: #ff8c00 !important; }
 .border-orange { border-color: #ff8c00 !important; }
 
+/* Responsive Table Utility */
+.table-responsive-custom {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1rem;
+}
+
+.table-responsive-custom table {
+  min-width: 600px; /* Force scroll on very narrow screens */
+}
+
+/* Mobile Padding & Layout Refinements */
+@media (max-width: 767.98px) {
+  .glass-card {
+    padding: 20px 15px;
+  }
+  .stat-value {
+    font-size: 1.8rem;
+  }
+  .stat-label {
+    font-size: 0.7rem;
+  }
+  .content-wrapper {
+    padding-top: 70px;
+  }
+  .navbar-brand {
+    font-size: 1.2rem;
+  }
+  .brand-logo-img {
+    height: 35px;
+  }
+}
+
+/* Form Responsiveness */
+@media (max-width: 575.98px) {
+  .btn-get-started, .btn-primary-custom {
+    text-align: center;
+    margin-bottom: 10px;
+  }
+}
+
+/* Prevent blue/white background on browser autofill */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: white !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Dashboard specific inputs */
+.minimal-input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #1a1a1a inset !important;
+}
+
+/* Auth specific inputs (Login/SignUp) */
+.form-control:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #0d1117 inset !important;
+}
+
+textarea:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #1a1a1a inset !important;
+  -webkit-text-fill-color: white !important;
+}
+
+select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #1a1a1a inset !important;
+  -webkit-text-fill-color: white !important;
+}
+
+/* Hide browser default password reveal and clear buttons */
+input::-ms-reveal,
+input::-ms-clear,
+input::-webkit-contacts-auto-fill-button,
+input::-webkit-credentials-auto-fill-button {
+  display: none !important;
+}
+

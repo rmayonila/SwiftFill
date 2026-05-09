@@ -60,6 +60,7 @@ builder.Services.AddSingleton<SwiftFill.Services.AuditLogService>();
 builder.Services.AddHttpClient<SwiftFill.Services.JawgMapsService>();
 builder.Services.AddScoped<SwiftFill.Services.JawgMapsService>();
 builder.Services.AddScoped<SwiftFill.Services.CloudinaryService>();
+builder.Services.AddScoped<SwiftFill.Services.EmailService>();
 builder.Services.AddHttpClient();
 
 var app = builder.Build();

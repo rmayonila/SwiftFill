@@ -112,18 +112,33 @@
                             <h6 class="text-white mb-3 fw-bold">Password Settings</h6>
                             <div class="mb-4">
                                 <label class="form-label text-secondary small fw-bold">Current Password</label>
-                                <input asp-for="CurrentPassword" type="password" class="form-control settings-input" placeholder="Enter current password" />
+                                <div class="position-relative">
+                                    <input asp-for="CurrentPassword" type="password" id="currentPasswordInput" class="form-control settings-input w-100" placeholder="Enter current password" />
+                                    <span class="position-absolute end-0 top-50 translate-middle-y me-3 text-secondary" style="cursor: pointer; z-index: 10;" onclick="togglePassword('currentPasswordInput', this)">
+                                        <i class="bi bi-eye"></i>
+                                    </span>
+                                </div>
                                 <span asp-validation-for="CurrentPassword" class="text-danger x-small"></span>
                             </div>
                             <div class="row g-3 mb-4">
                                 <div class="col-md-6">
                                     <label class="form-label text-secondary small fw-bold">New Password</label>
-                                    <input asp-for="NewPassword" type="password" class="form-control settings-input" />
+                                    <div class="position-relative">
+                                        <input asp-for="NewPassword" type="password" id="newPasswordInput" class="form-control settings-input w-100" />
+                                        <span class="position-absolute end-0 top-50 translate-middle-y me-3 text-secondary" style="cursor: pointer; z-index: 10;" onclick="togglePassword('newPasswordInput', this)">
+                                            <i class="bi bi-eye"></i>
+                                        </span>
+                                    </div>
                                     <span asp-validation-for="NewPassword" class="text-danger x-small"></span>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label text-secondary small fw-bold">Confirm Password</label>
-                                    <input asp-for="ConfirmPassword" type="password" class="form-control settings-input" />
+                                    <div class="position-relative">
+                                        <input asp-for="ConfirmPassword" type="password" id="confirmPasswordInput" class="form-control settings-input w-100" />
+                                        <span class="position-absolute end-0 top-50 translate-middle-y me-3 text-secondary" style="cursor: pointer; z-index: 10;" onclick="togglePassword('confirmPasswordInput', this)">
+                                            <i class="bi bi-eye"></i>
+                                        </span>
+                                    </div>
                                     <span asp-validation-for="ConfirmPassword" class="text-danger x-small"></span>
                                 </div>
                             </div>
@@ -147,6 +162,20 @@
             event.target.classList.add('active'); event.target.classList.remove('text-secondary');
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('d-none'));
             document.getElementById('tab-' + tabId).classList.remove('d-none');
+        }
+
+        function togglePassword(inputId, iconElement) {
+            const input = document.getElementById(inputId);
+            const icon = iconElement.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
         }
     </script>
 }

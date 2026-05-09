@@ -1,11 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "67pEoGfXqZ4=",
+  "dgSpecHash": "6GxVslWM23w=",
   "success": true,
-  "projectFilePath": "C:\\Users\\PERSONAL\\SwiftFill\\SwiftFill.csproj",
+  "projectFilePath": "C:\\Users\\PERSONAL\\SwiftFill\\Swiftfill.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\PERSONAL\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\PERSONAL\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",
+    "C:\\Users\\PERSONAL\\.nuget\\packages\\bouncycastle.cryptography\\2.6.2\\bouncycastle.cryptography.2.6.2.nupkg.sha512",
     "C:\\Users\\PERSONAL\\.nuget\\packages\\cloudinarydotnet\\1.29.0\\cloudinarydotnet.1.29.0.nupkg.sha512",
     "C:\\Users\\PERSONAL\\.nuget\\packages\\dotnetenv\\3.1.1\\dotnetenv.3.1.1.nupkg.sha512",
     "C:\\Users\\PERSONAL\\.nuget\\packages\\humanizer\\2.14.1\\humanizer.2.14.1.nupkg.sha512",
@@ -58,6 +59,7 @@
     "C:\\Users\\PERSONAL\\.nuget\\packages\\humanizer.core.zh-cn\\2.14.1\\humanizer.core.zh-cn.2.14.1.nupkg.sha512",
     "C:\\Users\\PERSONAL\\.nuget\\packages\\humanizer.core.zh-hans\\2.14.1\\humanizer.core.zh-hans.2.14.1.nupkg.sha512",
     "C:\\Users\\PERSONAL\\.nuget\\packages\\humanizer.core.zh-hant\\2.14.1\\humanizer.core.zh-hant.2.14.1.nupkg.sha512",
+    "C:\\Users\\PERSONAL\\.nuget\\packages\\mailkit\\4.16.0\\mailkit.4.16.0.nupkg.sha512",
     "C:\\Users\\PERSONAL\\.nuget\\packages\\microsoft.aspnetcore.identity.entityframeworkcore\\9.0.0\\microsoft.aspnetcore.identity.entityframeworkcore.9.0.0.nupkg.sha512",
     "C:\\Users\\PERSONAL\\.nuget\\packages\\microsoft.aspnetcore.razor.language\\6.0.24\\microsoft.aspnetcore.razor.language.6.0.24.nupkg.sha512",
     "C:\\Users\\PERSONAL\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\7.0.0\\microsoft.bcl.asyncinterfaces.7.0.0.nupkg.sha512",
@@ -106,6 +108,7 @@
     "C:\\Users\\PERSONAL\\.nuget\\packages\\microsoft.visualstudio.web.codegeneration.templating\\9.0.0\\microsoft.visualstudio.web.codegeneration.templating.9.0.0.nupkg.sha512",
     "C:\\Users\\PERSONAL\\.nuget\\packages\\microsoft.visualstudio.web.codegeneration.utils\\9.0.0\\microsoft.visualstudio.web.codegeneration.utils.9.0.0.nupkg.sha512",
     "C:\\Users\\PERSONAL\\.nuget\\packages\\microsoft.visualstudio.web.codegenerators.mvc\\9.0.0\\microsoft.visualstudio.web.codegenerators.mvc.9.0.0.nupkg.sha512",
+    "C:\\Users\\PERSONAL\\.nuget\\packages\\mimekit\\4.16.0\\mimekit.4.16.0.nupkg.sha512",
     "C:\\Users\\PERSONAL\\.nuget\\packages\\mono.texttemplating\\3.0.0\\mono.texttemplating.3.0.0.nupkg.sha512",
     "C:\\Users\\PERSONAL\\.nuget\\packages\\netstandard.library\\1.6.1\\netstandard.library.1.6.1.nupkg.sha512",
     "C:\\Users\\PERSONAL\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",
@@ -133,7 +136,7 @@
     "C:\\Users\\PERSONAL\\.nuget\\packages\\system.memory.data\\1.0.2\\system.memory.data.1.0.2.nupkg.sha512",
     "C:\\Users\\PERSONAL\\.nuget\\packages\\system.reflection.metadataloadcontext\\8.0.0\\system.reflection.metadataloadcontext.8.0.0.nupkg.sha512",
     "C:\\Users\\PERSONAL\\.nuget\\packages\\system.runtime.caching\\6.0.0\\system.runtime.caching.6.0.0.nupkg.sha512",
-    "C:\\Users\\PERSONAL\\.nuget\\packages\\system.security.cryptography.pkcs\\6.0.4\\system.security.cryptography.pkcs.6.0.4.nupkg.sha512",
+    "C:\\Users\\PERSONAL\\.nuget\\packages\\system.security.cryptography.pkcs\\10.0.0\\system.security.cryptography.pkcs.10.0.0.nupkg.sha512",
     "C:\\Users\\PERSONAL\\.nuget\\packages\\system.security.cryptography.protecteddata\\8.0.0\\system.security.cryptography.protecteddata.8.0.0.nupkg.sha512"
   ],
   "logs": [
@@ -141,9 +144,9 @@
       "code": "NU1903",
       "level": "Warning",
       "message": "Package 'Microsoft.Build' 17.10.4 has a known high severity vulnerability, https://github.com/advisories/GHSA-w3q9-fxm7-j8fq",
-      "projectPath": "C:\\Users\\PERSONAL\\SwiftFill\\SwiftFill.csproj",
+      "projectPath": "C:\\Users\\PERSONAL\\SwiftFill\\Swiftfill.csproj",
       "warningLevel": 1,
-      "filePath": "C:\\Users\\PERSONAL\\SwiftFill\\SwiftFill.csproj",
+      "filePath": "C:\\Users\\PERSONAL\\SwiftFill\\Swiftfill.csproj",
       "libraryId": "Microsoft.Build",
       "targetGraphs": [
         "net10.0"
@@ -153,9 +156,9 @@
       "code": "NU1901",
       "level": "Warning",
       "message": "Package 'NuGet.Packaging' 6.11.0 has a known low severity vulnerability, https://github.com/advisories/GHSA-g4vj-cjjj-v7hg",
-      "projectPath": "C:\\Users\\PERSONAL\\SwiftFill\\SwiftFill.csproj",
+      "projectPath": "C:\\Users\\PERSONAL\\SwiftFill\\Swiftfill.csproj",
       "warningLevel": 1,
-      "filePath": "C:\\Users\\PERSONAL\\SwiftFill\\SwiftFill.csproj",
+      "filePath": "C:\\Users\\PERSONAL\\SwiftFill\\Swiftfill.csproj",
       "libraryId": "NuGet.Packaging",
       "targetGraphs": [
         "net10.0"
@@ -165,9 +168,9 @@
       "code": "NU1901",
       "level": "Warning",
       "message": "Package 'NuGet.Protocol' 6.11.0 has a known low severity vulnerability, https://github.com/advisories/GHSA-g4vj-cjjj-v7hg",
-      "projectPath": "C:\\Users\\PERSONAL\\SwiftFill\\SwiftFill.csproj",
+      "projectPath": "C:\\Users\\PERSONAL\\SwiftFill\\Swiftfill.csproj",
       "warningLevel": 1,
-      "filePath": "C:\\Users\\PERSONAL\\SwiftFill\\SwiftFill.csproj",
+      "filePath": "C:\\Users\\PERSONAL\\SwiftFill\\Swiftfill.csproj",
       "libraryId": "NuGet.Protocol",
       "targetGraphs": [
         "net10.0"

@@ -24,30 +24,32 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm fixed-top">
+        <nav class="navbar navbar-expand-lg navbar-toggleable-sm fixed-top">
             <div class="container">
                 <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
                     <img src="@(brand.TintedLogoUrl ?? brand.LogoUrl ?? "/images/logo.png")" class="brand-logo-img me-2" alt="SwiftFill" />
                     <span class="brand-text text-white">@(string.IsNullOrEmpty(brand.BrandName) ? "SwiftFill" : brand.BrandName)</span>
                 </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
-                    <span class="navbar-toggler-icon"></span>
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
+                    <i class="bi bi-list text-white fs-2"></i>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                <div class="navbar-collapse collapse d-lg-inline-flex justify-content-between">
                     <ul class="navbar-nav mx-auto">
                         <li class="nav-item"><a class="nav-link" href="/#features">Features</a></li>
                         <li class="nav-item"><a class="nav-link" href="/#modules">Modules</a></li>
                         <li class="nav-item"><a class="nav-link" href="/#pricing">Pricing</a></li>
                         <li class="nav-item"><a class="nav-link" href="/#contact">Contact</a></li>
                     </ul>
-                    <ul class="navbar-nav align-items-center">
+                    <ul class="navbar-nav align-items-center gap-2 mt-3 mt-lg-0">
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             <!-- If User is already logged in, show a quick back to dashboard button -->
                             var dashboardUrl = "/Customer";
+                            var userName = User.Identity?.Name?.ToLower() ?? "";
+                            
                             if (User.IsInRole("SuperAdmin")) dashboardUrl = "/SuperAdmin";
-                            else if (User.IsInRole("Admin")) dashboardUrl = "/Admin";
-                            else if (User.IsInRole("WarehouseStaff") || User.IsInRole("WarehouseOperator")) dashboardUrl = "/Warehouse";
+                            else if (User.IsInRole("Admin") && !userName.Contains("staff")) dashboardUrl = "/Admin";
+                            else if (User.IsInRole("WarehouseStaff") || User.IsInRole("WarehouseOperator") || userName.Contains("staff")) dashboardUrl = "/Warehouse";
                             else if (User.IsInRole("DeliveryRider")) dashboardUrl = "/Rider";
 
                             <li class="nav-item">
@@ -78,11 +80,11 @@
 
     <footer class="text-center">
         <div class="container">
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
                 <div>
                     <img src="@(brand.TintedLogoUrl ?? brand.LogoUrl ?? "/images/logo.png")" style="height:24px; margin-right:8px;" alt="SwiftFill" /> <strong class="text-white">@(string.IsNullOrEmpty(brand.BrandName) ? "SwiftFill" : brand.BrandName)</strong>
                 </div>
-                <div>
+                <div class="small opacity-50">
                     &copy; 2026 SwiftFill. All rights reserved.
                 </div>
             </div>

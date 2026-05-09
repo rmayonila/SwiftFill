@@ -155,6 +155,7 @@ namespace SwiftFill.Controllers
         public async Task<IActionResult> DeleteOrder(string trackingId)
         {
             var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToAction("Login", "Account");
             var order = await _context.Orders.FirstOrDefaultAsync(o => o.TrackingId == trackingId && o.CustomerId == user.Id);
             
             if (order != null)
