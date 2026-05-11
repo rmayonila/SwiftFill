@@ -42,27 +42,23 @@ namespace SwiftFill.Services
             var bodyBuilder = new BodyBuilder { HtmlBody = body };
             message.Body = bodyBuilder.ToMessageBody();
 
-            using (var client = new SmtpClient())
-            {
-                try
-                {
-                    // 1. Bypass SSL certificate validation (Essential for many local networks/ISPs)
-                    client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+           using (var client = new SmtpClient())
+{
+    try
+    {
+        client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+        client.Timeout = 30000; 
 
-                    // 2. Add a timeout (Standard 10s is often too short for mobile data/local Wi-Fi)
-                    client.Timeout = 30000; 
+        // FIX: Use Port 587 with StartTls. 
+        // Port 465 often fails handshakes in .NET due to 'Implicit SSL' conflicts.
+        await client.ConnectAsync("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
 
-                    // 3. Connect using Port 465 (SSL/TLS). This is much more reliable than 587 on residential ISPs.
-                    await client.ConnectAsync("smtp.gmail.com", 465, SecureSocketOptions.SslOnConnect);
+        await client.AuthenticateAsync(user, pass);
+        await client.SendAsync(message);
+        await client.DisconnectAsync(true);
 
-                    // 4. Authenticate using the 16-digit App Password
-                    await client.AuthenticateAsync(user, pass);
-
-                    await client.SendAsync(message);
-                    await client.DisconnectAsync(true);
-
-                    Console.WriteLine($"[SMTP SUCCESS] Real email sent to {to}");
-                }
+        Console.WriteLine($"[SMTP SUCCESS] Real email sent to {to}");
+    }
                 catch (Exception ex)
                 {
                     Console.WriteLine("**************************************************");
