@@ -122,21 +122,19 @@
                                 <div class="d-flex justify-content-end gap-1">
                                     <button class="btn btn-sm btn-outline-info border-0 p-1" title="Edit"
                                             onclick="openEditModal('@rider.Id', '@rider.Name', '@rider.Phone', '@rider.Route')">
-                                        <i class="bi bi-pencil-square"></i>
+                                        <i class="bi bi-pencil-square action-icon"></i>
                                     </button>
                                     <form asp-action="ToggleStatus" method="post" class="d-inline">
                                         <input type="hidden" name="id" value="@rider.Id" />
                                         <button type="submit" class="btn btn-sm @(rider.IsActive ? "btn-outline-warning" : "btn-outline-success") border-0 p-1" 
                                                 title="@(rider.IsActive ? "Suspend" : "Activate")">
-                                            <i class="bi @(rider.IsActive ? "bi-pause-circle" : "bi-play-circle")"></i>
+                                            <i class="bi @(rider.IsActive ? "bi-pause-circle" : "bi-play-circle") action-icon"></i>
                                         </button>
                                     </form>
-                                    <form asp-action="DeleteRider" method="post" onsubmit="return confirm('Remove this rider?');" class="d-inline">
-                                        <input type="hidden" name="id" value="@rider.Id" />
-                                        <button type="submit" class="btn btn-sm btn-outline-danger border-0 p-1" title="Delete">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
+                                    <button type="button" class="btn btn-sm btn-outline-danger border-0 p-1" title="Delete"
+                                            onclick="confirmDeleteRider('@rider.Id', '@rider.Name')">
+                                        <i class="bi bi-trash action-icon"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -202,8 +200,8 @@
                         <input type="text" name="Route" class="minimal-input w-100" required placeholder="e.g. Mabolo, Lahug" />
                     </div>
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary fw-bold flex-fill" style="background: #FF8C00;">Register Rider</button>
                         <button type="button" class="btn btn-dark flex-fill" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary fw-bold flex-fill" style="background: #FF8C00;">Register Rider</button>
                     </div>
                 </form>
             </div>
@@ -236,8 +234,8 @@
                         <input type="text" name="Route" id="editRiderRoute" class="minimal-input w-100" required />
                     </div>
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-info text-white fw-bold flex-fill">Update Rider</button>
                         <button type="button" class="btn btn-dark flex-fill" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-info text-white fw-bold flex-fill">Update Rider</button>
                     </div>
                 </form>
             </div>
@@ -250,6 +248,8 @@
     .bg-orange { background-color: #ff8c00; color: #000; }
     .minimal-input { background: #111; border: 1px solid #222; border-radius: 8px; padding: 10px 15px; color: #fff; outline: none; }
     .minimal-input:focus { border-color: #ff8c00 !important; }
+    .action-icon { font-size: 1.15rem; transition: transform 0.2s; }
+    .action-icon:hover { transform: scale(1.1); }
 </style>
 
 @section Scripts {
@@ -261,5 +261,31 @@
             document.getElementById('editRiderRoute').value = route;
             new bootstrap.Modal(document.getElementById('editRiderModal')).show();
         }
+
+        function confirmDeleteRider(id, name) {
+            document.getElementById('deleteRiderId').value = id;
+            document.getElementById('deleteRiderNameDisplay').textContent = name;
+            new bootstrap.Modal(document.getElementById('deleteRiderModal')).show();
+        }
     </script>
 }
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteRiderModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+        <div class="modal-content border-0 shadow-lg" style="background: #0a0a0a; border-radius: 16px; border: 1px solid rgba(220,53,69,0.2) !important;">
+            <div class="modal-body text-center p-4">
+                <div class="display-4 text-danger mb-3"><i class="bi bi-exclamation-octagon"></i></div>
+                <h5 class="text-white fw-bold mb-2">Remove Rider?</h5>
+                <p class="text-secondary small mb-4">Are you sure you want to remove <strong id="deleteRiderNameDisplay" class="text-white"></strong>? This action cannot be undone.</p>
+                <form asp-action="DeleteRider" method="post">
+                    <input type="hidden" name="id" id="deleteRiderId" />
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-dark flex-fill" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger flex-fill fw-bold">Yes, Remove</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -9,7 +9,7 @@
 
 <div class="animate-fade-up">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-speedometer2 me-2"></i> Warehouse Dispatch</h1>
+        <h1 class="fw-bold fs-3 mt-2 mb-0 text-primary"><i class="bi bi-speedometer2 me-2"></i> Warehouse Dispatch</h1>
         <div class="text-secondary small">Hub: <span class="text-orange fw-bold">@currentHub</span></div>
     </div>
 
@@ -21,7 +21,7 @@
                         <div class="stat-label text-orange fw-bold">INBOUND</div>
                         <div class="stat-subtitle mt-1">Headed to Hub</div>
                     </div>
-                    <div class="stat-value text-white display-6 fw-bold mb-0">@Model.InTransit</div>
+                    <div class="stat-value text-primary display-6 fw-bold mb-0">@Model.InTransit</div>
                 </div>
             </a>
         </div>
@@ -32,7 +32,7 @@
                         <div class="stat-label text-primary fw-bold">OUTBOUND</div>
                         <div class="stat-subtitle mt-1">Headed to Other Hubs</div>
                     </div>
-                    <div class="stat-value text-white display-6 fw-bold mb-0">@Model.OutboundCount</div>
+                    <div class="stat-value text-primary display-6 fw-bold mb-0">@Model.OutboundCount</div>
                 </div>
             </a>
         </div>
@@ -45,7 +45,7 @@
                             <div class="stat-label text-info fw-bold">SORTING</div>
                             <div class="stat-subtitle mt-1">In Packing Line</div>
                         </div>
-                        <div class="stat-value text-white display-6 fw-bold mb-0">@Model.PendingPickOrders.Count</div>
+                        <div class="stat-value text-primary display-6 fw-bold mb-0">@Model.PendingPickOrders.Count</div>
                     </div>
                 </a>
             </div>
@@ -57,7 +57,7 @@
                         <div class="stat-label text-danger fw-bold">RETURNS</div>
                         <div class="stat-subtitle mt-1">Reverse Logistics</div>
                     </div>
-                    <div class="stat-value text-white display-6 fw-bold mb-0">@Model.ReturningOrders.Count</div>
+                    <div class="stat-value text-primary display-6 fw-bold mb-0">@Model.ReturningOrders.Count</div>
                 </div>
             </a>
         </div>
@@ -71,8 +71,8 @@
     .hover-scale:hover { transform: translateY(-5px); }
     
     .glass-card {
-        background: #0d1117;
-        border: 1px solid rgba(255,255,255,0.05);
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
         border-radius: 16px;
         position: relative;
         overflow: hidden;
@@ -92,7 +92,7 @@
 </style>
 </div>
 
-<div class="glass-card p-0 overflow-hidden border-0 mb-5" style="background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.05) !important;">
+<div class="glass-card p-0 overflow-hidden border-0 mb-5" style="background: var(--bg-secondary);">
     <div class="d-flex justify-content-between align-items-center p-4 pb-3">
         <h6 class="text-uppercase text-secondary ls-1 mb-0">Recent Hub Activity — @currentHub</h6>
         <div class="d-flex align-items-center gap-3">
@@ -101,7 +101,7 @@
                 <div class="search-wrapper" style="position: relative; width: 250px;">
                     <i class="bi bi-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #6c757d; font-size: 0.8rem;"></i>
                     <input type="text" id="dashboardSearch" class="minimal-input w-100 ps-5 py-1" 
-                           style="background: #111; border: 1px solid #222; border-radius: 6px; color: #fff; outline: none; font-size: 0.8rem;"
+                           style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); outline: none; font-size: 0.8rem;"
                            placeholder="Filter recent activity..." onkeyup="filterTable('recentActivityTable', this.value)">
                 </div>
             }
@@ -148,14 +148,14 @@
                             <div class="text-secondary x-small">@item.ReceiverName</div>
                         </td>
                         <td class="border-0 py-3">
-                            <div class="text-white small">@(item.ItemCategory ?? "General") • @item.Weight kg</div>
+                            <div class="text-primary small">@(item.ItemCategory ?? "General") • @item.Weight kg</div>
                             @if (item.IsFragile)
                             {
                                 <span class="badge border border-warning text-warning x-small" style="font-size: 0.6rem;">FRAGILE</span>
                             }
                         </td>
                         <td class="border-0 py-3">
-                            <div class="text-white small">@item.DestinationRegion</div>
+                            <div class="text-primary small">@item.DestinationRegion</div>
                             <div class="text-secondary x-small">→ @destHub</div>
                         </td>
                         <td class="border-0 py-3">
@@ -170,7 +170,7 @@
                             </span>
                         </td>
                         <td class="border-0 py-3 text-end pe-4">
-                            <div class="text-white small">@item.UpdatedAt.ToString("MMM dd")</div>
+                            <div class="text-primary small">@item.UpdatedAt.ToString("MMM dd")</div>
                             <div class="x-small text-secondary">@item.UpdatedAt.ToString("HH:mm")</div>
                         </td>
                     </tr>

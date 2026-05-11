@@ -66,7 +66,8 @@ namespace SwiftFill.Controllers
                 .Where(o => !o.IsArchived &&
                              o.CurrentLocation == currentHub &&
                              (o.Status == "Packed in Warehouse" || 
-                              o.Status == "Sorted for Transfer" || 
+                              o.Status == "Packed in Store" ||
+                              (currentHub != "Davao Hub" && o.Status == "Sorted for Transfer") || 
                               o.Status == "Out for Delivery" ||
                               o.Status.StartsWith("Arrived at") ||
                               o.Status == "Returning to Sender"))
@@ -115,7 +116,7 @@ namespace SwiftFill.Controllers
             var currentHub = GetCurrentHub();
             var query = _context.Orders
                 .Where(o => o.CurrentLocation == currentHub &&
-                             (o.Status == "Pending" || o.Status == "Picked" || o.Status == "Sent to Warehouse Packing" || o.Status == "Packed in Store") &&
+                             (o.Status == "Pending" || o.Status == "Picked" || o.Status == "Sent to Warehouse Packing" || (currentHub != "Davao Hub" && o.Status == "Packed in Store")) &&
                              !o.IsArchived)
                 .AsQueryable();
 
@@ -152,7 +153,12 @@ namespace SwiftFill.Controllers
             var currentHub = GetCurrentHub();
 
             var query = _context.Orders.Where(o => !o.IsArchived && (
-                (o.CurrentLocation == currentHub && (o.Status == "Sorted for Transfer" || o.Status == "Packed in Warehouse" || o.Status == "Returning to Sender" || (currentHub != "Davao Hub" && o.Status == "Returned") || o.Status.Contains("In Transit"))) ||
+                (o.CurrentLocation == currentHub && (
+                    o.Status == "Sorted for Transfer" || 
+                    (currentHub != "Davao Hub" && o.Status == "Packed in Warehouse") || 
+                    o.Status == "Returning to Sender" || 
+                    (currentHub != "Davao Hub" && o.Status == "Returned") || 
+                    o.Status.Contains("In Transit"))) ||
                 (o.Status.Contains("In Transit") && o.Status.Contains(currentHub))
             )).AsQueryable();
 
@@ -266,7 +272,10 @@ namespace SwiftFill.Controllers
             // FIX: Added 'Arrived' check so Cebu/Manila can sort inbound parcels
             if (order != null && order.CurrentLocation == currentHub &&
                (order.Status == "Packed in Warehouse" || 
+                order.Status == "Packed in Store" ||
                 order.Status == "Packed" || 
+                order.Status == "Sorted for Transfer" ||
+                order.Status == "Out for Delivery" ||
                 order.Status.Contains("Arrived at")))
             {
                 order.Status = "Sorted for Transfer";

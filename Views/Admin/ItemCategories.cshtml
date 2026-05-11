@@ -5,18 +5,9 @@
 }
 
 <div class="animate-fade-up">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-card-checklist text-orange me-2"></i> Accepted Items</h2>
-        <div>
-            @if (TempData["SuccessMessage"] != null)
-            {
-                <span class="badge bg-success me-3 p-2">@TempData["SuccessMessage"]</span>
-            }
-            @if (TempData["ErrorMessage"] != null)
-            {
-                <span class="badge bg-danger me-3 p-2">@TempData["ErrorMessage"]</span>
-            }
-        </div>
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-theme pb-3">
+        <h1 class="fw-bold fs-3 mt-2 mb-0 text-primary"><i class="bi bi-card-checklist text-orange me-2"></i> Accepted Items</h1>
+        <p class="text-secondary mt-2 mb-0 small">Define and manage product classifications for logistics optimization.</p>
     </div>
 
     <!-- Filter Bar (Matches Orders Page) -->

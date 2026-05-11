@@ -8,24 +8,28 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
     
     <style>
         :root {
             --brand-primary: #ff8c00;
-            --brand-bg: #000000;
-            --sidebar-bg: #050505;
         }
 
         /* ===== GLOBAL SIDEBAR LAYOUT ===== */
-        body { background-color: var(--brand-bg); color: #ffffff; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        body { background-color: var(--bg-color); color: var(--text-primary); font-family: 'Inter', sans-serif; overflow-x: hidden; }
 
         .sidebar {
             width: 260px;
             position: fixed;
             top: 0; left: 0;
             height: 100vh;
-            background: var(--sidebar-bg);
-            border-right: 1px solid rgba(255,140,0,0.15);
+            background: var(--sidebar-gradient);
+            border-right: 1px solid var(--border-color);
             padding-top: 0;
             z-index: 1050; /* Above regular content */
             display: flex;
@@ -48,7 +52,7 @@
             margin-left: 260px;
             padding: 20px 36px;
             min-height: 100vh;
-            background: #000000;
+            background: var(--bg-color);
             transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -66,7 +70,7 @@
             display: none;
             background: transparent;
             border: none;
-            color: #fff;
+            color: var(--text-primary);
             font-size: 1.5rem;
             cursor: pointer;
             padding: 0;
@@ -78,8 +82,8 @@
             justify-content: space-between;
             align-items: center;
             padding: 15px 20px;
-            background: var(--sidebar-bg);
-            border-bottom: 1px solid rgba(255,140,0,0.1);
+            background: var(--sidebar-gradient);
+            border-bottom: 1px solid var(--border-color);
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -97,7 +101,7 @@
         .sidebar-brand .brand-text {
             font-size: 1.25rem;
             font-weight: 800;
-            color: #ffffff;
+            color: var(--text-primary);
             letter-spacing: 0.5px;
         }
 
@@ -114,7 +118,7 @@
 
         /* ALL nav-links — SAME height/padding regardless of role */
         .nav-sidebar .nav-link {
-            color: rgba(255,255,255,0.5);
+            color: var(--text-secondary);
             padding: 12px 22px;
             min-height: 50px; /* Ensures uniform height across all role-based modules */
             font-size: 0.88rem;
@@ -129,7 +133,7 @@
 
         .nav-sidebar .nav-link:hover,
         .nav-sidebar .nav-link.active {
-            color: #ffffff;
+            color: var(--text-primary);
             background: rgba(255, 140, 0, 0.08);
             border-left: 3px solid var(--brand-primary);
         }
@@ -148,10 +152,42 @@
         /* Logout area */
         .sidebar-logout {
             padding: 16px 22px;
-            border-top: 1px solid rgba(255,140,0,0.1);
+            border-top: 1px solid var(--border-color);
             flex-shrink: 0;
         }
+
+        /* Theme Toggle Styling */
+        .theme-toggle-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            margin-right: 15px;
+        }
+        .theme-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+            border-color: var(--brand-primary);
+        }
+        [data-theme="light"] .theme-toggle-btn {
+            background: rgba(0, 0, 0, 0.05);
+        }
     </style>
+    <script>
+        // Pre-initialization to prevent flash of wrong theme
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
 </head>
 <body>
     <!-- Mobile Top Header -->
@@ -378,24 +414,28 @@
                 string topViewMode = "admin";
                 if (User.IsInRole("SuperAdmin")) topViewMode = "superadmin";
             }
+            <button id="themeToggle" class="theme-toggle-btn" title="Toggle Theme">
+                <i class="bi bi-moon-stars-fill dark-icon"></i>
+                <i class="bi bi-sun-fill light-icon d-none"></i>
+            </button>
             <a asp-controller="Account" asp-action="Settings" asp-route-view="@topViewMode" class="d-flex align-items-center text-decoration-none" title="Account Settings">
-                <div class="rounded-circle d-flex justify-content-center align-items-center fw-bold shadow-sm" style="width: 35px; height: 35px; background: var(--brand-primary); color: #000;">
+                <div class="rounded-circle d-flex justify-content-center align-items-center fw-bold shadow-sm" style="width: 35px; height: 35px; background: var(--brand-primary); color: #fff;">
                     @((User.Identity?.Name ?? "U").Substring(0,1).ToUpper())
                 </div>
-                <span class="ms-2 fw-semibold text-white d-none d-sm-inline">@User.Identity?.Name</span>
+                <span class="ms-2 fw-semibold text-primary d-none d-sm-inline">@User.Identity?.Name</span>
             </a>
         </div>
 
         @if (TempData["SuccessMessage"] != null)
         {
-            <div class="alert alert-success alert-dismissible fade show bg-dark text-success border-success mb-4 mx-4" role="alert">
+            <div class="alert alert-success alert-dismissible fade show border-success mb-4 mx-4" role="alert" style="background: var(--bg-secondary); color: #198754;">
                 <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         }
         @if (TempData["ErrorMessage"] != null)
         {
-            <div class="alert alert-danger alert-dismissible fade show bg-dark text-danger border-danger mb-4 mx-4" role="alert">
+            <div class="alert alert-danger alert-dismissible fade show mb-4 mx-4" role="alert">
                 <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
@@ -406,6 +446,34 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('themeToggle');
+            const darkIcon = themeToggle.querySelector('.dark-icon');
+            const lightIcon = themeToggle.querySelector('.light-icon');
+            
+            function updateIcons(theme) {
+                if (theme === 'light') {
+                    darkIcon.classList.add('d-none');
+                    lightIcon.classList.remove('d-none');
+                } else {
+                    darkIcon.classList.remove('d-none');
+                    lightIcon.classList.add('d-none');
+                }
+            }
+
+            // Set initial icon state
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            updateIcons(currentTheme);
+
+            themeToggle.addEventListener('click', () => {
+                const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('theme', theme);
+                updateIcons(theme);
+            });
+        });
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
     <script>
         function toggleSidebar() {

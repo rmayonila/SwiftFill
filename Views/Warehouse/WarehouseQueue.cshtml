@@ -107,32 +107,64 @@
                                     }
                                     
                                     <div class="d-flex gap-2">
-                                        @if (currentHub == "Davao Hub")
-                                        {
-                                        @* Logistics Control removed as per request *@
-                                        }
-
                                         @{
                                             var isRTSAtOrigin = (item.Status == "Returning to Sender" || item.Status == "Returned" || item.Status.Contains("back to")) && item.CurrentLocation == item.OriginHub;
                                             var targetAddress = isRTSAtOrigin ? item.SenderAddress : item.ReceiverAddress;
                                         }
 
-                                        <button class="btn btn-link text-warning p-0 action-icon"
-                                                onclick="openAssignModal(this.dataset.tracking, this.dataset.address)"
-                                                data-tracking="@item.TrackingId"
-                                                data-address="@targetAddress"
-                                                title="Assign Rider">
-                                            <i class="bi bi-person-badge-fill"></i>
-                                        </button>
-
-                                        @if (item.Status == "Returning to Sender" && item.CurrentLocation == item.OriginHub)
+                                        @if (currentHub == "Davao Hub")
                                         {
-                                            <form asp-action="MarkForPickUp" method="post" class="d-inline">
-                                                <input type="hidden" name="trackingId" value="@item.TrackingId" />
-                                                <button type="submit" class="btn btn-link text-info p-0 action-icon" title="Branch Pick Up">
-                                                    <i class="bi bi-shop"></i>
+                                            @if (item.Status == "Returning to Sender" || item.Status == "Returned")
+                                            {
+                                                <button class="btn btn-link text-warning p-0 action-icon"
+                                                        onclick="openAssignModal(this.dataset.tracking, this.dataset.address)"
+                                                        data-tracking="@item.TrackingId"
+                                                        data-address="@targetAddress"
+                                                        title="Assign Rider">
+                                                    <i class="bi bi-person-badge-fill"></i>
                                                 </button>
-                                            </form>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-link text-info p-0 action-icon d-flex flex-column align-items-center text-decoration-none"
+                                                        onclick="openLogisticsModal('@item.TrackingId', '@item.Status', '@destHub', true, false, 'false')"
+                                                        title="Sort Order">
+                                                    <i class="bi bi-shuffle" style="font-size: 1.2rem;"></i>
+                                                    <span style="font-size: 0.65rem; font-weight: 800;">SORT</span>
+                                                </button>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            @if (isFinalDest || item.Status == "Returning to Sender" || item.Status == "Returned")
+                                            {
+                                                <button class="btn btn-link text-warning p-0 action-icon"
+                                                        onclick="openAssignModal(this.dataset.tracking, this.dataset.address)"
+                                                        data-tracking="@item.TrackingId"
+                                                        data-address="@targetAddress"
+                                                        title="Assign Rider">
+                                                    <i class="bi bi-person-badge-fill"></i>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-link text-info p-0 action-icon d-flex flex-column align-items-center text-decoration-none"
+                                                        onclick="openLogisticsModal('@item.TrackingId', '@item.Status', '@destHub', true, false, 'false')"
+                                                        title="Sort Order">
+                                                    <i class="bi bi-shuffle" style="font-size: 1.2rem;"></i>
+                                                    <span style="font-size: 0.65rem; font-weight: 800;">SORT</span>
+                                                </button>
+                                            }
+
+                                            @if (item.Status == "Returning to Sender" && item.CurrentLocation == item.OriginHub)
+                                            {
+                                                <form asp-action="MarkForPickUp" method="post" class="d-inline">
+                                                    <input type="hidden" name="trackingId" value="@item.TrackingId" />
+                                                    <button type="submit" class="btn btn-link text-info p-0 action-icon" title="Branch Pick Up">
+                                                        <i class="bi bi-shop"></i>
+                                                    </button>
+                                                </form>
+                                            }
                                         }
                                     </div>
                                 </div>
@@ -264,6 +296,16 @@
     }
     .minimal-btn:hover {
         background: rgba(255,140,0,0.1);
+        border-color: #ff8c00;
+        color: #ff8c00;
+    }
+    [data-theme="light"] .minimal-btn {
+        background: rgba(0,0,0,0.03);
+        border: 1px solid rgba(0,0,0,0.05);
+        color: #333;
+    }
+    [data-theme="light"] .minimal-btn:hover {
+        background: rgba(255,140,0,0.05);
         border-color: #ff8c00;
         color: #ff8c00;
     }

@@ -8,20 +8,25 @@
 <div class="animate-fade-up">
 
     <!-- Top Header Profile Area -->
-    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-dark pb-3">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-theme pb-3">
         <div>
-            <h1 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-people-fill text-orange me-3"></i> Users & Roles</h1>
+            <h1 class="fw-bold fs-3 mt-2 mb-0 text-primary"><i class="bi bi-people-fill text-orange me-3"></i> Users & Roles</h1>
             <p class="text-secondary mt-1" style="font-size: 1rem;">Manage system access, identities, and permissions.</p>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+            <span class="badge border border-success text-success bg-success bg-opacity-10 px-3 py-2" style="border-radius: 8px;">
+                <i class="bi bi-people-fill me-2"></i>Total Users: @Model.Count()
+            </span>
         </div>
     </div>
 
     <!-- Search & Filter Bar (Reference-Matched) -->
-    <div class="d-flex justify-content-between align-items-center mb-4 gap-3 bg-dark-soft p-2 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+    <div class="d-flex justify-content-between align-items-center mb-4 gap-3 bg-theme-soft p-2 rounded-3" style="background: var(--bg-secondary); border: 1px solid var(--border-color);">
         <div class="d-flex align-items-center flex-grow-1 gap-3">
             <form method="get" class="d-flex align-items-center flex-grow-1">
                 <div class="search-wrapper flex-grow-1" style="max-width: 400px;">
                     <i class="bi bi-search"></i>
-                    <input type="text" name="search" value="@ViewBag.Search" class="minimal-input w-100" 
+                    <input type="text" name="search" value="@ViewBag.Search" class="minimal-input w-100 text-primary bg-transparent" 
                            placeholder="Search email, first name, or last name...">
                 </div>
             </form>
@@ -29,7 +34,7 @@
 
         <div class="d-flex align-items-center gap-4">
             <form method="get" class="d-flex align-items-center gap-3">
-                <select name="role" class="minimal-input" style="width: 150px; background: transparent; border: none;" onchange="this.form.submit()">
+                <select name="role" class="minimal-input text-primary" style="width: 150px; background: transparent; border: none;" onchange="this.form.submit()">
                     <option value="">All Roles</option>
                     <option value="Admin" selected="@(ViewBag.Role == "Admin")">Admin</option>
                     <option value="WarehouseStaff" selected="@(ViewBag.Role == "WarehouseStaff")">Warehouse Staff</option>
@@ -37,13 +42,16 @@
                     <option value="SuperAdmin" selected="@(ViewBag.Role == "SuperAdmin")">SuperAdmin</option>
                 </select>
             </form>
+            <button class="btn btn-warning fw-bold px-4 py-2 shadow-sm d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#registerUserModal" style="border-radius: 8px; color: #000; font-size: 0.85rem;">
+                <i class="bi bi-person-plus-fill me-2"></i>Add User
+            </button>
         </div>
     </div>
 
     <!-- User Management Table (Glass-Card) -->
-    <div class="glass-card p-0 overflow-hidden" style="background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.05);">
-        <div class="card-header bg-transparent border-bottom border-dark py-3 px-4 d-flex justify-content-between align-items-center">
-            <h6 class="mb-0 fw-bold d-flex align-items-center text-white">
+    <div class="glass-card p-0 overflow-hidden">
+        <div class="card-header bg-transparent border-bottom border-theme py-3 px-4 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold d-flex align-items-center text-primary">
                 <i class="bi bi-people-fill text-orange me-3" style="font-size: 1.2rem;"></i> 
                 All System Users
             </h6>
@@ -51,7 +59,7 @@
         
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-dark table-hover mb-0 align-middle">
+                <table class="table table-hover mb-0 align-middle">
                     <thead style="background: rgba(255,140,0,0.03);">
                         <tr>
                             <th class="ps-4 py-3 text-secondary fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 1px;">User Identity</th>
@@ -66,14 +74,14 @@
                         @foreach (var item in Model)
                         {
                             var user = item.User;
-                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <tr style="border-bottom: 1px solid var(--border-color);">
                                 <td class="ps-4 py-3">
                                     <div class="d-flex align-items-center">
                                         <div class="rounded-circle d-flex justify-content-center align-items-center me-3 flex-shrink-0" style="width: 35px; height: 35px; background: rgba(255, 140, 0, 0.15); color: #ff8c00; font-weight:bold;">
                                             @((!string.IsNullOrEmpty(user.FirstName) ? user.FirstName.Substring(0,1).ToUpper() : "U"))
                                         </div>
                                         <div>
-                                            <div class="fw-bold text-white mb-1" style="font-size: 0.95rem;">@user.FirstName @user.LastName</div>
+                                            <div class="fw-bold text-primary mb-1" style="font-size: 0.95rem;">@user.FirstName @user.LastName</div>
                                             <div class="text-secondary" style="font-size: 0.75rem;">@user.Email</div>
                                         </div>
                                     </div>
@@ -84,18 +92,18 @@
                                 </td>
                                 
                                 <td class="py-3">
-                                    <span class="badge bg-orange text-dark mb-1">@item.Role</span>
+                                    <span class="badge border border-orange text-orange bg-theme-soft mb-1 role-badge" style="padding: 5px 10px;">@item.Role</span>
                                     <div class="d-flex flex-wrap gap-1">
                                         @foreach(var claim in item.Claims)
                                         {
-                                            <span class="text-secondary" style="font-size: 0.65rem; border: 1px solid #30363d; padding: 1px 4px; border-radius: 4px;">@claim</span>
+                                            <span class="text-secondary" style="font-size: 0.65rem; border: 1px solid var(--border-color); padding: 1px 4px; border-radius: 4px;">@claim</span>
                                         }
                                         @if(!item.Claims.Any()){ <span class="text-muted smaller">No specific claims</span> }
                                     </div>
                                 </td>
 
                                 <td class="py-3">
-                                    <div class="d-flex align-items-center text-white-50 small">
+                                    <div class="d-flex align-items-center text-secondary small">
                                         <i class="bi bi-geo-alt-fill text-orange me-2"></i>
                                         @(user.Hub ?? "No Hub Assigned")
                                     </div>
@@ -104,19 +112,19 @@
                                 <td class="py-3">
                                     @if(user.LockoutEnd != null && user.LockoutEnd > DateTimeOffset.UtcNow) 
                                     { 
-                                        <span class="badge" style="background: rgba(220, 53, 69, 0.2); color:#ff6b6b; border: 1px solid rgba(220, 53, 69, 0.4); padding: 5px 10px;">
+                                        <span class="badge border border-danger text-danger bg-danger bg-opacity-10" style="padding: 5px 10px;">
                                             <i class="bi bi-person-x-fill me-1"></i> Suspended
                                         </span> 
                                     }
                                     else if(user.EmailConfirmed) 
                                     { 
-                                        <span class="badge" style="background: rgba(46, 160, 67, 0.2); color:#6bff72; border: 1px solid rgba(46, 160, 67, 0.4); padding: 5px 10px;">
+                                        <span class="badge border border-success text-success bg-success bg-opacity-10" style="padding: 5px 10px;">
                                             <i class="bi bi-check-circle-fill me-1"></i> Active
                                         </span> 
                                     }
                                     else 
                                     { 
-                                        <span class="badge" style="background: rgba(210, 153, 34, 0.2); color:#e3b341; border: 1px solid rgba(210, 153, 34, 0.4); padding: 5px 10px;">
+                                        <span class="badge border border-warning text-warning bg-warning bg-opacity-10" style="padding: 5px 10px;">
                                             <i class="bi bi-exclamation-circle-fill me-1"></i> Pending
                                         </span> 
                                     }
@@ -124,18 +132,18 @@
                                 
                                 <td class="pe-4 py-3 text-end">
                                     <div class="btn-group">
-                                        <button class="btn btn-sm btn-dark border-secondary text-secondary hover-white" title="Manage Roles" 
+                                        <button class="btn btn-sm btn-theme" title="Manage Roles" 
                                                 onclick="openManageRolesModal('@user.Id', '@user.FirstName @user.LastName', '@item.Role', '@string.Join(",", item.Claims)', '@(user.Hub ?? "None")')">
                                             <i class="bi bi-shield-lock"></i>
                                         </button>
-                                        <button class="btn btn-sm btn-dark border-secondary text-secondary hover-white" title="Edit Profile" 
+                                        <button class="btn btn-sm btn-theme mx-1" title="Edit Profile" 
                                                 onclick="openEditProfileModal('@user.Id', '@user.UserName', '@user.FirstName', '@user.LastName', '@user.PhoneNumber', '@user.Hub')">
                                             <i class="bi bi-pencil-square"></i>
                                         </button>
                                         <form asp-action="SuspendUser" method="post" class="d-inline">
                                             <input type="hidden" name="userId" value="@user.Id" />
-                                            <button type="submit" class="btn btn-sm btn-dark border-danger text-danger hover-white" title="@(user.LockoutEnd > DateTimeOffset.UtcNow ? "Reactivate" : "Suspend")">
-                                                <i class="bi @(user.LockoutEnd > DateTimeOffset.UtcNow ? "bi-person-check-fill" : "bi-person-x-fill")"></i>
+                                            <button type="submit" class="btn btn-sm btn-theme border-danger text-danger" title="@(user.LockoutEnd > DateTimeOffset.UtcNow ? "Reactivate" : "Suspend")">
+                                                <i class="bi bi-person-x"></i>
                                             </button>
                                         </form>
                                     </div>
@@ -165,16 +173,16 @@
         <div class="mt-4">
             <ul class="pagination pagination-sm justify-content-center">
                 <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
-                    <a class="page-link bg-dark border-0 text-secondary px-3" href="?search=@ViewBag.Search&role=@ViewBag.Role&page=@(ViewBag.CurrentPage - 1)">Previous</a>
+                    <a class="page-link bg-theme border-0 text-secondary px-3" href="?search=@ViewBag.Search&role=@ViewBag.Role&page=@(ViewBag.CurrentPage - 1)">Previous</a>
                 </li>
                 @for (int i = 1; i <= ViewBag.TotalPages; i++)
                 {
                     <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
-                        <a class="page-link @(i == ViewBag.CurrentPage ? "bg-orange border-0" : "bg-dark border-0 text-secondary") mx-1 rounded" href="?search=@ViewBag.Search&role=@ViewBag.Role&page=@i">@i</a>
+                        <a class="page-link @(i == ViewBag.CurrentPage ? "bg-orange border-0" : "bg-theme border-0 text-secondary") mx-1 rounded" href="?search=@ViewBag.Search&role=@ViewBag.Role&page=@i">@i</a>
                     </li>
                 }
                 <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
-                    <a class="page-link bg-dark border-0 text-secondary px-3" href="?search=@ViewBag.Search&role=@ViewBag.Role&page=@(ViewBag.CurrentPage + 1)">Next</a>
+                    <a class="page-link bg-theme border-0 text-secondary px-3" href="?search=@ViewBag.Search&role=@ViewBag.Role&page=@(ViewBag.CurrentPage + 1)">Next</a>
                 </li>
             </ul>
         </div>
@@ -184,35 +192,35 @@
 <!-- Register New User Modal -->
 <div class="modal fade" id="registerUserModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content text-white" style="background: rgba(22, 27, 34, 0.95); backdrop-filter: blur(10px); border: 1px solid #30363d; border-radius: 12px;">
-            <div class="modal-header border-dark">
+        <div class="modal-content text-primary" style="background: var(--modal-bg); backdrop-filter: blur(10px); border: 1px solid var(--border-color); border-radius: 12px;">
+            <div class="modal-header border-theme">
                 <h5 class="modal-title fw-bold"><i class="bi bi-person-plus-fill text-warning me-2"></i> Register New User</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form asp-action="RegisterUser" method="post">
                 <div class="modal-body">
                     <div class="row g-2 mb-3">
                         <div class="col-6">
                             <label class="form-label text-secondary small">First Name</label>
-                            <input type="text" name="FirstName" class="form-control bg-dark border-secondary text-white shadow-none" required>
+                            <input type="text" name="FirstName" class="form-control bg-theme text-primary border-theme shadow-none" required>
                         </div>
                         <div class="col-6">
                             <label class="form-label text-secondary small">Last Name</label>
-                            <input type="text" name="LastName" class="form-control bg-dark border-secondary text-white shadow-none" required>
+                            <input type="text" name="LastName" class="form-control bg-theme text-primary border-theme shadow-none" required>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label text-secondary small">Username</label>
-                        <input type="text" name="UserName" class="form-control bg-dark border-secondary text-white shadow-none" placeholder="Enter username" required>
+                        <input type="text" name="UserName" class="form-control bg-theme text-primary border-theme shadow-none" placeholder="Enter username" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label text-secondary small">Email Address</label>
-                        <input type="email" name="Email" class="form-control bg-dark border-secondary text-white shadow-none" placeholder="Enter email" required>
+                        <input type="email" name="Email" class="form-control bg-theme text-primary border-theme shadow-none" placeholder="Enter email" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label text-secondary small">Password</label>
                         <div class="position-relative">
-                            <input type="password" name="Password" id="regPassword" class="form-control bg-dark border-secondary text-white shadow-none w-100" placeholder="Enter password" required>
+                            <input type="password" name="Password" id="regPassword" class="form-control bg-theme text-primary border-theme shadow-none w-100" placeholder="Enter password" required>
                             <span class="position-absolute end-0 top-50 translate-middle-y me-3 text-secondary" style="cursor: pointer; z-index: 10;" onclick="togglePassword('regPassword', this)">
                                 <i class="bi bi-eye"></i>
                             </span>
@@ -220,11 +228,11 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label text-secondary small">Phone Number</label>
-                        <input type="text" name="PhoneNumber" class="form-control bg-dark border-secondary text-white shadow-none" placeholder="09123456789" required pattern="^\d{11}$" title="Phone number must be exactly 11 digits">
+                        <input type="text" name="PhoneNumber" class="form-control bg-theme text-primary border-theme shadow-none" placeholder="09123456789" required pattern="^\d{11}$" title="Phone number must be exactly 11 digits">
                     </div>
                     <div class="mb-3">
                         <label class="form-label text-secondary small">Assign Primary Role</label>
-                        <select name="Role" id="reg_role" class="form-select bg-dark border-secondary text-white shadow-none" onchange="updateDefaultPermissions(this.value)">
+                        <select name="Role" id="reg_role" class="form-select bg-theme text-primary border-theme shadow-none" onchange="updateDefaultPermissions(this.value)">
                             <option value="">Select Role</option>
                             <option value="Admin">In-store Manager</option>
                             <option value="WarehouseStaff">Warehouse Staff Account</option>
@@ -234,7 +242,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label text-secondary small">ASSIGN HUB</label>
-                        <select name="Hub" class="form-select bg-dark border-secondary text-white shadow-none">
+                        <select name="Hub" class="form-select bg-theme text-primary border-theme shadow-none">
                             <option value="">No Hub Assignment</option>
                             @foreach(var hub in (ViewBag.AllHubNames as List<string>) ?? SwiftFill.Models.HubRegistry.Names) {
                                 <option value="@hub">@hub</option>
@@ -247,7 +255,7 @@
                         <div class="row g-3">
                             <!-- Shipments -->
                             <div class="col-md-6">
-                                <div class="p-2 rounded border border-dark bg-black bg-opacity-50">
+                                <div class="p-2 rounded border border-theme bg-theme-soft">
                                     <div class="text-warning small fw-bold mb-2 text-uppercase" style="font-size:0.65rem;">Shipments</div>
                                     <div class="d-flex flex-wrap gap-2">
                                         <div class="form-check small">
@@ -263,7 +271,7 @@
                             </div>
                             <!-- Inventory -->
                             <div class="col-md-6">
-                                <div class="p-2 rounded border border-dark bg-black bg-opacity-50">
+                                <div class="p-2 rounded border border-theme bg-theme-soft">
                                     <div class="text-info small fw-bold mb-2 text-uppercase" style="font-size:0.65rem;">Inventory</div>
                                     <div class="d-flex flex-wrap gap-2">
                                         <div class="form-check small">
@@ -279,7 +287,7 @@
                             </div>
                             <!-- Finance -->
                             <div class="col-md-6">
-                                <div class="p-2 rounded border border-dark bg-black bg-opacity-50">
+                                <div class="p-2 rounded border border-theme bg-theme-soft">
                                     <div class="text-success small fw-bold mb-2 text-uppercase" style="font-size:0.65rem;">Finance & Billing</div>
                                     <div class="d-flex flex-wrap gap-2">
                                         <div class="form-check small">
@@ -295,7 +303,7 @@
                             </div>
                             <!-- Delivery -->
                             <div class="col-md-6">
-                                <div class="p-2 rounded border border-dark bg-black bg-opacity-50">
+                                <div class="p-2 rounded border border-theme bg-theme-soft">
                                     <div class="text-primary small fw-bold mb-2 text-uppercase" style="font-size:0.65rem;">Delivery Operations</div>
                                     <div class="d-flex flex-wrap gap-2">
                                         <div class="form-check small">
@@ -311,7 +319,7 @@
                             </div>
                             <!-- Settings -->
                             <div class="col-md-6">
-                                <div class="p-2 rounded border border-dark bg-black bg-opacity-50">
+                                <div class="p-2 rounded border border-theme bg-theme-soft">
                                     <div class="text-danger small fw-bold mb-2 text-uppercase" style="font-size:0.65rem;">System Admin</div>
                                     <div class="d-flex flex-wrap gap-2">
                                         <div class="form-check small">
@@ -328,8 +336,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer border-dark">
-                    <button type="button" class="btn btn-dark border-secondary text-secondary" data-bs-dismiss="modal">Cancel</button>
+                <div class="modal-footer border-theme">
+                    <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-warning fw-bold text-dark">Create Account</button>
                 </div>
             </form>
@@ -340,10 +348,10 @@
 <!-- Manage Roles & Claims Modal -->
 <div class="modal fade" id="manageRolesModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content text-white" style="background: rgba(22, 27, 34, 0.95); border: 1px solid #30363d; border-radius: 12px;">
-            <div class="modal-header border-dark">
+        <div class="modal-content text-primary" style="background: var(--modal-bg); border: 1px solid var(--border-color); border-radius: 12px;">
+            <div class="modal-header border-theme">
                 <h5 class="modal-title fw-bold"><i class="bi bi-shield-lock text-info me-2"></i> Manage Permissions</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form asp-action="UpdateRoles" method="post">
                 <div class="modal-body text-center py-4">
@@ -355,7 +363,7 @@
                     
                     <div class="text-start px-4">
                         <label class="form-label text-secondary small">Primary Role</label>
-                        <select name="role" id="manage_role" class="form-select bg-dark border-secondary text-white mb-3">
+                        <select name="role" id="manage_role" class="form-select bg-theme border-theme text-primary mb-3">
                             <option value="SuperAdmin">SuperAdmin</option>
                             <option value="Admin">In-store Manager</option>
                             <option value="WarehouseStaff">Warehouse Staff Account</option>
@@ -367,7 +375,7 @@
                         <div class="row g-3">
                             <!-- Shipments -->
                             <div class="col-md-6">
-                                <div class="p-2 rounded border border-dark bg-black bg-opacity-50">
+                                <div class="p-2 rounded border border-theme bg-theme-soft">
                                     <div class="text-warning small fw-bold mb-2 text-uppercase" style="font-size:0.65rem;">Shipments</div>
                                     <div class="d-flex flex-wrap gap-2">
                                         <div class="form-check small">
@@ -383,7 +391,7 @@
                             </div>
                             <!-- Inventory -->
                             <div class="col-md-6">
-                                <div class="p-2 rounded border border-dark bg-black bg-opacity-50">
+                                <div class="p-2 rounded border border-theme bg-theme-soft">
                                     <div class="text-info small fw-bold mb-2 text-uppercase" style="font-size:0.65rem;">Inventory</div>
                                     <div class="d-flex flex-wrap gap-2">
                                         <div class="form-check small">
@@ -399,7 +407,7 @@
                             </div>
                             <!-- Finance -->
                             <div class="col-md-6">
-                                <div class="p-2 rounded border border-dark bg-black bg-opacity-50">
+                                <div class="p-2 rounded border border-theme bg-theme-soft">
                                     <div class="text-success small fw-bold mb-2 text-uppercase" style="font-size:0.65rem;">Finance</div>
                                     <div class="d-flex flex-wrap gap-2">
                                         <div class="form-check small">
@@ -415,7 +423,7 @@
                             </div>
                             <!-- Delivery -->
                             <div class="col-md-6">
-                                <div class="p-2 rounded border border-dark bg-black bg-opacity-50">
+                                <div class="p-2 rounded border border-theme bg-theme-soft">
                                     <div class="text-primary small fw-bold mb-2 text-uppercase" style="font-size:0.65rem;">Delivery Operations</div>
                                     <div class="d-flex flex-wrap gap-2">
                                         <div class="form-check small">
@@ -431,7 +439,7 @@
                             </div>
                             <!-- Admin -->
                             <div class="col-md-6">
-                                <div class="p-2 rounded border border-dark bg-black bg-opacity-50">
+                                <div class="p-2 rounded border border-theme bg-theme-soft">
                                     <div class="text-danger small fw-bold mb-2 text-uppercase" style="font-size:0.65rem;">System</div>
                                     <div class="d-flex flex-wrap gap-2">
                                         <div class="form-check small">
@@ -448,7 +456,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer border-dark">
+                <div class="modal-footer border-theme">
                     <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-info text-dark fw-bold">Save Changes</button>
                 </div>
@@ -460,10 +468,10 @@
 <!-- Edit Profile Modal -->
 <div class="modal fade" id="editProfileModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content text-white" style="background: rgba(22, 27, 34, 0.95); border: 1px solid #30363d; border-radius: 12px;">
-            <div class="modal-header border-dark">
+        <div class="modal-content text-primary" style="background: var(--modal-bg); border: 1px solid var(--border-color); border-radius: 12px;">
+            <div class="modal-header border-theme">
                 <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square text-success me-2"></i> Edit Profile</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form asp-action="UpdateProfile" method="post">
                 <div class="modal-body py-4">
@@ -471,21 +479,21 @@
                     <div class="row g-2 mb-3">
                         <div class="col-6">
                             <label class="form-label text-secondary small">First Name</label>
-                            <input type="text" name="firstName" id="edit_firstName" class="form-control bg-dark border-secondary text-white" required>
+                            <input type="text" name="firstName" id="edit_firstName" class="form-control bg-theme border-theme text-primary" required>
                         </div>
                         <div class="col-6">
                             <label class="form-label text-secondary small">Last Name</label>
-                            <input type="text" name="lastName" id="edit_lastName" class="form-control bg-dark border-secondary text-white" required>
+                            <input type="text" name="lastName" id="edit_lastName" class="form-control bg-theme border-theme text-primary" required>
                         </div>
                     </div>
                     <label class="form-label text-secondary small">Username</label>
-                    <input type="text" name="userName" id="edit_userName" class="form-control bg-dark border-secondary text-white mb-3" required>
+                    <input type="text" name="userName" id="edit_userName" class="form-control bg-theme border-theme text-primary mb-3" required>
                     
                     <label class="form-label text-secondary small">Phone Number</label>
-                    <input type="text" name="phoneNumber" id="edit_phoneNumber" class="form-control bg-dark border-secondary text-white mb-3" placeholder="09123456789" required pattern="^\d{11}$" title="Phone number must be exactly 11 digits">
+                    <input type="text" name="phoneNumber" id="edit_phoneNumber" class="form-control bg-theme border-theme text-primary mb-3" placeholder="09123456789" required pattern="^\d{11}$" title="Phone number must be exactly 11 digits">
                     
                     <label class="form-label text-secondary small">ASSIGN HUB</label>
-                    <select name="hub" id="edit_hub" class="form-select bg-dark border-secondary text-white">
+                    <select name="hub" id="edit_hub" class="form-select bg-theme border-theme text-primary">
                         <option value="">None</option>
                         @foreach(var hub in (ViewBag.AllHubNames as List<string>) ?? SwiftFill.Models.HubRegistry.Names)
                         {
@@ -493,13 +501,13 @@
                         }
                     </select>
 
-                    <div class="mt-4 pt-3 border-top border-dark">
+                    <div class="mt-4 pt-3 border-top border-theme">
                         <label class="form-label text-secondary small">Current Password (Encrypted)</label>
-                        <input type="text" class="form-control bg-dark border-secondary text-secondary mb-3" value="********" readonly>
+                        <input type="text" class="form-control bg-theme border-theme text-secondary mb-3" value="********" readonly>
                         
                         <label class="form-label text-warning small fw-bold">NEW PASSWORD</label>
                         <div class="position-relative">
-                            <input type="password" name="newPassword" id="editNewPassword" class="form-control bg-dark border-warning text-white w-100" placeholder="Enter new password to reset">
+                            <input type="password" name="newPassword" id="editNewPassword" class="form-control minimal-input border-orange text-primary w-100" placeholder="Enter new password to reset">
                             <span class="position-absolute end-0 top-50 translate-middle-y me-3 text-secondary" style="cursor: pointer; z-index: 10;" onclick="togglePassword('editNewPassword', this)">
                                 <i class="bi bi-eye"></i>
                             </span>
@@ -507,9 +515,9 @@
                         <div class="form-text text-muted smaller">Leave blank to keep existing password.</div>
                     </div>
                 </div>
-                <div class="modal-footer border-dark">
-                    <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-success fw-bold">Save Changes</button>
+                <div class="modal-footer border-theme">
+                    <button type="button" class="btn btn-dark px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success fw-bold px-4">Save Changes</button>
                 </div>
             </form>
         </div>
@@ -522,7 +530,13 @@
         background: #30363d !important;
     }
     .fs-xs { font-size: 0.8rem; }
-    .bg-orange { background-color: #ff8c00; }
+    
+    [data-theme="dark"] .role-badge {
+        border-color: #000000 !important;
+        background-color: #ff8c00 !important;
+        color: #000000 !important;
+        font-weight: 700;
+    }
     
     .btn-check:checked + .btn-outline-secondary {
         background-color: #ff8c00;

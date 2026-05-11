@@ -7,9 +7,9 @@
 }
 
 <div class="animate-fade-up">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-2">
-        <h1 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-speedometer2 me-2 text-orange"></i> System Overview</h1>
-        <div class="d-md-none x-small text-secondary">Real-time Operations Monitoring</div>
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-theme pb-3">
+        <h1 class="fw-bold fs-3 mt-2 mb-0 text-primary"><i class="bi bi-speedometer2 me-2 text-orange"></i> System Overview</h1>
+        <p class="text-secondary mt-2 mb-0 small">Real-time Operations Monitoring</p>
     </div>
 
     <div class="row g-4 mb-5">
@@ -20,7 +20,7 @@
                         <div class="stat-label text-orange fw-bold">TOTAL ORDERS</div>
                         <div class="stat-subtitle mt-1">Active Table</div>
                     </div>
-                    <div class="stat-value text-white display-6 fw-bold mb-0">@Model.TotalOrders</div>
+                    <div class="stat-value text-primary display-6 fw-bold mb-0">@Model.TotalOrders</div>
                 </div>
             </a>
         </div>
@@ -31,7 +31,7 @@
                         <div class="stat-label text-info fw-bold">ORDER PACKING</div>
                         <div class="stat-subtitle mt-1">In Processing</div>
                     </div>
-                    <div class="stat-value text-white display-6 fw-bold mb-0">@Model.PackingCount</div>
+                    <div class="stat-value text-primary display-6 fw-bold mb-0">@Model.PackingCount</div>
                 </div>
             </a>
         </div>
@@ -42,7 +42,7 @@
                         <div class="stat-label text-success fw-bold">TOTAL REVENUE</div>
                         <div class="stat-subtitle mt-1">Settled Only</div>
                     </div>
-                    <div class="stat-value text-white display-6 fw-bold mb-0">₱@Model.TotalRevenue.ToString("N0")</div>
+                    <div class="stat-value text-primary display-6 fw-bold mb-0">₱@Model.TotalRevenue.ToString("N0")</div>
                 </div>
             </a>
         </div>
@@ -53,7 +53,7 @@
                         <div class="stat-label text-danger fw-bold">RETURN ORDERS</div>
                         <div class="stat-subtitle mt-1">Pending Action</div>
                     </div>
-                    <div class="stat-value text-white display-6 fw-bold mb-0">@Model.TotalReturns</div>
+                    <div class="stat-value text-primary display-6 fw-bold mb-0">@Model.TotalReturns</div>
                 </div>
             </a>
         </div>
@@ -65,25 +65,25 @@
         <div class="col-6 col-md-3">
             <a asp-action="Shipments" class="glass-card p-3 d-flex flex-column flex-md-row align-items-center text-decoration-none hover-scale h-100" style="background: rgba(255,140,0,0.05); border: 1px solid rgba(255,140,0,0.2);">
                 <div class="rounded-circle bg-orange p-2 mb-2 mb-md-0 me-md-3"><i class="bi bi-box-seam text-dark"></i></div>
-                <div class="text-white fw-bold x-small text-center text-md-start">New Shipment</div>
+                <div class="text-primary fw-bold x-small text-center text-md-start">New Shipment</div>
             </a>
         </div>
         <div class="col-6 col-md-3">
-            <a asp-action="Payments" class="glass-card p-3 d-flex flex-column flex-md-row align-items-center text-decoration-none hover-scale h-100" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
-                <div class="rounded-circle bg-dark p-2 mb-2 mb-md-0 me-md-3"><i class="bi bi-receipt text-orange"></i></div>
-                <div class="text-white fw-bold x-small text-center text-md-start">Audit Payments</div>
+            <a asp-action="Payments" class="glass-card p-3 d-flex flex-column flex-md-row align-items-center text-decoration-none hover-scale h-100" style="background: var(--bg-secondary); border: 1px solid var(--border-color);">
+                <div class="rounded-circle bg-dark-soft p-2 mb-2 mb-md-0 me-md-3"><i class="bi bi-receipt text-orange"></i></div>
+                <div class="text-primary fw-bold x-small text-center text-md-start">Audit Payments</div>
             </a>
         </div>
         <div class="col-6 col-md-3">
-            <a asp-action="Reports" class="glass-card p-3 d-flex flex-column flex-md-row align-items-center text-decoration-none hover-scale h-100" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
-                <div class="rounded-circle bg-dark p-2 mb-2 mb-md-0 me-md-3"><i class="bi bi-file-earmark-bar-graph text-orange"></i></div>
-                <div class="text-white fw-bold x-small text-center text-md-start">Analytical Reports</div>
+            <a asp-action="Reports" class="glass-card p-3 d-flex flex-column flex-md-row align-items-center text-decoration-none hover-scale h-100" style="background: var(--bg-secondary); border: 1px solid var(--border-color);">
+                <div class="rounded-circle bg-dark-soft p-2 mb-2 mb-md-0 me-md-3"><i class="bi bi-file-earmark-bar-graph text-orange"></i></div>
+                <div class="text-primary fw-bold x-small text-center text-md-start">Analytical Reports</div>
             </a>
         </div>
         <div class="col-6 col-md-3">
-            <a asp-controller="Account" asp-action="Settings" class="glass-card p-3 d-flex flex-column flex-md-row align-items-center text-decoration-none hover-scale h-100" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
-                <div class="rounded-circle bg-dark p-2 mb-2 mb-md-0 me-md-3"><i class="bi bi-gear-fill text-orange"></i></div>
-                <div class="text-white fw-bold x-small text-center text-md-start">Settings</div>
+            <a asp-controller="Account" asp-action="Settings" class="glass-card p-3 d-flex flex-column flex-md-row align-items-center text-decoration-none hover-scale h-100" style="background: var(--bg-secondary); border: 1px solid var(--border-color);">
+                <div class="rounded-circle bg-dark-soft p-2 mb-2 mb-md-0 me-md-3"><i class="bi bi-gear-fill text-orange"></i></div>
+                <div class="text-primary fw-bold x-small text-center text-md-start">Settings</div>
             </a>
         </div>
     </div>
@@ -91,14 +91,14 @@
     <div class="row g-4 mb-5">
         <!-- Main Chart -->
         <div class="col-md-8">
-            <div class="glass-card p-4 border-0 h-100" style="background: rgba(255, 255, 255, 0.01);">
+            <div class="glass-card p-4 border-0 h-100" style="background: var(--bg-secondary);">
                 <h6 class="text-uppercase text-secondary ls-1 mb-4">Volume Trends</h6>
                 <canvas id="trendChart" style="max-height: 280px;"></canvas>
             </div>
         </div>
         <!-- Side Chart -->
         <div class="col-md-4">
-            <div class="glass-card p-4 border-0 h-100" style="background: rgba(255, 255, 255, 0.01);">
+            <div class="glass-card p-4 border-0 h-100" style="background: var(--bg-secondary);">
                 <h6 class="text-uppercase text-secondary ls-1 mb-4">Lifecycle State</h6>
                 <canvas id="statusChart" style="max-height: 280px;"></canvas>
             </div>
@@ -106,7 +106,7 @@
     </div>
 
     <!-- Shipment Summary -->
-    <div class="glass-card p-0 overflow-hidden border-0 mb-5" style="background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.05) !important;">
+    <div class="glass-card p-0 overflow-hidden border-0 mb-5" style="background: var(--bg-secondary);">
         <div class="d-flex justify-content-between align-items-center p-4 pb-3">
             <h6 class="text-uppercase text-secondary ls-1 mb-0">Track Shipment Summary</h6>
             <a asp-action="Shipments" class="text-orange text-decoration-none small">View All <i class="bi bi-arrow-right ms-1"></i></a>
@@ -134,7 +134,7 @@
                                 </div>
                             </td>
                             <td class="border-0 py-3">
-                                <div class="text-white small">@shipment.DestinationRegion</div>
+                                <div class="text-primary small">@shipment.DestinationRegion</div>
                                 <div class="text-secondary x-small">@shipment.ReceiverName</div>
                             </td>
                             <td class="border-0 py-3">
@@ -143,7 +143,7 @@
                                 </span>
                             </td>
                             <td class="border-0 py-3 text-end pe-4">
-                                <div class="text-white small">@shipment.CreatedAt.ToString("MMM dd")</div>
+                                <div class="text-primary small">@shipment.CreatedAt.ToString("MMM dd")</div>
                                 <div class="x-small text-secondary">@shipment.Weight kg</div>
                             </td>
                         </tr>
@@ -163,8 +163,8 @@
     .hover-scale:hover { transform: translateY(-3px); }
     
     .glass-card {
-        background: #0d1117;
-        border: 1px solid rgba(255,255,255,0.05);
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
         border-radius: 16px;
         position: relative;
         overflow: hidden;
@@ -276,7 +276,7 @@
                             </div>
                         </td>
                         <td class="border-0 py-3">
-                            <div class="text-white small">${s.destinationRegion}</div>
+                            <div class="text-primary small">${s.destinationRegion}</div>
                             <div class="x-small text-secondary">${s.receiverName}</div>
                         </td>
                         <td class="border-0 py-3">
@@ -285,7 +285,7 @@
                             </span>
                         </td>
                         <td class="border-0 py-3 text-end pe-4">
-                            <div class="text-white small">${s.createdAt}</div>
+                            <div class="text-primary small">${s.createdAt}</div>
                             <div class="x-small text-secondary">${s.weight} kg</div>
                         </td>
                     </tr>

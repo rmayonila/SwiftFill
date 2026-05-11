@@ -5,9 +5,10 @@
 }
 
 <div class="animate-fade-up">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-file-earmark-bar-graph text-orange me-2"></i> Analytical Reports</h2>
-        <form method="get" class="d-flex gap-2">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-theme pb-3">
+        <h1 class="fw-bold fs-3 mt-2 mb-0 text-primary"><i class="bi bi-file-earmark-bar-graph text-orange me-2"></i> Analytical Reports</h1>
+        <form method="get" class="d-flex gap-2 mb-0 align-items-center">
+            <p class="text-secondary mb-0 small me-3">Performance & Volume Metrics</p>
             <select name="month" class="minimal-input x-small" onchange="this.form.submit()">
                 @for (int i = 1; i <= 12; i++)
                 {
@@ -20,7 +21,7 @@
                     <option value="@i" selected="@(ViewBag.SelectedYear == i)">@i</option>
                 }
             </select>
-            <button type="button" onclick="window.print()" class="btn btn-sm btn-outline-orange"><i class="bi bi-download me-2"></i> Export</button>
+            <button type="button" onclick="window.print()" class="btn btn-sm btn-outline-orange ms-2"><i class="bi bi-download me-2"></i> Export</button>
         </form>
     </div>
 

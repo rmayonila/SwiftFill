@@ -5,9 +5,12 @@
 }
 
 <div class="animate-fade-up">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-pencil-square text-orange me-2"></i> Edit Order @Model.TrackingId</h2>
-        <a asp-action="Shipments" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-2"></i> Back to Shipments</a>
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-theme pb-3">
+        <h1 class="fw-bold fs-3 mt-2 mb-0 text-primary"><i class="bi bi-pencil-square text-orange me-2"></i> Edit Order @Model.TrackingId</h1>
+        <div class="d-flex align-items-center gap-3">
+            <p class="text-secondary mb-0 small">Update shipment details and logistics configuration.</p>
+            <a asp-action="Shipments" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-2"></i> Back to Shipments</a>
+        </div>
     </div>
 
     @if (TempData["SuccessMessage"] != null)

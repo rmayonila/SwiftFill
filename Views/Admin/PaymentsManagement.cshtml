@@ -5,11 +5,16 @@
 }
 
 <div class="animate-fade-up">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-wallet2 text-orange me-2"></i> Payment Methods</h2>
-        <button type="button" class="btn btn-primary px-4" style="background:#FF8C00;" data-bs-toggle="modal" data-bs-target="#addMethodModal">
-            <i class="bi bi-plus-lg me-2"></i> Add Method
-        </button>
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-theme pb-3">
+        <h1 class="fw-bold fs-3 mt-2 mb-0 text-primary"><i class="bi bi-wallet2 text-orange me-2"></i> Payment Methods</h1>
+        <div class="d-flex align-items-center gap-3">
+            <p class="text-secondary mb-0 small">Configure accepted payment gateways and rules.</p>
+            <button type="button" class="btn btn-primary px-4 py-2 shadow-sm border-0 d-flex align-items-center" 
+                    style="background: #FF8C00; border-radius: 8px; font-weight: 600; font-size: 0.85rem; color: black;" 
+                    data-bs-toggle="modal" data-bs-target="#addMethodModal">
+                <i class="bi bi-plus-lg me-2"></i> Add Method
+            </button>
+        </div>
     </div>
 
     @if (TempData["SuccessMessage"] != null)

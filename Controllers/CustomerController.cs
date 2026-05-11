@@ -169,8 +169,8 @@ namespace SwiftFill.Controllers
             
             if (order != null)
             {
-                // Only allow deletion if it's still pending/not yet in transit
-                if (order.Status == "Pending" || order.Status == "Picked")
+                // Allow deletion if it's not yet delivered or returned
+                if (order.Status != "Delivered" && order.Status != "Returned")
                 {
                     order.IsArchived = true;
                     order.UpdatedAt = DateTime.UtcNow;

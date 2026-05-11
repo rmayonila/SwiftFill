@@ -7,12 +7,13 @@
     :root {
         --swift-orange: #ff8c00;
         --swift-orange-glow: rgba(255, 140, 0, 0.3);
-        --glass-bg: rgba(255, 255, 255, 0.03);
-        --glass-border: rgba(255, 255, 255, 0.08);
+        --glass-bg: var(--card-bg);
+        --glass-border: var(--border-color);
     }
 
     .tracking-search-input::placeholder {
-        color: rgba(255, 255, 255, 0.4) !important;
+        color: var(--text-secondary) !important;
+        opacity: 0.5;
     }
 
     /* Hero Section */
@@ -33,7 +34,7 @@
         letter-spacing: -1.5px;
         line-height: 1.1;
         margin-bottom: 20px;
-        color: #fff;
+        color: var(--text-primary);
     }
 
     .text-orange {
@@ -42,7 +43,7 @@
 
     .hero-subtitle {
         font-size: clamp(0.95rem, 2vw, 1.1rem);
-        color: rgba(255,255,255,0.6);
+        color: var(--text-secondary);
         max-width: 650px;
         margin: 0 auto 40px;
         line-height: 1.6;
@@ -67,13 +68,13 @@
         font-size: 0.75rem;
         text-transform: uppercase;
         letter-spacing: 2px;
-        color: rgba(255,255,255,0.5);
+        color: var(--text-secondary);
     }
 
     /* Feature Cards */
     .glass-card {
-        background: #0a0a0a;
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
         border-radius: 24px;
         padding: 40px 30px;
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -87,8 +88,8 @@
     .glass-card:hover {
         transform: translateY(-10px);
         border-color: rgba(255, 140, 0, 0.3);
-        background: #111;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        background: var(--card-bg-hover);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
     }
 
     .icon-wrapper {
@@ -118,8 +119,8 @@
     }
 
     .btn-outline-custom {
-        border: 1px solid var(--glass-border);
-        color: #fff !important;
+        border: 1px solid var(--border-color);
+        color: var(--text-primary) !important;
         padding: 12px 28px;
         border-radius: 10px;
         text-decoration: none;
@@ -175,10 +176,10 @@
         </div>
         
         <div class="mt-4 mb-5 animate-fade-up delay-150" style="max-width: 550px; margin: 0 auto; width: 100%;">
-            <form action="/Home/Track" method="get" class="d-flex flex-column flex-sm-row align-items-center gap-2 p-1" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 25px;">
+            <form action="/Home/Track" method="get" class="d-flex flex-column flex-sm-row align-items-center gap-2 p-1" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 25px;">
                 <div class="d-flex align-items-center flex-grow-1 w-100">
                     <i class="bi bi-search ms-3 text-secondary"></i>
-                    <input type="text" name="trackingId" class="form-control tracking-search-input bg-transparent border-0 text-white px-3" placeholder="Enter Tracking ID..." required style="box-shadow: none; min-width: 100px;">
+                    <input type="text" name="trackingId" class="form-control tracking-search-input bg-transparent border-0 text-primary px-3" placeholder="Enter Tracking ID..." required style="box-shadow: none; min-width: 100px;">
                 </div>
                 <button type="submit" class="btn btn-warning rounded-pill px-4 py-2 fw-bold" style="background: var(--swift-orange); border: none; color: #000; font-size: 0.9rem; white-space: nowrap;">Search</button>
             </form>
@@ -228,22 +229,22 @@
             <div class="col-md-4 col-sm-6">
                 <div class="glass-card">
                     <div class="icon-wrapper"><i class="bi bi-geo-alt"></i></div>
-                    <h3 class="fw-bold text-white mb-3" style="font-size: 1.5rem;">Nationwide Hubs</h3>
-                    <p class="text-white-50 px-2" style="font-size: 0.95rem; line-height: 1.6;">Strategic logistics management across NCR, Luzon, Visayas, and Mindanao hubs.</p>
+                    <h3 class="fw-bold text-primary mb-3" style="font-size: 1.5rem;">Nationwide Hubs</h3>
+                    <p class="text-secondary px-2" style="font-size: 0.95rem; line-height: 1.6;">Strategic logistics management across NCR, Luzon, Visayas, and Mindanao hubs.</p>
                 </div>
             </div>
             <div class="col-md-4 col-sm-6">
                 <div class="glass-card">
                     <div class="icon-wrapper"><i class="bi bi-search"></i></div>
-                    <h3 class="fw-bold text-white mb-3" style="font-size: 1.5rem;">Live Tracking</h3>
-                    <p class="text-white-50 px-2" style="font-size: 0.95rem; line-height: 1.6;">End-to-end visibility with real-time status updates for both customers and staff.</p>
+                    <h3 class="fw-bold text-primary mb-3" style="font-size: 1.5rem;">Live Tracking</h3>
+                    <p class="text-secondary px-2" style="font-size: 0.95rem; line-height: 1.6;">End-to-end visibility with real-time status updates for both customers and staff.</p>
                 </div>
             </div>
             <div class="col-md-4 col-sm-12">
                 <div class="glass-card">
                     <div class="icon-wrapper"><i class="bi bi-shield-lock"></i></div>
-                    <h3 class="fw-bold text-white mb-3" style="font-size: 1.5rem;">Secure Audit</h3>
-                    <p class="text-white-50 px-2" style="font-size: 0.95rem; line-height: 1.6;">Comprehensive activity tracking and financial reconciliation for full accountability.</p>
+                    <h3 class="fw-bold text-primary mb-3" style="font-size: 1.5rem;">Secure Audit</h3>
+                    <p class="text-secondary px-2" style="font-size: 0.95rem; line-height: 1.6;">Comprehensive activity tracking and financial reconciliation for full accountability.</p>
                 </div>
             </div>
         </div>
@@ -263,8 +264,8 @@
                 <a href="/Account/Login" class="text-decoration-none h-100 d-block">
                     <div class="glass-card">
                         <div class="icon-wrapper"><i class="bi bi-shield-check"></i></div>
-                        <h3 class="h4 mb-3 text-white">Admin Command</h3>
-                        <p class="text-white-50 small">Complete oversight of revenue, hub performance, and nationwide logistics audit logs.</p>
+                        <h3 class="h4 mb-3 text-primary">Admin Command</h3>
+                        <p class="text-secondary small">Complete oversight of revenue, hub performance, and nationwide logistics audit logs.</p>
                         <span class="text-orange mt-auto pt-3 small fw-bold">Learn More &rarr;</span>
                     </div>
                 </a>
@@ -273,8 +274,8 @@
                 <a href="/Account/Login" class="text-decoration-none h-100 d-block">
                     <div class="glass-card">
                         <div class="icon-wrapper"><i class="bi bi-box-seam"></i></div>
-                        <h3 class="h4 mb-3 text-white">Fulfillment Staff</h3>
-                        <p class="text-white-50 small">Streamlined "Pick-Pack-Ship" interfaces optimized for high-speed warehouse sorting.</p>
+                        <h3 class="h4 mb-3 text-primary">Fulfillment Staff</h3>
+                        <p class="text-secondary small">Streamlined "Pick-Pack-Ship" interfaces optimized for high-speed warehouse sorting.</p>
                         <span class="text-orange mt-auto pt-3 small fw-bold">Learn More &rarr;</span>
                     </div>
                 </a>
@@ -283,8 +284,8 @@
                 <a href="/Account/Login" class="text-decoration-none h-100 d-block">
                     <div class="glass-card">
                         <div class="icon-wrapper"><i class="bi bi-truck"></i></div>
-                        <h3 class="h4 mb-3 text-white">Rider Dispatch</h3>
-                        <p class="text-white-50 small">Real-time last-mile delivery management with integrated COD and status tracking.</p>
+                        <h3 class="h4 mb-3 text-primary">Rider Dispatch</h3>
+                        <p class="text-secondary small">Real-time last-mile delivery management with integrated COD and status tracking.</p>
                         <span class="text-orange mt-auto pt-3 small fw-bold">Learn More &rarr;</span>
                     </div>
                 </a>
@@ -304,10 +305,10 @@
         <div class="row g-4 justify-content-center">
             <div class="col-lg-4 col-md-6">
                 <div class="glass-card border-0" style="background: rgba(255,255,255,0.02);">
-                    <h4 class="mb-3 text-white">Small Pouch</h4>
-                    <p class="text-white-50 small mb-4">(Maliit na Padala)</p>
-                    <div class="display-6 fw-bold mb-4 text-white">₱95<span class="fs-6 text-white-50">/up</span></div>
-                    <ul class="list-unstyled text-start mb-5 text-white-50 small">
+                    <h4 class="mb-3 text-primary">Small Pouch</h4>
+                    <p class="text-secondary small mb-4">(Maliit na Padala)</p>
+                    <div class="display-6 fw-bold mb-4 text-primary">₱95<span class="fs-6 text-secondary">/up</span></div>
+                    <ul class="list-unstyled text-start mb-5 text-secondary small">
                         <li class="mb-3"><i class="bi bi-check2 text-orange me-2"></i> Para sa Dokumento</li>
                         <li class="mb-3"><i class="bi bi-check2 text-orange me-2"></i> Small gadgets (Phones)</li>
                         <li class="mb-3"><i class="bi bi-check2 text-orange me-2"></i> Up to 1kg weight</li>
@@ -318,10 +319,10 @@
             <div class="col-lg-4 col-md-6">
                 <div class="glass-card border-orange" style="background: rgba(255, 140, 0, 0.05); border: 2px solid var(--swift-orange);">
                     <div class="badge bg-warning text-dark rounded-pill px-3 py-1 mb-3 position-absolute top-0 start-50 translate-middle">SULIT</div>
-                    <h4 class="mb-3 text-white">Medium Box</h4>
-                    <p class="text-white-50 small mb-4">(Sakto sa Damit at Gamit)</p>
-                    <div class="display-6 fw-bold mb-4 text-white">₱245<span class="fs-6 text-white-50">/up</span></div>
-                    <ul class="list-unstyled text-start mb-5 text-white-50 small">
+                    <h4 class="mb-3 text-primary">Medium Box</h4>
+                    <p class="text-secondary small mb-4">(Sakto sa Damit at Gamit)</p>
+                    <div class="display-6 fw-bold mb-4 text-primary">₱245<span class="fs-6 text-secondary">/up</span></div>
+                    <ul class="list-unstyled text-start mb-5 text-secondary small">
                         <li class="mb-3"><i class="bi bi-check2 text-orange me-2"></i> Pang-Damit o Sapatos</li>
                         <li class="mb-3"><i class="bi bi-check2 text-orange me-2"></i> Bulk orders ng items</li>
                         <li class="mb-3"><i class="bi bi-check2 text-orange me-2"></i> Up to 5kg weight</li>
@@ -331,10 +332,10 @@
             </div>
             <div class="col-lg-4 col-md-10">
                 <div class="glass-card border-0" style="background: rgba(255,255,255,0.02);">
-                    <h4 class="mb-3 text-white">Large Cargo</h4>
-                    <p class="text-white-50 small mb-4">(Pang-Negosyo o Balikbayan)</p>
-                    <div class="display-6 fw-bold mb-4 text-white">₱850<span class="fs-6 text-white-50">/up</span></div>
-                    <ul class="list-unstyled text-start mb-5 text-white-50 small">
+                    <h4 class="mb-3 text-primary">Large Cargo</h4>
+                    <p class="text-secondary small mb-4">(Pang-Negosyo o Balikbayan)</p>
+                    <div class="display-6 fw-bold mb-4 text-primary">₱850<span class="fs-6 text-secondary">/up</span></div>
+                    <ul class="list-unstyled text-start mb-5 text-secondary small">
                         <li class="mb-3"><i class="bi bi-check2 text-orange me-2"></i> Appliances o TV</li>
                         <li class="mb-3"><i class="bi bi-check2 text-orange me-2"></i> Extra heavy boxes</li>
                         <li class="mb-3"><i class="bi bi-check2 text-orange me-2"></i> Nationwide Shipping</li>
@@ -352,21 +353,21 @@
         <div class="row g-5 align-items-center">
             <div class="col-lg-6 text-center text-lg-start">
                 <h2 class="display-5 fw-bold mb-4">Ready to <span class="text-orange">SwiftFill</span>?</h2>
-                <p class="text-white-50 mb-5 mx-auto mx-lg-0" style="max-width: 500px;">Join hundreds of hubs across the country optimizing their fulfillment today.</p>
+                <p class="text-secondary mb-5 mx-auto mx-lg-0" style="max-width: 500px;">Join hundreds of hubs across the country optimizing their fulfillment today.</p>
                 
                 <div class="d-flex flex-column align-items-center align-items-lg-start gap-4">
                     <div class="d-flex align-items-center">
                         <div class="icon-wrapper mb-0 me-3" style="width: 50px; height: 50px; font-size: 1.2rem;"><i class="bi bi-geo-alt"></i></div>
                         <div class="text-start">
-                            <h5 class="mb-0 text-white fs-6">Visit Us</h5>
-                            <p class="text-white-50 small mb-0">Davao City, Philippines</p>
+                            <h5 class="mb-0 text-primary fs-6">Visit Us</h5>
+                            <p class="text-secondary small mb-0">Davao City, Philippines</p>
                         </div>
                     </div>
                     <div class="d-flex align-items-center">
                         <div class="icon-wrapper mb-0 me-3" style="width: 50px; height: 50px; font-size: 1.2rem;"><i class="bi bi-envelope"></i></div>
                         <div class="text-start">
-                            <h5 class="mb-0 text-white fs-6">Email Us</h5>
-                            <p class="text-white-50 small mb-0">hello@swiftfill.ph</p>
+                            <h5 class="mb-0 text-primary fs-6">Email Us</h5>
+                            <p class="text-secondary small mb-0">hello@swiftfill.ph</p>
                         </div>
                     </div>
                 </div>
@@ -376,20 +377,20 @@
                     <form action="/Home/Contact" method="post">
                         <div class="row g-3">
                             <div class="col-md-6 text-start">
-                                <label class="form-label text-white-50 small">Full Name</label>
-                                <input type="text" name="name" class="form-control bg-transparent border-secondary text-white" placeholder="John Doe" required>
+                                <label class="form-label text-secondary small">Full Name</label>
+                                <input type="text" name="name" class="form-control bg-transparent border-secondary text-primary" placeholder="John Doe" required>
                             </div>
                             <div class="col-md-6 text-start">
-                                <label class="form-label text-white-50 small">Email Address</label>
-                                <input type="email" name="email" class="form-control bg-transparent border-secondary text-white" placeholder="john@example.com" required>
+                                <label class="form-label text-secondary small">Email Address</label>
+                                <input type="email" name="email" class="form-control bg-transparent border-secondary text-primary" placeholder="john@example.com" required>
                             </div>
                             <div class="col-12 text-start">
-                                <label class="form-label text-white-50 small">Subject</label>
-                                <input type="text" name="subject" class="form-control bg-transparent border-secondary text-white" placeholder="Inquiry about Enterprise" required>
+                                <label class="form-label text-secondary small">Subject</label>
+                                <input type="text" name="subject" class="form-control bg-transparent border-secondary text-primary" placeholder="Inquiry about Enterprise" required>
                             </div>
                             <div class="col-12 text-start">
-                                <label class="form-label text-white-50 small">Message</label>
-                                <textarea name="message" rows="4" class="form-control bg-transparent border-secondary text-white" placeholder="How can we help you?" required></textarea>
+                                <label class="form-label text-secondary small">Message</label>
+                                <textarea name="message" rows="4" class="form-control bg-transparent border-secondary text-primary" placeholder="How can we help you?" required></textarea>
                             </div>
                             <div class="col-12 mt-4">
                                 <button type="submit" class="btn-primary-custom w-100 border-0">Send Message</button>

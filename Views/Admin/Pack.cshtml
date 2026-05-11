@@ -5,9 +5,9 @@
 }
 
 <div class="animate-fade-up">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-box-seam me-3 text-orange"></i> Order Packing</h2>
-        <div class="text-secondary small">Manage picking and packing for items received from customers.</div>
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-theme pb-3">
+        <h1 class="fw-bold fs-3 mt-2 mb-0 text-primary"><i class="bi bi-box-seam me-3 text-orange"></i> Order Packing</h1>
+        <p class="text-secondary mt-2 mb-0 small">Manage picking and packing for items received from customers.</p>
     </div>
 
     <!-- Integrated Filter Bar (Reference-Matched) -->
@@ -30,10 +30,6 @@
                     <option value="Picked" selected='@(ViewBag.Status == "Picked")'>Picked (Ready to Pack)</option>
                 </select>
             </form>
-            <button type="submit" form="filterForm" class="btn btn-primary px-4 py-2 shadow-sm border-0 d-flex align-items-center" 
-                    style="background: #FF8C00; border-radius: 8px; font-weight: 600; font-size: 0.85rem;" onclick="this.closest('form').submit()">
-                <i class="bi bi-search me-2"></i> Search
-            </button>
         </div>
     </div>
 

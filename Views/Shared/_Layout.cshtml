@@ -20,7 +20,38 @@
         }
         .navbar-brand img { height: 40px; }
         .btn-get-started { background: var(--brand-primary) !important; }
+
+        /* Theme Toggle Styling */
+        .theme-toggle-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+        }
+        .theme-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+            border-color: var(--swift-orange);
+        }
+        [data-theme="light"] .theme-toggle-btn {
+            background: rgba(0, 0, 0, 0.05);
+        }
     </style>
+    <script>
+        // Pre-initialization to prevent flash of wrong theme
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
 </head>
 <body>
     <header>
@@ -28,10 +59,10 @@
             <div class="container">
                 <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
                     <img src="@(brand.TintedLogoUrl ?? brand.LogoUrl ?? "/images/logo.png")" class="brand-logo-img me-2" alt="SwiftFill" />
-                    <span class="brand-text text-white">@(string.IsNullOrEmpty(brand.BrandName) ? "SwiftFill" : brand.BrandName)</span>
+                    <span class="brand-text text-primary">@(string.IsNullOrEmpty(brand.BrandName) ? "SwiftFill" : brand.BrandName)</span>
                 </a>
                 <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
-                    <i class="bi bi-list text-white fs-2"></i>
+                    <i class="bi bi-list text-primary fs-2"></i>
                 </button>
                 <div class="navbar-collapse collapse d-lg-inline-flex justify-content-between">
                     <ul class="navbar-nav mx-auto">
@@ -65,6 +96,12 @@
                                 <a class="btn-get-started" href="/Account/SignUp">Get Started</a>
                             </li>
                         }
+                        <li class="nav-item ms-lg-2">
+                            <button id="themeToggle" class="theme-toggle-btn" title="Toggle Theme">
+                                <i class="bi bi-moon-stars-fill dark-icon"></i>
+                                <i class="bi bi-sun-fill light-icon d-none"></i>
+                            </button>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -82,7 +119,7 @@
         <div class="container">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
                 <div>
-                    <img src="@(brand.TintedLogoUrl ?? brand.LogoUrl ?? "/images/logo.png")" style="height:24px; margin-right:8px;" alt="SwiftFill" /> <strong class="text-white">@(string.IsNullOrEmpty(brand.BrandName) ? "SwiftFill" : brand.BrandName)</strong>
+                    <img src="@(brand.TintedLogoUrl ?? brand.LogoUrl ?? "/images/logo.png")" style="height:24px; margin-right:8px;" alt="SwiftFill" /> <strong class="text-primary">@(string.IsNullOrEmpty(brand.BrandName) ? "SwiftFill" : brand.BrandName)</strong>
                 </div>
                 <div class="small opacity-50">
                     &copy; 2026 SwiftFill. All rights reserved.
@@ -93,6 +130,34 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('themeToggle');
+            const darkIcon = themeToggle.querySelector('.dark-icon');
+            const lightIcon = themeToggle.querySelector('.light-icon');
+            
+            function updateIcons(theme) {
+                if (theme === 'light') {
+                    darkIcon.classList.add('d-none');
+                    lightIcon.classList.remove('d-none');
+                } else {
+                    darkIcon.classList.remove('d-none');
+                    lightIcon.classList.add('d-none');
+                }
+            }
+
+            // Set initial icon state
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            updateIcons(currentTheme);
+
+            themeToggle.addEventListener('click', () => {
+                const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('theme', theme);
+                updateIcons(theme);
+            });
+        });
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

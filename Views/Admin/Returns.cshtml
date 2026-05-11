@@ -7,9 +7,9 @@
 }
 
 <div class="animate-fade-up">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-arrow-return-left text-orange me-2"></i> Return Management</h2>
-        <div class="text-secondary small">Pending Reviews: <span class="text-orange">@(Model?.Count(r => r.Status == "Pending") ?? 0)</span></div>
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-theme pb-3">
+        <h1 class="fw-bold fs-3 mt-2 mb-0 text-primary"><i class="bi bi-arrow-return-left text-orange me-2"></i> Return Management</h1>
+        <p class="text-secondary mt-2 mb-0 small">Manage returned shipments and reverse logistics operations.</p>
     </div>
 
     @if (Model == null)

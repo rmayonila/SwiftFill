@@ -202,6 +202,13 @@ namespace SwiftFill.Controllers
             var order = await _context.Orders.Include(o => o.Payment).FirstOrDefaultAsync(o => o.TrackingId == model.TrackingId);
             if (order != null)
             {
+                // Lock editing for non-pending orders
+                if (order.Status != "Pending")
+                {
+                    TempData["ErrorMessage"] = "Editing is locked. This order has already advanced beyond the pending stage and cannot be modified.";
+                    return RedirectToAction(nameof(Shipments));
+                }
+
                 order.SenderName = model.SenderName;
                 order.SenderAddress = model.SenderAddress;
                 order.SenderPhone = model.SenderPhone;

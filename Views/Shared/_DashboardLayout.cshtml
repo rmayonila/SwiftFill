@@ -10,6 +10,38 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    <style>
+        /* Theme Toggle Styling */
+        .theme-toggle-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            margin-right: 15px;
+        }
+        .theme-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+            border-color: #ff8c00;
+        }
+        [data-theme="light"] .theme-toggle-btn {
+            background: rgba(0, 0, 0, 0.05);
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -38,6 +70,12 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <button id="themeToggle" class="theme-toggle-btn" title="Toggle Theme">
+                                    <i class="bi bi-moon-stars-fill dark-icon"></i>
+                                    <i class="bi bi-sun-fill light-icon d-none"></i>
+                                </button>
+                            </li>
+                            <li class="nav-item">
                                 <form method="post" action="/Account/Logout" class="d-inline">
                                     <button type="submit" class="btn btn-sm" style="background:transparent; color:#ff6b6b; border:1px solid #4a2121; border-radius: 6px;"><i class="bi bi-box-arrow-right"></i> Logout</button>
                                 </form>
@@ -45,6 +83,12 @@
                         }
                         else
                         {
+                            <li class="nav-item me-2">
+                                <button id="themeToggle" class="theme-toggle-btn" title="Toggle Theme">
+                                    <i class="bi bi-moon-stars-fill dark-icon"></i>
+                                    <i class="bi bi-sun-fill light-icon d-none"></i>
+                                </button>
+                            </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Account" asp-action="Login">Sign In</a>
                             </li>
@@ -63,6 +107,34 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('themeToggle');
+            const darkIcon = themeToggle.querySelector('.dark-icon');
+            const lightIcon = themeToggle.querySelector('.light-icon');
+            
+            function updateIcons(theme) {
+                if (theme === 'light') {
+                    darkIcon.classList.add('d-none');
+                    lightIcon.classList.remove('d-none');
+                } else {
+                    darkIcon.classList.remove('d-none');
+                    lightIcon.classList.add('d-none');
+                }
+            }
+
+            // Set initial icon state
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            updateIcons(currentTheme);
+
+            themeToggle.addEventListener('click', () => {
+                const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('theme', theme);
+                updateIcons(theme);
+            });
+        });
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

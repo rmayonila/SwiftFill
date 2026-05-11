@@ -8,6 +8,12 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
     <style>
         /* ===== RESPONSIVE RIDER LAYOUT ===== */
         :root {
@@ -16,8 +22,8 @@
         }
 
         body { 
-            background-color: #000000; 
-            color: #ffffff; 
+            background-color: var(--bg-color); 
+            color: var(--text-primary); 
             font-family: 'Inter', sans-serif;
             margin: 0; padding: 0;
             overflow-x: hidden;
@@ -29,8 +35,8 @@
             position: fixed;
             top: 0; left: 0;
             height: 100vh;
-            background: #0a0a0a;
-            border-right: 1px solid rgba(255,140,0,0.15);
+            background: var(--sidebar-gradient);
+            border-right: 1px solid var(--border-color);
             z-index: 1050;
             display: flex;
             flex-direction: column;
@@ -42,7 +48,7 @@
             margin-left: var(--sidebar-width);
             padding: 24px;
             min-height: 100vh;
-            background: #000000;
+            background: var(--bg-color);
             transition: all 0.3s ease;
             padding-bottom: calc(var(--mobile-nav-height) + 20px); /* Space for bottom nav */
         }
@@ -50,9 +56,9 @@
         /* Top Bar - sticky for mobile */
         .rider-topbar {
             padding: 16px 24px;
-            background: rgba(0,0,0,0.8);
+            background: var(--nav-bg);
             backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -66,18 +72,18 @@
             align-items: center;
             padding: 24px 22px;
             text-decoration: none;
-            border-bottom: 1px solid rgba(255,140,0,0.1);
+            border-bottom: 1px solid var(--border-color);
         }
         .brand-text {
             font-family: 'Sora', sans-serif;
             font-size: 1.25rem;
             font-weight: 800;
-            color: #ffffff;
+            color: var(--text-primary);
             letter-spacing: -0.5px;
         }
 
         .nav-sidebar .nav-link {
-            color: rgba(255,255,255,0.5);
+            color: var(--text-secondary);
             padding: 14px 22px;
             font-size: 0.9rem;
             font-weight: 500;
@@ -108,9 +114,9 @@
             position: fixed;
             bottom: 0; left: 0; right: 0;
             height: var(--mobile-nav-height);
-            background: rgba(10, 10, 10, 0.95);
+            background: var(--sidebar-gradient);
             backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255,140,0,0.2);
+            border-top: 1px solid var(--border-color);
             display: none;
             justify-content: space-around;
             align-items: center;
@@ -123,7 +129,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            color: rgba(255,255,255,0.4);
+            color: var(--text-secondary);
             text-decoration: none;
             font-size: 0.7rem;
             font-weight: 600;
@@ -146,7 +152,7 @@
         .sidebar-toggler {
             background: transparent;
             border: none;
-            color: #fff;
+            color: var(--text-primary);
             font-size: 1.5rem;
             display: none;
         }
@@ -158,7 +164,7 @@
         .profile-btn {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            color: #fff;
+            color: var(--text-primary);
             padding: 5px 6px 5px 16px;
             border-radius: 30px;
             font-size: 0.85rem;
@@ -176,15 +182,15 @@
 
         .sidebar-logout {
             padding: 16px 22px;
-            border-top: 1px solid rgba(255,140,0,0.1);
+            border-top: 1px solid var(--border-color);
             flex-shrink: 0;
             margin-top: auto;
         }
 
         /* ===== SEARCH BAR STYLING (Remove White BG) ===== */
         .module-toolbar {
-            background: #0a0a0a;
-            border: 1px solid #1a1a1a;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 15px 20px;
             display: flex;
@@ -208,7 +214,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             padding: 12px 15px 12px 45px;
-            color: #fff;
+            color: var(--text-primary);
             width: 100%;
             outline: none;
             transition: all 0.3s ease;
@@ -219,8 +225,18 @@
             box-shadow: 0 0 15px rgba(255, 140, 0, 0.1);
         }
         .search-container input::placeholder {
-            color: rgba(255, 255, 255, 0.3);
+            color: var(--text-secondary);
         }
+        
+        .theme-toggle-btn {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            width: 35px; height: 35px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.3s ease;
+        }
+        .theme-toggle-btn:hover { border-color: #ff8c00; transform: translateY(-2px); }
     </style>
 </head>
 <body>
@@ -279,25 +295,26 @@
 
     <!-- Main Content -->
     <div class="main-content">
-        <div class="rider-topbar rounded-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
             <div class="d-flex align-items-center gap-3">
-                <button class="sidebar-toggler" onclick="toggleSidebar()">
-                    <i class="bi bi-list"></i>
+                <button class="sidebar-toggler btn btn-link text-primary p-0" onclick="toggleSidebar()">
+                    <i class="bi bi-list fs-4"></i>
                 </button>
-                <div class="d-none d-md-block">
-                    <h5 class="m-0 fw-bold">Rider Dashboard</h5>
-                </div>
                 <div class="d-md-none">
                     <img src="~/images/logo.png" style="height:28px;" alt="Logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/709/709790.png'" />
                 </div>
             </div>
             
             <div class="d-flex align-items-center gap-3">
+                <button id="themeToggle" class="theme-toggle-btn" title="Toggle Theme">
+                    <i class="bi bi-moon-stars-fill dark-icon"></i>
+                    <i class="bi bi-sun-fill light-icon d-none"></i>
+                </button>
                 <a asp-controller="Account" asp-action="Settings" class="d-flex align-items-center text-decoration-none" title="Account Settings">
-                    <div class="rounded-circle d-flex justify-content-center align-items-center fw-bold shadow-sm" style="width:32px; height:32px; background: #ff8c00; color: #000; font-size: 0.8rem;">
+                    <div class="rounded-circle d-flex justify-content-center align-items-center fw-bold shadow-sm" style="width:32px; height:32px; background: #ff8c00; color: #fff; font-size: 0.8rem;">
                          @((User.Identity?.Name ?? "R").Substring(0,1).ToUpper())
                     </div>
-                    <span class="ms-2 fw-semibold text-white small">@User.Identity?.Name</span>
+                    <span class="ms-2 fw-semibold text-primary small">@User.Identity?.Name</span>
                 </a>
             </div>
         </div>
@@ -372,6 +389,33 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('themeToggle');
+            const darkIcon = themeToggle.querySelector('.dark-icon');
+            const lightIcon = themeToggle.querySelector('.light-icon');
+            
+            function updateIcons(theme) {
+                if (theme === 'light') {
+                    darkIcon.classList.add('d-none');
+                    lightIcon.classList.remove('d-none');
+                } else {
+                    darkIcon.classList.remove('d-none');
+                    lightIcon.classList.add('d-none');
+                }
+            }
+
+            // Set initial icon state
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            updateIcons(currentTheme);
+
+            themeToggle.addEventListener('click', () => {
+                const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('theme', theme);
+                updateIcons(theme);
+            });
+        });
+
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('show');
         }

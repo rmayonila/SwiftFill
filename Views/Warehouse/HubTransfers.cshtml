@@ -38,29 +38,39 @@
         </div>
     </div>
 
-@{
+    @{
+        var activeTab = Context.Request.Query["tab"].ToString();
+        if (string.IsNullOrEmpty(activeTab)) activeTab = "inbound";
+
         var inboundItems = Model.Where(item => 
-            item.Status.Contains($"Transit to {currentHub}") || 
-            item.Status.Contains($"Transit back to {currentHub}") ||
+            (item.Status.Contains($"Transit to {currentHub}") || item.Status.Contains($"Transit back to {currentHub}")) ||
             (item.Status == "Returning to Sender" && item.OriginHub == currentHub && item.CurrentLocation != currentHub)
         ).ToList();
-        var outboundItems = Model.Except(inboundItems).ToList();
+        
+        var outboundItems = Model.Where(item => !inboundItems.Contains(item)).ToList();
+
         var tabs = new[] {
-            new { Id = "inbound", Items = inboundItems, IsActive = true },
-            new { Id = "outbound", Items = outboundItems, IsActive = false }
+            new { Id = "inbound", Items = inboundItems, IsActive = activeTab == "inbound" },
+            new { Id = "outbound", Items = outboundItems, IsActive = activeTab == "outbound" }
         };
     }
 
     <!-- Tabs Navigation -->
     <ul class="nav nav-tabs nav-tabs-custom mb-3 border-0 gap-2" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active rounded-3 px-4 py-2 border-0 fw-bold d-flex align-items-center gap-2" id="inbound-tab" data-bs-toggle="tab" data-bs-target="#inbound" type="button" role="tab" aria-controls="inbound" aria-selected="true" style="background: rgba(255,255,255,0.05); color: #fff;">
+            <button class="nav-link @(activeTab == "inbound" ? "active" : "") rounded-3 px-4 py-2 border-0 fw-bold d-flex align-items-center gap-2" 
+                    id="inbound-tab" data-bs-toggle="tab" data-bs-target="#inbound" type="button" role="tab" aria-controls="inbound" 
+                    aria-selected="@(activeTab == "inbound")" style="background: rgba(255,255,255,0.05); color: #fff;"
+                    onclick="history.replaceState(null, '', '?tab=inbound')">
                 <i class="bi bi-arrow-down-left text-success"></i> INBOUND
                 <span class="badge bg-success text-dark ms-1">@inboundItems.Count</span>
             </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link rounded-3 px-4 py-2 border-0 fw-bold d-flex align-items-center gap-2" id="outbound-tab" data-bs-toggle="tab" data-bs-target="#outbound" type="button" role="tab" aria-controls="outbound" aria-selected="false" style="background: rgba(255,255,255,0.05); color: #fff;">
+            <button class="nav-link @(activeTab == "outbound" ? "active" : "") rounded-3 px-4 py-2 border-0 fw-bold d-flex align-items-center gap-2" 
+                    id="outbound-tab" data-bs-toggle="tab" data-bs-target="#outbound" type="button" role="tab" aria-controls="outbound" 
+                    aria-selected="@(activeTab == "outbound")" style="background: rgba(255,255,255,0.05); color: #fff;"
+                    onclick="history.replaceState(null, '', '?tab=outbound')">
                 <i class="bi bi-arrow-up-right text-info"></i> OUTBOUND
                 <span class="badge bg-info text-dark ms-1">@outboundItems.Count</span>
             </button>
@@ -136,21 +146,54 @@
                                                     </div>
                                                 }
                                                 <div class="d-flex gap-2">
-                                                    @if (isInbound || isOutbound || item.Status == "Returning to Sender" || item.Status == "Returned")
-                                                    {
-                                                        <button class="btn btn-link text-info p-0 action-icon" onclick="openTransferModal('@item.TrackingId', @isInbound.ToString().ToLower(), @isOutbound.ToString().ToLower(), '@((item.Status == "Returning to Sender" || item.Status == "Returned") ? "true" : "false")', '@destHub')" title="Transfer Control">
-                                                            <i class="bi bi-lightning-charge-fill"></i>
-                                                        </button>
+                                                    @{
+                                                        var isRTSAtOrigin = (item.Status == "Returning to Sender" || item.Status == "Returned" || item.Status.Contains("back to")) && item.CurrentLocation == item.OriginHub;
+                                                        var targetAddress = isRTSAtOrigin ? item.SenderAddress : item.ReceiverAddress;
                                                     }
-                                                    @if (item.CurrentLocation == currentHub && !item.Status.Contains("In Transit"))
+
+                                                    @if (currentHub == "Davao Hub")
                                                     {
-                                                        <button class="btn btn-link text-warning p-0 action-icon"
-                                                                onclick="openAssignModal(this.dataset.tracking, this.dataset.address)"
-                                                                data-tracking="@item.TrackingId"
-                                                                data-address="@item.ReceiverAddress"
-                                                                title="Assign Rider">
-                                                            <i class="bi bi-person-badge-fill"></i>
-                                                        </button>
+                                                        @if (tab.Id == "outbound")
+                                                        {
+                                                            @if (isRTS)
+                                                            {
+                                                                @* Assign Rider removed from outbound tab per request *@
+                                                            }
+                                                            else if (item.Status == "Sorted for Transfer" && !item.Status.Contains("In Transit"))
+                                                            {
+                                                                <button class="btn btn-link text-info p-0 action-icon d-flex flex-column align-items-center text-decoration-none" 
+                                                                        onclick="openTransferModal('@item.TrackingId', false, true, 'false', '@destHub')" 
+                                                                        title="Dispatch Order">
+                                                                    <i class="bi bi-send-fill" style="font-size: 1.2rem;"></i>
+                                                                    <span style="font-size: 0.65rem; font-weight: 800;">DISPATCH</span>
+                                                                </button>
+                                                            }
+                                                        }
+                                                        else @* Inbound *@
+                                                        {
+                                                            <button class="btn btn-link text-info p-0 action-icon" onclick="openTransferModal('@item.TrackingId', true, false, 'false', '@destHub')" title="Receive Order">
+                                                                <i class="bi bi-lightning-charge-fill"></i>
+                                                            </button>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        @if (isInbound || isOutbound || item.Status == "Returning to Sender" || item.Status == "Returned")
+                                                        {
+                                                            <button class="btn btn-link text-info p-0 action-icon" onclick="openTransferModal('@item.TrackingId', @isInbound.ToString().ToLower(), @isOutbound.ToString().ToLower(), '@((item.Status == "Returning to Sender" || item.Status == "Returned") ? "true" : "false")', '@destHub')" title="Transfer Control">
+                                                                <i class="bi bi-lightning-charge-fill"></i>
+                                                            </button>
+                                                        }
+                                                        @if (item.CurrentLocation == currentHub && !item.Status.Contains("In Transit") && tab.Id != "outbound")
+                                                        {
+                                                            <button class="btn btn-link text-warning p-0 action-icon"
+                                                                    onclick="openAssignModal(this.dataset.tracking, this.dataset.address)"
+                                                                    data-tracking="@item.TrackingId"
+                                                                    data-address="@item.ReceiverAddress"
+                                                                    title="Assign Rider">
+                                                                <i class="bi bi-person-badge-fill"></i>
+                                                            </button>
+                                                        }
                                                     }
                                                     @if (!isInbound && !isOutbound && item.Status.Contains("In Transit"))
                                                     {
@@ -289,6 +332,16 @@
     }
     .minimal-btn:hover {
         background: rgba(255,140,0,0.1);
+        border-color: #ff8c00;
+        color: #ff8c00;
+    }
+    [data-theme="light"] .minimal-btn {
+        background: rgba(0,0,0,0.03);
+        border: 1px solid rgba(0,0,0,0.05);
+        color: #333;
+    }
+    [data-theme="light"] .minimal-btn:hover {
+        background: rgba(255,140,0,0.05);
         border-color: #ff8c00;
         color: #ff8c00;
     }
