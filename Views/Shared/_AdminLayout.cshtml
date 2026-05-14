@@ -231,6 +231,11 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Roles" ? "active" : "")" asp-controller="SuperAdmin" asp-action="Roles">
+                            <i class="bi bi-shield-check mt-1"></i> Roles & Permissions
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Warehouses" ? "active" : "")" asp-controller="SuperAdmin" asp-action="Warehouses">
                             <i class="bi bi-geo-alt-fill mt-1"></i> Hub Locations
                         </a>

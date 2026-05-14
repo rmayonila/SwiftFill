@@ -40,6 +40,102 @@ namespace SwiftFill.Controllers
         public IActionResult AuditLogs() => View();
         public IActionResult DatabaseStats() => View();
 
+        public async Task<IActionResult> Roles(string search)
+        {
+            var rolesQuery = _roleManager.Roles.AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                rolesQuery = rolesQuery.Where(r => r.Name.Contains(search));
+            }
+
+            var roles = await rolesQuery.ToListAsync();
+            var model = new List<RoleWithPermissionsViewModel>();
+
+            foreach (var role in roles)
+            {
+                var claims = await _roleManager.GetClaimsAsync(role);
+                model.Add(new RoleWithPermissionsViewModel
+                {
+                    RoleId = role.Id,
+                    RoleName = role.Name ?? "Unnamed",
+                    Permissions = claims.Where(c => c.Type == "Permission").Select(c => c.Value).ToList()
+                });
+            }
+
+            ViewBag.Search = search;
+            ViewBag.AllPermissions = Permissions.GetAll();
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateRolePermissions(string roleId, List<string> permissions)
+        {
+            var role = await _roleManager.FindByIdAsync(roleId);
+            if (role == null) return NotFound();
+
+            var currentClaims = await _roleManager.GetClaimsAsync(role);
+            var permissionClaims = currentClaims.Where(c => c.Type == "Permission").ToList();
+
+            foreach (var claim in permissionClaims)
+            {
+                await _roleManager.RemoveClaimAsync(role, claim);
+            }
+
+            if (permissions != null)
+            {
+                foreach (var permission in permissions)
+                {
+                    await _roleManager.AddClaimAsync(role, new Claim("Permission", permission));
+                }
+            }
+
+            _audit.Log(User.Identity?.Name ?? "SuperAdmin", "Security", "Role Permissions Updated", 
+                $"Permissions updated for role: {role.Name}. New set: {string.Join(", ", permissions ?? new List<string>())}", AuditLogType.Security);
+
+            TempData["SuccessMessage"] = $"Permissions updated for role '{role.Name}'.";
+            return RedirectToAction(nameof(Roles));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateRole(string roleName)
+        {
+            if (!string.IsNullOrWhiteSpace(roleName))
+            {
+                if (!await _roleManager.RoleExistsAsync(roleName))
+                {
+                    await _roleManager.CreateAsync(new IdentityRole(roleName));
+                    _audit.Log(User.Identity?.Name ?? "SuperAdmin", "Security", "Role Created", $"Created new role: {roleName}", AuditLogType.Security);
+                    TempData["SuccessMessage"] = $"Role '{roleName}' created successfully.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Role already exists.";
+                }
+            }
+            return RedirectToAction(nameof(Roles));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteRole(string roleId)
+        {
+            var role = await _roleManager.FindByIdAsync(roleId);
+            if (role != null)
+            {
+                if (role.Name == "SuperAdmin")
+                {
+                    TempData["ErrorMessage"] = "Cannot delete the SuperAdmin role.";
+                }
+                else
+                {
+                    await _roleManager.DeleteAsync(role);
+                    _audit.Log(User.Identity?.Name ?? "SuperAdmin", "Security", "Role Deleted", $"Deleted role: {role.Name}", AuditLogType.Security);
+                    TempData["SuccessMessage"] = $"Role '{role.Name}' deleted.";
+                }
+            }
+            return RedirectToAction(nameof(Roles));
+        }
+
         public async Task<IActionResult> Users(string search, string role, int page = 1)
         {
             int pageSize = 10;
@@ -84,6 +180,7 @@ namespace SwiftFill.Controllers
             }
 
             ViewBag.AllHubNames = await _context.Warehouses.Where(w => !w.IsArchived).Select(w => w.Name).ToListAsync();
+            ViewBag.AllRoles = await _roleManager.Roles.Select(r => r.Name).ToListAsync();
             
             ViewBag.Search = search;
             ViewBag.Role = role;
@@ -110,26 +207,18 @@ namespace SwiftFill.Controllers
                 };
 
                 var result = await _userManager.CreateAsync(user, model.Password);
+
                 if (result.Succeeded)
                 {
-                    // Explicitly confirm email after creation to ensure it persists correctly
-                    user.EmailConfirmed = true;
-                    await _userManager.UpdateAsync(user);
-
-                    await _userManager.AddToRoleAsync(user, model.Role);
-                    
-                    if (model.Permissions != null)
+                    if (!string.IsNullOrEmpty(model.Role))
                     {
-                        foreach (var perm in model.Permissions)
-                        {
-                            await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim("Permission", perm));
-                        }
+                        await _userManager.AddToRoleAsync(user, model.Role);
                     }
 
-                    _audit.Log(User.Identity?.Name ?? "SuperAdmin", "SuperAdmin", "User Registration", 
-                        $"New user {model.Email} registered as {model.Role}.", AuditLogType.Security);
+                    _audit.Log(User.Identity?.Name ?? "SuperAdmin", "Security", "User Created", 
+                        $"Created user: {user.Email} with role: {model.Role}", AuditLogType.Security);
                     
-                    TempData["SuccessMessage"] = $"User {model.Email} registered successfully.";
+                    TempData["SuccessMessage"] = $"User {user.Email} created successfully with role {model.Role}.";
                     return RedirectToAction(nameof(Users));
                 }
 
@@ -139,17 +228,17 @@ namespace SwiftFill.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateRoles(string userId, string role, List<string> permissions)
+        public async Task<IActionResult> UpdateRoles(string userId, string role)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null) return NotFound();
 
-            // Roles
+            // Update Roles
             var currentRoles = await _userManager.GetRolesAsync(user);
             await _userManager.RemoveFromRolesAsync(user, currentRoles);
             await _userManager.AddToRoleAsync(user, role);
 
-            // Claims (Permissions)
+            // Clear legacy user-level claims to ensure role-based permissions take precedence
             var currentClaims = await _userManager.GetClaimsAsync(user);
             var permissionClaims = currentClaims.Where(c => c.Type == "Permission").ToList();
             foreach (var claim in permissionClaims)
@@ -157,18 +246,10 @@ namespace SwiftFill.Controllers
                 await _userManager.RemoveClaimAsync(user, claim);
             }
 
-            if (permissions != null)
-            {
-                foreach (var perm in permissions)
-                {
-                    await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim("Permission", perm));
-                }
-            }
+            _audit.Log(User.Identity?.Name ?? "SuperAdmin", "Security", "Update Roles", 
+                $"User {user.Email} role updated to: {role}.", AuditLogType.Security);
 
-            _audit.Log(User.Identity?.Name ?? "SuperAdmin", "SuperAdmin", "Update Roles/Claims", 
-                $"User {user.Email} updated: Role={role}, Permissions={string.Join(",", permissions ?? new List<string>())}.", AuditLogType.Security);
-
-            TempData["SuccessMessage"] = $"Permissions updated for {user.Email}.";
+            TempData["SuccessMessage"] = $"Role updated to {role} for {user.Email}. Permissions are now inherited from this role.";
             return RedirectToAction(nameof(Users));
         }
 

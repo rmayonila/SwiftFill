@@ -22,4 +22,11 @@ namespace SwiftFill.Models
         public string PhoneNumber { get; set; } = string.Empty;
         public List<string> Permissions { get; set; } = new List<string>();
     }
+
+    public class RoleWithPermissionsViewModel
+    {
+        public string RoleId { get; set; } = string.Empty;
+        public string RoleName { get; set; } = string.Empty;
+        public List<string> Permissions { get; set; } = new List<string>();
+    }
 }

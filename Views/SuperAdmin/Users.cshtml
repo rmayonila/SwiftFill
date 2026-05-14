@@ -36,10 +36,10 @@
             <form method="get" class="d-flex align-items-center gap-3">
                 <select name="role" class="minimal-input text-primary" style="width: 150px; background: transparent; border: none;" onchange="this.form.submit()">
                     <option value="">All Roles</option>
-                    <option value="Admin" selected="@(ViewBag.Role == "Admin")">Admin</option>
-                    <option value="WarehouseStaff" selected="@(ViewBag.Role == "WarehouseStaff")">Warehouse Staff</option>
-                    <option value="DeliveryRider" selected="@(ViewBag.Role == "DeliveryRider")">Delivery Rider</option>
-                    <option value="SuperAdmin" selected="@(ViewBag.Role == "SuperAdmin")">SuperAdmin</option>
+                    @foreach (var r in (ViewBag.AllRoles as List<string>) ?? new List<string> { "Admin", "WarehouseStaff", "DeliveryRider", "SuperAdmin" })
+                    {
+                        <option value="@r" selected="@(ViewBag.Role == r)">@r</option>
+                    }
                 </select>
             </form>
             <button class="btn btn-warning fw-bold px-4 py-2 shadow-sm d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#registerUserModal" style="border-radius: 8px; color: #000; font-size: 0.85rem;">
@@ -234,10 +234,10 @@
                         <label class="form-label text-secondary small">Assign Primary Role</label>
                         <select name="Role" id="reg_role" class="form-select bg-theme text-primary border-theme shadow-none" onchange="updateDefaultPermissions(this.value)">
                             <option value="">Select Role</option>
-                            <option value="Admin">In-store Manager</option>
-                            <option value="WarehouseStaff">Warehouse Staff Account</option>
-                            <option value="DeliveryRider">Delivery Rider</option>
-                            <option value="Customer">Customer</option>
+                            @foreach (var r in (ViewBag.AllRoles as List<string>) ?? new List<string>())
+                            {
+                                <option value="@r">@r</option>
+                            }
                         </select>
                     </div>
                     <div class="mb-3">
@@ -248,92 +248,6 @@
                                 <option value="@hub">@hub</option>
                             }
                         </select>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label text-secondary small d-block mb-3">Module Access Rights (Granular RBAC)</label>
-                        
-                        <div class="row g-3">
-                            <!-- Shipments -->
-                            <div class="col-md-6">
-                                <div class="p-2 rounded border border-theme bg-theme-soft">
-                                    <div class="text-warning small fw-bold mb-2 text-uppercase" style="font-size:0.65rem;">Shipments</div>
-                                    <div class="d-flex flex-wrap gap-2">
-                                        <div class="form-check small">
-                                            <input class="form-check-input" type="checkbox" name="Permissions" value="@Permissions.Shipments.View" id="p_s_v">
-                                            <label class="form-check-label text-secondary" for="p_s_v">View</label>
-                                        </div>
-                                        <div class="form-check small">
-                                            <input class="form-check-input" type="checkbox" name="Permissions" value="@Permissions.Shipments.Edit" id="p_s_e">
-                                            <label class="form-check-label text-secondary" for="p_s_e">Edit</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Inventory -->
-                            <div class="col-md-6">
-                                <div class="p-2 rounded border border-theme bg-theme-soft">
-                                    <div class="text-info small fw-bold mb-2 text-uppercase" style="font-size:0.65rem;">Inventory</div>
-                                    <div class="d-flex flex-wrap gap-2">
-                                        <div class="form-check small">
-                                            <input class="form-check-input" type="checkbox" name="Permissions" value="@Permissions.Inventory.View" id="p_i_v">
-                                            <label class="form-check-label text-secondary" for="p_i_v">View</label>
-                                        </div>
-                                        <div class="form-check small">
-                                            <input class="form-check-input" type="checkbox" name="Permissions" value="@Permissions.Inventory.Edit" id="p_i_e">
-                                            <label class="form-check-label text-secondary" for="p_i_e">Edit</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Finance -->
-                            <div class="col-md-6">
-                                <div class="p-2 rounded border border-theme bg-theme-soft">
-                                    <div class="text-success small fw-bold mb-2 text-uppercase" style="font-size:0.65rem;">Finance & Billing</div>
-                                    <div class="d-flex flex-wrap gap-2">
-                                        <div class="form-check small">
-                                            <input class="form-check-input" type="checkbox" name="Permissions" value="@Permissions.Finance.View" id="p_f_v">
-                                            <label class="form-check-label text-secondary" for="p_f_v">View</label>
-                                        </div>
-                                        <div class="form-check small">
-                                            <input class="form-check-input" type="checkbox" name="Permissions" value="@Permissions.Finance.Edit" id="p_f_e">
-                                            <label class="form-check-label text-secondary" for="p_f_e">Edit</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Delivery -->
-                            <div class="col-md-6">
-                                <div class="p-2 rounded border border-theme bg-theme-soft">
-                                    <div class="text-primary small fw-bold mb-2 text-uppercase" style="font-size:0.65rem;">Delivery Operations</div>
-                                    <div class="d-flex flex-wrap gap-2">
-                                        <div class="form-check small">
-                                            <input class="form-check-input" type="checkbox" name="Permissions" value="@Permissions.Delivery.View" id="p_d_v">
-                                            <label class="form-check-label text-secondary" for="p_d_v">View</label>
-                                        </div>
-                                        <div class="form-check small">
-                                            <input class="form-check-input" type="checkbox" name="Permissions" value="@Permissions.Delivery.Edit" id="p_d_e">
-                                            <label class="form-check-label text-secondary" for="p_d_e">Edit</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Settings -->
-                            <div class="col-md-6">
-                                <div class="p-2 rounded border border-theme bg-theme-soft">
-                                    <div class="text-danger small fw-bold mb-2 text-uppercase" style="font-size:0.65rem;">System Admin</div>
-                                    <div class="d-flex flex-wrap gap-2">
-                                        <div class="form-check small">
-                                            <input class="form-check-input" type="checkbox" name="Permissions" value="@Permissions.Users.Edit" id="p_u_e">
-                                            <label class="form-check-label text-secondary" for="p_u_e">Users</label>
-                                        </div>
-                                        <div class="form-check small">
-                                            <input class="form-check-input" type="checkbox" name="Permissions" value="@Permissions.Hubs.Edit" id="p_h_e">
-                                            <label class="form-check-label text-secondary" for="p_h_e">Hubs</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
                 <div class="modal-footer border-theme">
@@ -364,96 +278,11 @@
                     <div class="text-start px-4">
                         <label class="form-label text-secondary small">Primary Role</label>
                         <select name="role" id="manage_role" class="form-select bg-theme border-theme text-primary mb-3">
-                            <option value="SuperAdmin">SuperAdmin</option>
-                            <option value="Admin">In-store Manager</option>
-                            <option value="WarehouseStaff">Warehouse Staff Account</option>
-                            <option value="DeliveryRider">Delivery Rider</option>
-                            <option value="Customer">Customer</option>
+                            @foreach (var r in (ViewBag.AllRoles as List<string>) ?? new List<string>())
+                            {
+                                <option value="@r">@r</option>
+                            }
                         </select>
-
-                        <label class="form-label text-secondary small d-block mb-3">Module Access Rights (Granular RBAC)</label>
-                        <div class="row g-3">
-                            <!-- Shipments -->
-                            <div class="col-md-6">
-                                <div class="p-2 rounded border border-theme bg-theme-soft">
-                                    <div class="text-warning small fw-bold mb-2 text-uppercase" style="font-size:0.65rem;">Shipments</div>
-                                    <div class="d-flex flex-wrap gap-2">
-                                        <div class="form-check small">
-                                            <input class="form-check-input" type="checkbox" name="permissions" value="@Permissions.Shipments.View" id="e_s_v">
-                                            <label class="form-check-label text-secondary" for="e_s_v">View</label>
-                                        </div>
-                                        <div class="form-check small">
-                                            <input class="form-check-input" type="checkbox" name="permissions" value="@Permissions.Shipments.Edit" id="e_s_e">
-                                            <label class="form-check-label text-secondary" for="e_s_e">Edit</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Inventory -->
-                            <div class="col-md-6">
-                                <div class="p-2 rounded border border-theme bg-theme-soft">
-                                    <div class="text-info small fw-bold mb-2 text-uppercase" style="font-size:0.65rem;">Inventory</div>
-                                    <div class="d-flex flex-wrap gap-2">
-                                        <div class="form-check small">
-                                            <input class="form-check-input" type="checkbox" name="permissions" value="@Permissions.Inventory.View" id="e_i_v">
-                                            <label class="form-check-label text-secondary" for="e_i_v">View</label>
-                                        </div>
-                                        <div class="form-check small">
-                                            <input class="form-check-input" type="checkbox" name="permissions" value="@Permissions.Inventory.Edit" id="e_i_e">
-                                            <label class="form-check-label text-secondary" for="e_i_e">Edit</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Finance -->
-                            <div class="col-md-6">
-                                <div class="p-2 rounded border border-theme bg-theme-soft">
-                                    <div class="text-success small fw-bold mb-2 text-uppercase" style="font-size:0.65rem;">Finance</div>
-                                    <div class="d-flex flex-wrap gap-2">
-                                        <div class="form-check small">
-                                            <input class="form-check-input" type="checkbox" name="permissions" value="@Permissions.Finance.View" id="e_f_v">
-                                            <label class="form-check-label text-secondary" for="e_f_v">View</label>
-                                        </div>
-                                        <div class="form-check small">
-                                            <input class="form-check-input" type="checkbox" name="permissions" value="@Permissions.Finance.Edit" id="e_f_e">
-                                            <label class="form-check-label text-secondary" for="e_f_e">Edit</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Delivery -->
-                            <div class="col-md-6">
-                                <div class="p-2 rounded border border-theme bg-theme-soft">
-                                    <div class="text-primary small fw-bold mb-2 text-uppercase" style="font-size:0.65rem;">Delivery Operations</div>
-                                    <div class="d-flex flex-wrap gap-2">
-                                        <div class="form-check small">
-                                            <input class="form-check-input" type="checkbox" name="permissions" value="@Permissions.Delivery.View" id="e_d_v">
-                                            <label class="form-check-label text-secondary" for="e_d_v">View</label>
-                                        </div>
-                                        <div class="form-check small">
-                                            <input class="form-check-input" type="checkbox" name="permissions" value="@Permissions.Delivery.Edit" id="e_d_e">
-                                            <label class="form-check-label text-secondary" for="e_d_e">Edit</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Admin -->
-                            <div class="col-md-6">
-                                <div class="p-2 rounded border border-theme bg-theme-soft">
-                                    <div class="text-danger small fw-bold mb-2 text-uppercase" style="font-size:0.65rem;">System</div>
-                                    <div class="d-flex flex-wrap gap-2">
-                                        <div class="form-check small">
-                                            <input class="form-check-input" type="checkbox" name="permissions" value="@Permissions.Users.Edit" id="e_u_e">
-                                            <label class="form-check-label text-secondary" for="e_u_e">Users</label>
-                                        </div>
-                                        <div class="form-check small">
-                                            <input class="form-check-input" type="checkbox" name="permissions" value="@Permissions.Hubs.Edit" id="e_h_e">
-                                            <label class="form-check-label text-secondary" for="e_h_e">Hubs</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
                 <div class="modal-footer border-theme">
@@ -577,17 +406,6 @@
         document.getElementById('manage_userName').textContent = name;
         document.getElementById('manage_role').value = role;
         document.getElementById('manage_hubDisplay').textContent = hub || 'None';
-        
-        // Reset all granular checkboxes
-        const perms = claims.split(',');
-        const checkboxIds = ['e_s_v', 'e_s_e', 'e_i_v', 'e_i_e', 'e_f_v', 'e_f_e', 'e_u_e', 'e_h_e', 'e_d_v', 'e_d_e'];
-        
-        checkboxIds.forEach(id => {
-            const checkbox = document.getElementById(id);
-            if (checkbox) {
-                checkbox.checked = perms.includes(checkbox.value);
-            }
-        });
         
         new bootstrap.Modal(document.getElementById('manageRolesModal')).show();
     }
