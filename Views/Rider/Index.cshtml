@@ -3,7 +3,10 @@
 @{
     ViewData["Title"] = "My Route";
     Layout = "_RiderLayout";
-    var jawgToken = Configuration["JAWG_ACCESS_TOKEN"] ?? "";
+   var jawgToken = Configuration["JAWG_ACCESS_TOKEN"] 
+                 ?? Configuration["JawgSettings:AccessToken"] 
+                 ?? Configuration["JawgSettings__AccessToken"] 
+                 ?? "";
 }
 
 <!-- Leaflet CSS/JS for Jawg Maps -->
@@ -293,9 +296,14 @@
                             </span>
                         </td>
                         <td>
-                            <a href="tel:@order.ReceiverPhone" class="btn btn-sm btn-theme-adaptive p-2 rounded-3 shadow-sm">
-                                <i class="bi bi-telephone-fill text-success"></i>
-                            </a>
+                            <div class="d-flex gap-1">
+                                <a href="tel:@order.ReceiverPhone" class="btn btn-sm btn-theme-adaptive p-2 rounded-3 shadow-sm" title="Call Receiver (@order.ReceiverPhone)">
+                                    <i class="bi bi-telephone-fill text-success"></i>
+                                </a>
+                                <a href="https://wa.me/@(order.ReceiverPhone.StartsWith("0") ? "63" + order.ReceiverPhone.Substring(1) : order.ReceiverPhone)" target="_blank" class="btn btn-sm btn-theme-adaptive p-2 rounded-3 shadow-sm" title="Message Receiver">
+                                    <i class="bi bi-whatsapp text-success"></i>
+                                </a>
+                            </div>
                         </td>
                         <td>
                             <button class="btn btn-sm btn-theme-adaptive p-2 rounded-3 shadow-sm" onclick="showMapModal('@order.ReceiverAddress', '@order.ReceiverName')">
@@ -394,8 +402,11 @@
 
                     <div class="d-flex justify-content-between align-items-center mb-3 bg-nav bg-opacity-10 p-2 rounded-3 border border-secondary border-opacity-10">
                         <div class="d-flex gap-2">
-                            <a href="tel:@order.ReceiverPhone" class="btn btn-theme-adaptive rounded-3 shadow-sm">
+                            <a href="tel:@order.ReceiverPhone" class="btn btn-theme-adaptive rounded-3 shadow-sm" title="Call">
                                 <i class="bi bi-telephone-fill text-success"></i>
+                            </a>
+                            <a href="https://wa.me/@(order.ReceiverPhone.StartsWith("0") ? "63" + order.ReceiverPhone.Substring(1) : order.ReceiverPhone)" target="_blank" class="btn btn-theme-adaptive rounded-3 shadow-sm" title="Message">
+                                <i class="bi bi-whatsapp text-success"></i>
                             </a>
                             <button class="btn btn-theme-adaptive rounded-3 shadow-sm" onclick="showMapModal('@order.ReceiverAddress', '@order.ReceiverName')">
                                 <i class="bi bi-cursor-fill text-orange"></i>

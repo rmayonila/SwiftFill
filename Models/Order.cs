@@ -35,6 +35,10 @@ namespace SwiftFill.Models
         public ShippingRate? ShippingRate { get; set; }
         
         public string? ItemCategory { get; set; }
+        
+        public int? ItemCategoryId { get; set; }
+        public ItemCategory? CategoryNavigation { get; set; }
+        
         public double DeclaredValue { get; set; }
 
         public string Status { get; set; } = "Pending"; 

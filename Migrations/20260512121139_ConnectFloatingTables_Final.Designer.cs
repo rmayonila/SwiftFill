@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SwiftFill.Data;
 
@@ -11,9 +12,11 @@ using SwiftFill.Data;
 namespace SwiftFill.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260512121139_ConnectFloatingTables_Final")]
+    partial class ConnectFloatingTables_Final
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -52,35 +55,35 @@ namespace SwiftFill.Migrations
                         new
                         {
                             Id = "1",
-                            ConcurrencyStamp = "1",
+                            ConcurrencyStamp = "202c8eaa-89cf-449e-b780-21dc1712a841",
                             Name = "SuperAdmin",
                             NormalizedName = "SUPERADMIN"
                         },
                         new
                         {
                             Id = "2",
-                            ConcurrencyStamp = "2",
+                            ConcurrencyStamp = "1a19320a-e449-4a14-a67a-1cacb9173217",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
                             Id = "3",
-                            ConcurrencyStamp = "3",
+                            ConcurrencyStamp = "ef2245cd-74cc-4bc9-87db-14be8f27f7fe",
                             Name = "WarehouseStaff",
                             NormalizedName = "WAREHOUSESTAFF"
                         },
                         new
                         {
                             Id = "4",
-                            ConcurrencyStamp = "4",
+                            ConcurrencyStamp = "1b136d30-abd3-439c-8856-f33ed124b070",
                             Name = "DeliveryRider",
                             NormalizedName = "DELIVERYRIDER"
                         },
                         new
                         {
                             Id = "5",
-                            ConcurrencyStamp = "5",
+                            ConcurrencyStamp = "4163f6dd-3ec4-44a0-b3fd-b86586130e80",
                             Name = "Customer",
                             NormalizedName = "CUSTOMER"
                         });

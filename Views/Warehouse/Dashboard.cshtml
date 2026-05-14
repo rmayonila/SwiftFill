@@ -14,7 +14,7 @@
     </div>
 
     <div class="row g-4 mb-5">
-        <div class="col-6 col-md-@(currentHub == "Davao Hub" ? "3" : "4")">
+        <div class="col-6 col-md-3">
             <a asp-action="HubTransfers" class="text-decoration-none h-100 d-block hover-scale">
                 <div class="glass-card active-border-orange p-4 h-100 d-flex justify-content-between align-items-center">
                     <div>
@@ -25,7 +25,7 @@
                 </div>
             </a>
         </div>
-        <div class="col-6 col-md-@(currentHub == "Davao Hub" ? "3" : "4")">
+        <div class="col-6 col-md-3">
             <a asp-action="HubTransfers" class="text-decoration-none h-100 d-block hover-scale">
                 <div class="glass-card p-4 h-100 d-flex justify-content-between align-items-center">
                     <div>
@@ -36,21 +36,18 @@
                 </div>
             </a>
         </div>
-        @if (currentHub == "Davao Hub")
-        {
-            <div class="col-6 col-md-3">
-                <a asp-action="PackingLine" class="text-decoration-none h-100 d-block hover-scale">
-                    <div class="glass-card p-4 h-100 d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="stat-label text-info fw-bold">SORTING</div>
-                            <div class="stat-subtitle mt-1">In Packing Line</div>
-                        </div>
-                        <div class="stat-value text-primary display-6 fw-bold mb-0">@Model.PendingPickOrders.Count</div>
+        <div class="col-6 col-md-3">
+            <a asp-action="PackingLine" class="text-decoration-none h-100 d-block hover-scale">
+                <div class="glass-card p-4 h-100 d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-label text-info fw-bold">SORTING</div>
+                        <div class="stat-subtitle mt-1">In Packing Line</div>
                     </div>
-                </a>
-            </div>
-        }
-        <div class="col-6 col-md-@(currentHub == "Davao Hub" ? "3" : "4")">
+                    <div class="stat-value text-primary display-6 fw-bold mb-0">@Model.PendingPickOrders.Count</div>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
             <a asp-action="HubTransfers" class="text-decoration-none h-100 d-block hover-scale">
                 <div class="glass-card p-4 h-100 d-flex justify-content-between align-items-center">
                     <div>
@@ -123,7 +120,7 @@
             <tbody>
                 @foreach (var item in Model.RecentShipments.Take(8))
                 {
-                    var destHub = HubRegistry.ResolveDestinationHub(item.DestinationRegion);
+                    var destHub = HubRegistry.ResolveDestinationHub(item.DestinationRegion, item.ReceiverAddress);
                     string targetAction = "WarehouseQueue";
                     string targetController = "Warehouse";
                     

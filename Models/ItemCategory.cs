@@ -18,5 +18,7 @@ namespace SwiftFill.Models
         public bool IsArchived { get; set; } = false;
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public ICollection<Order> Orders { get; set; } = new List<Order>();
     }
 }

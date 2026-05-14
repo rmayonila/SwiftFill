@@ -12,6 +12,9 @@
             <p class="text-secondary mt-1">Configure your company's visual identity across the SwiftFill ERP.</p>
         </div>
         <div class="d-flex gap-2">
+            <button type="button" class="btn btn-theme border-theme text-secondary px-4 py-2 fw-bold" style="border-radius:10px;" onclick="resetToOriginal()">
+                <i class="bi bi-arrow-counterclockwise me-2"></i>Reset to Original
+            </button>
             <button type="button" class="btn btn-theme border-theme text-secondary px-4 py-2 fw-bold" style="border-radius:10px;" onclick="exportLogo()">
                 <i class="bi bi-download me-2"></i>Export Logo
             </button>
@@ -90,7 +93,7 @@
                     <div class="card-body p-4">
                         <div class="row g-3 mb-4">
                             <div class="col-12">
-                                <label class="form-label text-secondary small">Primary Accent Color</label>
+                                <label class="form-label text-secondary small">Primary Accent Color (Box)</label>
                                 <div class="d-flex align-items-center gap-3">
                                     <input type="color" asp-for="PrimaryColor" id="primaryColor" class="form-control form-control-color bg-transparent border-secondary shadow-none" 
                                            style="width:50px;height:42px;" oninput="updatePreview()">
@@ -98,7 +101,7 @@
                                 </div>
                             </div>
                             <div class="col-12">
-                                <label class="form-label text-secondary small">Background / Secondary Color</label>
+                                <label class="form-label text-secondary small">Secondary Color (Arrow Only)</label>
                                 <div class="d-flex align-items-center gap-3">
                                     <input type="color" asp-for="BackgroundColor" id="bgColor" class="form-control form-control-color bg-transparent border-secondary shadow-none" 
                                            style="width:50px;height:42px;" oninput="updatePreview()">
@@ -113,14 +116,7 @@
                                     <span class="text-primary fw-bold">Text Color</span>
                                 </div>
                             </div>
-                            <div class="col-12">
-                                <label class="form-label text-secondary small">Sidebar Accent Color</label>
-                                <div class="d-flex align-items-center gap-3">
-                                    <input type="color" asp-for="SidebarColor" id="sidebarColor" class="form-control form-control-color bg-transparent border-secondary shadow-none" 
-                                           style="width:50px;height:42px;" oninput="updatePreview()">
-                                    <span class="text-primary fw-bold">Sidebar BG</span>
-                                </div>
-                            </div>
+
                         </div>
 
                         <!-- Theme toggles -->
@@ -181,33 +177,62 @@
 
         logoImg.style.height = logoSize + 'px';
         
-        // Tint the logo using Canvas for maximum reliability
+        // Highly Responsive Pixel Detection Engine
         var tempImg = new Image();
         tempImg.crossOrigin = "anonymous";
-        tempImg.src = '@(string.IsNullOrEmpty(Model.LogoUrl) ? "/images/logo.png" : Model.LogoUrl)';
+        
+        var currentSrc = logoImg.getAttribute('data-original-src') || logoImg.src;
+        if (!currentSrc.startsWith('data:')) {
+            logoImg.setAttribute('data-original-src', currentSrc);
+        }
+        
+        tempImg.src = logoImg.getAttribute('data-original-src');
         tempImg.onload = function() {
             var canvas = document.createElement('canvas');
             var ctx = canvas.getContext('2d');
             canvas.width = tempImg.width;
             canvas.height = tempImg.height;
             
-            // Draw original
             ctx.drawImage(tempImg, 0, 0);
+            var imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            var data = imgData.data;
             
-            // Tint while preserving 3D depth (luminosity)
-            ctx.globalCompositeOperation = 'color';
-            ctx.fillStyle = primary;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            function hexToRgb(hex) {
+                var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : { r: 255, g: 140, b: 0 };
+            }
             
-            // Add a subtle multiply layer for richer tones if color is dark
-            ctx.globalCompositeOperation = 'multiply';
-            ctx.fillStyle = primary;
-            ctx.globalAlpha = 0.2;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.globalAlpha = 1.0;
+            var p = hexToRgb(primary);
+            var s = hexToRgb(bg);
             
-            logoImg.src = canvas.toDataURL();
-            document.getElementById('tintedLogoInput').value = logoImg.src;
+            for (var i = 0; i < data.length; i += 4) {
+                var r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
+                if (a < 5) continue;
+
+                // Relative Dominance Detection
+                var isRedDominant  = (r > g * 1.1 && r > b * 1.1); // Typically the Box
+                var isBlueDominant = (b > r * 1.1 && b > g * 0.9); // Typically the Arrow
+                var isVeryBright   = (r > 220 && g > 220 && b > 220); // Highlights
+                
+                var lum = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+                
+                if (isVeryBright) continue; // Preserve "white like line line like shadow shadow"
+
+                if (isRedDominant) {
+                    data[i]     = p.r * (lum * 1.3);
+                    data[i+1]   = p.g * (lum * 1.3);
+                    data[i+2]   = p.b * (lum * 1.3);
+                } else if (isBlueDominant) {
+                    data[i]     = s.r * (lum * 1.3);
+                    data[i+1]   = s.g * (lum * 1.3);
+                    data[i+2]   = s.b * (lum * 1.3);
+                }
+            }
+            
+            ctx.putImageData(imgData, 0, 0);
+            var tintedData = canvas.toDataURL();
+            logoImg.src = tintedData;
+            document.getElementById('tintedLogoInput').value = tintedData;
         };
 
         logoTextEl.style.fontSize = fontSize + 'rem';
@@ -253,10 +278,48 @@
         reader.onload = function(e) {
             var el = document.getElementById('logoImgPreview');
             el.src = e.target.result;
+            el.setAttribute('data-original-src', e.target.result);
             // Wait for image to load then re-tint
             setTimeout(updatePreview, 100);
         };
         reader.readAsDataURL(input.files[0]);
+    }
+
+    function resetToOriginal() {
+        if (!confirm("Are you sure you want to revert all branding to the original SwiftFill defaults?")) return;
+        
+        // Reset Inputs
+        document.getElementById('logoText').value = "SwiftFill";
+        document.getElementById('logoSize').value = 60;
+        document.getElementById('brandFontSize').value = 1.4;
+        document.getElementById('primaryColor').value = "#ff8c00";
+        document.getElementById('bgColor').value = "#0066ff";
+        document.getElementById('brandNameColor').value = "#ffffff";
+        document.getElementById('darkModeSwitch').checked = true;
+        document.getElementById('glassSwitch').checked = true;
+        
+        // Clear File Input
+        document.getElementById('logoUpload').value = "";
+        
+        // Reset Logo Image
+        var logoImg = document.getElementById('logoImgPreview');
+        logoImg.src = "/images/logo.png";
+        logoImg.setAttribute('data-original-src', "/images/logo.png");
+        
+        // Reset Layout to 'row'
+        currentLayout = 'row';
+        document.querySelectorAll('.layout-btn').forEach(b => {
+            b.classList.remove('active-layout');
+            if (b.innerText.includes("Side by Side")) b.classList.add('active-layout');
+        });
+        
+        // Sync & Update
+        updatePreview();
+        
+        // Auto-submit to apply to all dashboards immediately
+        setTimeout(function() {
+            document.getElementById('brandingForm').submit();
+        }, 500);
     }
 
     function exportLogo() {

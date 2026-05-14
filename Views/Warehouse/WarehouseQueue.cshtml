@@ -8,21 +8,20 @@
 
 <div class="animate-fade-up">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-boxes text-orange me-2"></i> Warehouse Queue</h2>
+        <h2 class="fw-bold fs-3 mt-2 mb-0 text-primary"><i class="bi bi-boxes text-orange me-2"></i> Warehouse Queue</h2>
         <div class="text-secondary small">Hub: <span class="text-orange fw-bold">@currentHub</span></div>
     </div>
 
     <!-- Integrated Filter Bar -->
-    <div class="d-flex justify-content-between align-items-center mb-4 gap-3 bg-dark-soft p-2 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center mb-4 gap-3 bg-theme-soft p-2 rounded-3" style="border: 1px solid var(--border-color);">
         <div class="d-flex align-items-center flex-grow-1 gap-3">
-            <form method="get" class="d-flex align-items-center flex-grow-1 gap-2">
+            <form method="get" class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center flex-grow-1 gap-2">
                 <div class="search-wrapper flex-grow-1" style="max-width: 400px; position: relative;">
-                    <i class="bi bi-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #6c757d;"></i>
+                    <i class="bi bi-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
                     <input type="text" name="search" value="@ViewBag.Search" class="minimal-input w-100" 
-                           style="background: #111; border: 1px solid #222; border-radius: 8px; padding: 10px 15px 10px 40px; color: #fff; outline: none;"
                            placeholder="Search Tracking ID, Receiver...">
                 </div>
-                <select name="status" class="minimal-input" style="background: #111; border: 1px solid #222; border-radius: 8px; padding: 10px; color: #fff; outline: none; min-width: 150px;" onchange="this.form.submit()">
+                <select name="status" class="minimal-input" style="min-width: 150px;" onchange="this.form.submit()">
                     <option value="">All Stages</option>
                     <option value="Packed in Warehouse" selected='@(Context.Request.Query["status"] == "Packed in Warehouse")'>Packed</option>
                     <option value="Sorted for Transfer" selected='@(Context.Request.Query["status"] == "Sorted for Transfer")'>Sorted</option>
@@ -37,7 +36,7 @@
         </div>
     </div>
 
-    <div class="glass-card p-0 overflow-hidden" style="background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.05);">
+    <div class="glass-card p-0 overflow-hidden" style="border: 1px solid var(--border-color);">
         <div class="table-responsive">
             <table class="table table-dark table-hover mb-0">
                 <thead style="background: rgba(255,140,0,0.03);">
@@ -51,7 +50,7 @@
                 <tbody>
                     @foreach (var item in Model)
                     {
-                        var destHub = HubRegistry.ResolveDestinationHub(item.DestinationRegion);
+                        var destHub = HubRegistry.ResolveDestinationHub(item.DestinationRegion, item.ReceiverAddress);
                         var isFinalDest = destHub == currentHub;
                         var isSorted = item.Status == "Sorted for Transfer";
                         var isAssigned = item.AssignedRiderId != null || item.ManualRiderId != null;
@@ -61,7 +60,7 @@
                         <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
                             <td class="ps-4 py-3">
                                 <code class="text-orange fw-bold d-block">#@item.TrackingId</code>
-                                <div class="text-white small">@item.ReceiverName</div>
+                                <div class="text-primary small">@item.ReceiverName</div>
                                 <div class="text-secondary x-small"><i class="bi bi-geo-alt me-1"></i>@item.ReceiverAddress</div>
                                 
                                 @if (item.Status == "Returning to Sender" || item.Status == "Returned" || item.Status.Contains("back to"))
@@ -70,14 +69,32 @@
                                         <div class="text-info x-small fw-bold">
                                             <i class="bi bi-arrow-return-left me-1"></i>Return to Sender:
                                         </div>
-                                        <div class="text-white x-small">@item.SenderName</div>
+                                        <div class="text-primary x-small">@item.SenderName</div>
                                         <div class="text-secondary x-small" style="font-size: 0.65rem;">@item.SenderAddress</div>
                                     </div>
                                 }
                             </td>
                             <td class="py-3">
-                                <div class="text-white small">@item.DestinationRegion Hub</div>
+                                <div class="text-primary small">@item.DestinationRegion Hub</div>
                                 <div class="text-secondary x-small">@item.Weight kg | @(item.ItemCategory ?? "General")</div>
+                                <div class="d-flex gap-1 mt-1 flex-wrap">
+                                    <span class="badge border bg-transparent x-small px-2 @(item.DeliveryType == "BranchPickup" ? "border-info text-info" : "border-warning text-warning")">
+                                        <i class="bi @(item.DeliveryType == "BranchPickup" ? "bi-building" : "bi-truck") me-1"></i>
+                                        @(item.DeliveryType == "BranchPickup" ? "Pick Up" : "D2D")
+                                    </span>
+
+                                    @if (item.Payment != null)
+                                    {
+                                        var pMethod = (item.Payment.Method ?? "Unspecified").Split('(')[0].Trim();
+                                        var pClass = item.Payment.IsPaid ? "border-success text-success" : "border-theme text-orange";
+                                        var pText = item.Payment.IsPaid ? "PAID" : pMethod;
+                                        
+                                        <span class="badge border bg-transparent x-small px-2 @pClass">
+                                            <i class="bi bi-cash-stack me-1"></i>
+                                            @pText
+                                        </span>
+                                    }
+                                </div>
                                 @if (item.IsFragile)
                                 {
                                     <span class="badge border border-warning text-warning mt-1" style="font-size: 0.6rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>FRAGILE</span>
@@ -112,31 +129,28 @@
                                             var targetAddress = isRTSAtOrigin ? item.SenderAddress : item.ReceiverAddress;
                                         }
 
-                                        @if (currentHub == "Davao Hub")
+                                        @if (item.OriginHub == currentHub && item.Status != "Returning to Sender" && item.Status != "Returned" && (item.Status.Contains("Packed") || destHub != currentHub))
                                         {
-                                            @if (item.Status == "Returning to Sender" || item.Status == "Returned")
-                                            {
-                                                <button class="btn btn-link text-warning p-0 action-icon"
-                                                        onclick="openAssignModal(this.dataset.tracking, this.dataset.address)"
-                                                        data-tracking="@item.TrackingId"
-                                                        data-address="@targetAddress"
-                                                        title="Assign Rider">
-                                                    <i class="bi bi-person-badge-fill"></i>
-                                                </button>
-                                            }
-                                            else
-                                            {
-                                                <button class="btn btn-link text-info p-0 action-icon d-flex flex-column align-items-center text-decoration-none"
-                                                        onclick="openLogisticsModal('@item.TrackingId', '@item.Status', '@destHub', true, false, 'false')"
-                                                        title="Sort Order">
-                                                    <i class="bi bi-shuffle" style="font-size: 1.2rem;"></i>
-                                                    <span style="font-size: 0.65rem; font-weight: 800;">SORT</span>
-                                                </button>
-                                            }
+                                            <button class="btn btn-link text-info p-0 action-icon d-flex flex-column align-items-center text-decoration-none"
+                                                    onclick="openLogisticsModal('@item.TrackingId', '@item.Status', '@destHub', true, false, 'false')"
+                                                    title="Sort Order">
+                                                <i class="bi bi-shuffle" style="font-size: 1.2rem;"></i>
+                                                <span style="font-size: 0.65rem; font-weight: 800;">SORT</span>
+                                            </button>
                                         }
                                         else
                                         {
-                                            @if (isFinalDest || item.Status == "Returning to Sender" || item.Status == "Returned")
+                                            @if (item.DeliveryType == "BranchPickup" && destHub == currentHub && item.Status != "Returning to Sender")
+                                            {
+                                                <form asp-action="MarkForPickUp" method="post" class="d-inline">
+                                                    <input type="hidden" name="trackingId" value="@item.TrackingId" />
+                                                    <button type="submit" class="btn btn-link text-info p-0 action-icon d-flex flex-column align-items-center text-decoration-none" title="Deliver to Branch Store">
+                                                        <i class="bi bi-shop" style="font-size: 1.2rem;"></i>
+                                                        <span style="font-size: 0.65rem; font-weight: 800;">STORE</span>
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
                                             {
                                                 <button class="btn btn-link text-warning p-0 action-icon"
                                                         onclick="openAssignModal(this.dataset.tracking, this.dataset.address)"
@@ -146,25 +160,16 @@
                                                     <i class="bi bi-person-badge-fill"></i>
                                                 </button>
                                             }
-                                            else
-                                            {
-                                                <button class="btn btn-link text-info p-0 action-icon d-flex flex-column align-items-center text-decoration-none"
-                                                        onclick="openLogisticsModal('@item.TrackingId', '@item.Status', '@destHub', true, false, 'false')"
-                                                        title="Sort Order">
-                                                    <i class="bi bi-shuffle" style="font-size: 1.2rem;"></i>
-                                                    <span style="font-size: 0.65rem; font-weight: 800;">SORT</span>
-                                                </button>
-                                            }
+                                        }
 
-                                            @if (item.Status == "Returning to Sender" && item.CurrentLocation == item.OriginHub)
-                                            {
-                                                <form asp-action="MarkForPickUp" method="post" class="d-inline">
-                                                    <input type="hidden" name="trackingId" value="@item.TrackingId" />
-                                                    <button type="submit" class="btn btn-link text-info p-0 action-icon" title="Branch Pick Up">
-                                                        <i class="bi bi-shop"></i>
-                                                    </button>
-                                                </form>
-                                            }
+                                        @if (item.Status == "Returning to Sender" && item.CurrentLocation == item.OriginHub)
+                                        {
+                                            <form asp-action="MarkForPickUp" method="post" class="d-inline">
+                                                <input type="hidden" name="trackingId" value="@item.TrackingId" />
+                                                <button type="submit" class="btn btn-link text-info p-0 action-icon" title="Branch Pick Up">
+                                                    <i class="bi bi-shop"></i>
+                                                </button>
+                                            </form>
                                         }
                                     </div>
                                 </div>
@@ -275,7 +280,7 @@
     .action-icon { font-size: 1.25rem; transition: transform 0.2s; }
     .action-icon:hover { transform: scale(1.2); }
     .square-modal .modal-content {
-        background: #0f0f0f;
+        background: var(--modal-bg);
         border: 1px solid rgba(255,140,0,0.2) !important;
         border-radius: 20px;
         max-width: 320px;
@@ -319,9 +324,9 @@
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
                         <div class="text-secondary x-small text-uppercase ls-1">Parcel Control</div>
-                        <div class="fw-bold text-white fs-5" id="logTrackingId">#—</div>
+                        <div class="fw-bold fs-5" id="logTrackingId" style="color: var(--text-primary);">#—</div>
                     </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
                 <div id="logSortSection" class="mb-2">
@@ -364,9 +369,9 @@
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
                         <div class="text-secondary x-small text-uppercase ls-1">Assign Delivery</div>
-                        <div class="fw-bold text-white fs-5" id="assignTrackingId">#—</div>
+                        <div class="fw-bold fs-5" id="assignTrackingId" style="color: var(--text-primary);">#—</div>
                     </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
                 <form asp-action="AssignRider" method="post" id="assignRiderForm">

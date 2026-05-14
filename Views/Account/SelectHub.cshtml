@@ -197,7 +197,7 @@
         <div class="info-footer">
             <i class="bi bi-info-circle me-1"></i>
             Don't have a code? Contact your Super Admin. &nbsp;·&nbsp;
-            <a href="/Account/Logout" style="color: rgba(255,255,255,0.3); text-decoration:none;">Sign Out</a>
+            <a href="javascript:void(0)" style="color: rgba(255,255,255,0.3); text-decoration:none;" data-bs-toggle="modal" data-bs-target="#logoutConfirmationModal">Sign Out</a>
         </div>
     </div>
     <script>
@@ -205,5 +205,24 @@
         const inp = document.getElementById('codeInput');
         inp.addEventListener('input', () => { inp.value = inp.value.toUpperCase(); });
     </script>
+
+    <!-- Logout Confirmation Modal -->
+    <div class="modal fade" id="logoutConfirmationModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+            <div class="modal-content border-0 shadow-lg" style="background: rgba(18, 22, 30, 0.98); border-radius: 16px; border: 1px solid rgba(255, 140, 0, 0.2) !important;">
+                <div class="modal-body text-center p-4">
+                    <div class="display-4 text-danger mb-3"><i class="bi bi-box-arrow-right"></i></div>
+                    <h5 class="text-primary fw-bold mb-2" style="color: #ff8c00 !important;">Sign Out?</h5>
+                    <p class="text-secondary small mb-4" style="color: rgba(255,255,255,0.6) !important;">Are you sure you want to log out of SwiftFill?</p>
+                    <form method="post" action="/Account/Logout">
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-dark flex-fill" data-bs-dismiss="modal" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff;">Cancel</button>
+                            <button type="submit" class="btn btn-danger flex-fill fw-bold" style="background: #dc3545; border: none; color: #fff;">Yes, Logout</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

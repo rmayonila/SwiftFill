@@ -67,7 +67,7 @@ namespace SwiftFill.Controllers
                              o.CurrentLocation == currentHub &&
                              (o.Status == "Packed in Warehouse" || 
                               o.Status == "Packed in Store" ||
-                              (currentHub != "Davao Hub" && o.Status == "Sorted for Transfer") || 
+                              (o.Status == "Picked" && !o.AvailPacking) ||
                               o.Status == "Out for Delivery" ||
                               o.Status.StartsWith("Arrived at") ||
                               o.Status == "Returning to Sender"))
@@ -115,8 +115,8 @@ namespace SwiftFill.Controllers
             int pageSize = 10;
             var currentHub = GetCurrentHub();
             var query = _context.Orders
-                .Where(o => o.CurrentLocation == currentHub &&
-                             (o.Status == "Pending" || o.Status == "Picked" || o.Status == "Sent to Warehouse Packing" || (currentHub != "Davao Hub" && o.Status == "Packed in Store")) &&
+                .Where(o => o.OriginHub == currentHub &&
+                             (o.Status == "Pending" || (o.Status == "Picked" && o.AvailPacking) || o.Status == "Sent to Warehouse Packing" || (currentHub != "Davao Hub" && o.Status == "Packed in Store")) &&
                              !o.IsArchived)
                 .AsQueryable();
 
@@ -233,7 +233,7 @@ namespace SwiftFill.Controllers
             if (order != null && order.CurrentLocation == currentHub)
             {
                 // If it was already packed in store, picking it in warehouse marks it as "Received/Packed" in WH system
-                if (order.Status == "Packed in Store")
+                if (order.Status == "Packed in Store" || !order.AvailPacking)
                 {
                     order.Status = "Packed in Warehouse";
                 }
@@ -270,10 +270,12 @@ namespace SwiftFill.Controllers
             var order = await _context.Orders.FirstOrDefaultAsync(o => o.TrackingId == trackingId);
 
             // FIX: Added 'Arrived' check so Cebu/Manila can sort inbound parcels
+            // FIX: Added 'Picked' check for self-packed orders that bypassed packing line
             if (order != null && order.CurrentLocation == currentHub &&
                (order.Status == "Packed in Warehouse" || 
                 order.Status == "Packed in Store" ||
                 order.Status == "Packed" || 
+                (order.Status == "Picked" && !order.AvailPacking) ||
                 order.Status == "Sorted for Transfer" ||
                 order.Status == "Out for Delivery" ||
                 order.Status.Contains("Arrived at")))
@@ -401,6 +403,7 @@ namespace SwiftFill.Controllers
             var order = await _context.Orders.FirstOrDefaultAsync(o => o.TrackingId == trackingId);
             if (order != null && order.CurrentLocation == currentHub && 
                 (order.Status.Contains("Arrived") || order.Status == "Packed in Warehouse" || 
+                 (order.Status == "Picked" && !order.AvailPacking) ||
                  order.Status == "Sorted for Transfer" || order.Status == "Out for Delivery" ||
                  order.Status == "Returned"))
             {
@@ -452,6 +455,25 @@ namespace SwiftFill.Controllers
             return Redirect(Request.Headers["Referer"].ToString());
         }
 
+        [HttpPost]
+        public async Task<IActionResult> ArchiveOrder(string trackingId)
+        {
+            var currentHub = GetCurrentHub();
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.TrackingId == trackingId);
+            if (order != null && order.CurrentLocation == currentHub)
+            {
+                order.IsArchived = true;
+                order.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Order {trackingId} archived.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Archive failed: Order not found or not at this hub.";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
         // --- HELPER: VIEWMODEL BUILDER ---
         private async Task<AdminDashboardViewModel> GetDashboardViewModel(string currentHub)
         {
@@ -459,8 +481,8 @@ namespace SwiftFill.Controllers
                 .Include(o => o.AssignedRider)
                 .Include(o => o.ManualRider)
                 .Where(o => (o.CurrentLocation == currentHub || 
-                             o.Status.Contains(currentHub) || 
-                             (o.Status == "Returning to Sender" && o.OriginHub == currentHub)) && !o.IsArchived)
+                             o.OriginHub == currentHub ||
+                             o.Status.Contains(currentHub)) && !o.IsArchived)
                 .ToListAsync();
 
             // Accurate card counts that match the linked tables
@@ -475,8 +497,8 @@ namespace SwiftFill.Controllers
                  (o.Status.StartsWith("In Transit to ") && !o.Status.Contains(currentHub))));
 
             var sorting = localOrders.Where(o => 
-                o.CurrentLocation == currentHub && 
-                (o.Status == "Pending" || o.Status == "Picked" || o.Status == "Sent to Warehouse Packing" || o.Status == "Packed in Store"))
+                o.OriginHub == currentHub && 
+                (o.Status == "Pending" || (o.Status == "Picked" && o.AvailPacking) || o.Status == "Sent to Warehouse Packing" || o.Status == "Packed in Store"))
                 .ToList();
 
             var returning = localOrders.Where(o => 
@@ -502,7 +524,7 @@ namespace SwiftFill.Controllers
                 CurrentHub = currentHub,
                 RecentShipments = localOrders.Where(o => o.CurrentLocation == currentHub).OrderByDescending(o => o.UpdatedAt).Take(10).ToList(),
                 PendingPickOrders = sorting,
-                PickedOrders = localOrders.Where(o => o.CurrentLocation == currentHub && o.Status == "Packed in Warehouse").ToList(),
+                PickedOrders = localOrders.Where(o => o.CurrentLocation == currentHub && (o.Status == "Packed in Warehouse" || (o.Status == "Picked" && !o.AvailPacking))).ToList(),
                 PackedOrders = localOrders.Where(o => o.CurrentLocation == currentHub && o.Status == "Sorted for Transfer").ToList(),
                 ReturningOrders = returning,
                 InTransit = inbound,

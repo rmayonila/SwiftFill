@@ -18,18 +18,21 @@ namespace SwiftFill.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SwiftFill.Services.JawgMapsService _mapsService;
         private readonly SwiftFill.Services.CloudinaryService _cloudinaryService;
+        private readonly IConfiguration _configuration;
 
         public RiderController(ApplicationDbContext context, 
                                IWebHostEnvironment environment, 
                                UserManager<ApplicationUser> userManager,
                                SwiftFill.Services.JawgMapsService mapsService,
-                               SwiftFill.Services.CloudinaryService cloudinaryService)
+                               SwiftFill.Services.CloudinaryService cloudinaryService,
+                               IConfiguration configuration)
         {
             _context = context;
             _environment = environment;
             _userManager = userManager;
             _mapsService = mapsService;
             _cloudinaryService = cloudinaryService;
+            _configuration = configuration;
         }
 
         // --- 1. ACTIVE TASKS & ROUTE-LOCKED JOB POOL ---
@@ -76,6 +79,9 @@ namespace SwiftFill.Controllers
 
             Console.WriteLine($"[DEBUG] Total Orders Found: {riderOrders.Count}, Filtered for Rider: {filteredOrders.Count}");
 
+            ViewBag.JawgToken = _configuration["JawgSettings:AccessToken"] 
+                     ?? _configuration["JAWG_ACCESS_TOKEN"];
+
             ViewBag.RiderRoute = rider.Route;
             ViewBag.RiderHub = rider.Hub;
             return View(filteredOrders);
@@ -91,7 +97,7 @@ namespace SwiftFill.Controllers
             if (order != null && order.AssignedRiderId == null)
             {
                 order.AssignedRiderId = userId;
-                order.Status = "Out for Delivery"; // Automatic status update upon acceptance
+                order.Status = "Out for Delivery"; 
                 order.UpdatedAt = DateTime.UtcNow;
                 
                 await _context.SaveChangesAsync();

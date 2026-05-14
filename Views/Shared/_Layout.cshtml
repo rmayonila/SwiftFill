@@ -1,7 +1,3 @@
-@inject SwiftFill.Data.ApplicationDbContext _context
-@{
-    var brand = _context.BrandingSettings.FirstOrDefault() ?? new SwiftFill.Models.BrandingSettings();
-}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,10 +12,10 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <style>
         :root {
-            --brand-primary: @brand.PrimaryColor;
+            --brand-primary: #ff8c00;
         }
         .navbar-brand img { height: 40px; }
-        .btn-get-started { background: var(--brand-primary) !important; }
+        .btn-get-started { background: #ff8c00 !important; }
 
         /* Theme Toggle Styling */
         .theme-toggle-btn {
@@ -58,8 +54,8 @@
         <nav class="navbar navbar-expand-lg navbar-toggleable-sm fixed-top">
             <div class="container">
                 <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
-                    <img src="@(brand.TintedLogoUrl ?? brand.LogoUrl ?? "/images/logo.png")" class="brand-logo-img me-2" alt="SwiftFill" />
-                    <span class="brand-text text-primary">@(string.IsNullOrEmpty(brand.BrandName) ? "SwiftFill" : brand.BrandName)</span>
+                    <img src="~/images/logo.png" class="brand-logo-img me-2" alt="SwiftFill" />
+                    <span class="brand-text text-primary">SwiftFill</span>
                 </a>
                 <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
                     <i class="bi bi-list text-primary fs-2"></i>
@@ -119,7 +115,7 @@
         <div class="container">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
                 <div>
-                    <img src="@(brand.TintedLogoUrl ?? brand.LogoUrl ?? "/images/logo.png")" style="height:24px; margin-right:8px;" alt="SwiftFill" /> <strong class="text-primary">@(string.IsNullOrEmpty(brand.BrandName) ? "SwiftFill" : brand.BrandName)</strong>
+                    <img src="~/images/logo.png" style="height:24px; margin-right:8px;" alt="SwiftFill" /> <strong class="text-primary">SwiftFill</strong>
                 </div>
                 <div class="small opacity-50">
                     &copy; 2026 SwiftFill. All rights reserved.

@@ -27,6 +27,16 @@ namespace SwiftFill.Controllers
             _orderService = orderService;
         }
 
+        private string GetHubFilter()
+        {
+            if (User.IsInRole("SuperAdmin")) return "All";
+            var hub = HttpContext.Session.GetString("UserHub");
+            if (!string.IsNullOrEmpty(hub)) return hub;
+            
+            // Fallback for safety
+            return "Davao Hub";
+        }
+
         public IActionResult Index() => RedirectToAction(nameof(Dashboard));
 
         public IActionResult Dashboard()
@@ -63,32 +73,51 @@ namespace SwiftFill.Controllers
 
         private AdminDashboardViewModel GetDashboardViewModel()
         {
+            var hub = GetHubFilter();
+            var orders = _context.Orders.AsQueryable();
+            var payments = _context.Payments.AsQueryable();
+            var returns = _context.ReturnRequests.AsQueryable();
+
+            if (hub != "All")
+            {
+                orders = orders.Where(o => o.OriginHub == hub || o.CurrentLocation == hub);
+                payments = payments.Where(p => p.Order != null && (p.Order.OriginHub == hub || p.Order.CurrentLocation == hub));
+                returns = returns.Where(r => r.Order != null && (r.Order.OriginHub == hub || r.Order.CurrentLocation == hub));
+            }
+
             return new AdminDashboardViewModel
             {
-                TotalOrders = _context.Orders.Count(o => !o.IsArchived),
-                PendingOrders = _context.Orders.Count(o => o.Status == "Pending"),
-                InTransit = _context.Orders.Count(o => (o.Status.Contains("Transit") || o.Status == "OutForDelivery")),
-                Delivered = _context.Orders.Count(o => o.Status == "Delivered"),
-                TotalReturns = _context.ReturnRequests.Count(r => !r.IsArchived),
-                PackingCount = _context.Orders.Count(o => o.AvailPacking && (o.Status == "Pending" || o.Status == "Picked")),
-                TotalRevenue = _context.Payments.Where(p => p.IsPaid && !p.IsArchived).Sum(p => p.Amount),
+                TotalOrders = orders.Count(o => !o.IsArchived),
+                PendingOrders = orders.Count(o => o.Status == "Pending"),
+                InTransit = orders.Count(o => (o.Status.Contains("Transit") || o.Status == "OutForDelivery")),
+                Delivered = orders.Count(o => o.Status == "Delivered" || o.Status.ToUpper() == "PICKED UP"),
+                TotalReturns = returns.Count(r => !r.IsArchived),
+                PackingCount = orders.Count(o => o.AvailPacking && (o.Status == "Pending" || o.Status == "Picked")),
+                TotalRevenue = payments.Where(p => p.IsPaid && !p.IsArchived).Sum(p => p.Amount),
                 
-                StatusCounts = _context.Orders.GroupBy(o => o.Status)
+                StatusCounts = orders.GroupBy(o => o.Status)
                     .Select(g => new StatusDistributionItem { Status = g.Key, Count = g.Count() }).ToList(),
                 
-                DailyTrend = _context.Orders.Where(o => o.CreatedAt >= DateTime.Now.AddDays(-7))
+                DailyTrend = orders.Where(o => o.CreatedAt >= DateTime.Now.AddDays(-7))
                     .GroupBy(o => o.CreatedAt.Date)
                     .OrderBy(g => g.Key)
                     .Select(g => new DailyTrendItem { Date = g.Key.ToString("MM-dd"), Count = g.Count() }).ToList(),
                 
-                RecentShipments = _context.Orders.OrderByDescending(o => o.CreatedAt).Take(5).ToList()
+                RecentShipments = orders.OrderByDescending(o => o.CreatedAt).Take(5).ToList(),
+                CurrentHub = hub == "All" ? "Global Operations" : hub
             };
         }
         
         public async Task<IActionResult> Shipments(string search, string status, string region, int page = 1)
         {
             int pageSize = 10;
+            var hub = GetHubFilter();
             var query = _context.Orders.Include(o => o.AssignedRider).Include(o => o.Payment).Where(o => !o.IsArchived).AsQueryable();
+
+            if (hub != "All")
+            {
+                query = query.Where(o => o.OriginHub == hub || o.CurrentLocation == hub);
+            }
 
             if (!string.IsNullOrEmpty(search))
                 query = query.Where(o => o.TrackingId.Contains(search) || o.SenderName.Contains(search) || o.ReceiverName.Contains(search) || o.ReceiverAddress.Contains(search));
@@ -110,6 +139,7 @@ namespace SwiftFill.Controllers
             ViewBag.Region = region;
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            ViewBag.CurrentHub = hub == "All" ? "Global" : hub;
             ViewBag.PaymentMethods = await _context.PaymentMethods.Where(m => m.IsActive).ToListAsync();
             ViewBag.ItemCategories = await _context.ItemCategories.Where(c => c.IsActive).OrderBy(c => c.Name).ToListAsync();
 
@@ -139,7 +169,13 @@ namespace SwiftFill.Controllers
         public IActionResult Archive(string search, int page = 1)
         {
             int pageSize = 10;
+            var hub = GetHubFilter();
             var query = _context.Orders.Include(o => o.AssignedRider).Where(o => o.IsArchived).AsQueryable();
+
+            if (hub != "All")
+            {
+                query = query.Where(o => o.OriginHub == hub || o.CurrentLocation == hub);
+            }
 
             if (!string.IsNullOrEmpty(search))
                 query = query.Where(o => o.TrackingId.Contains(search) || o.SenderName.Contains(search) || o.ReceiverName.Contains(search));
@@ -153,6 +189,7 @@ namespace SwiftFill.Controllers
             ViewBag.Search = search;
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            ViewBag.CurrentHub = hub == "All" ? "Global" : hub;
 
             return View(orders);
         }
@@ -202,10 +239,11 @@ namespace SwiftFill.Controllers
             var order = await _context.Orders.Include(o => o.Payment).FirstOrDefaultAsync(o => o.TrackingId == model.TrackingId);
             if (order != null)
             {
-                // Lock editing for non-pending orders
-                if (order.Status != "Pending")
+                // Lock editing for non-pending orders (Allow BranchPickup that Arrived or Ready)
+                bool isPickupArrived = order.DeliveryType == "BranchPickup" && (order.Status.Contains("Arrived") || order.Status == "Ready for Pick Up");
+                if (order.Status != "Pending" && !isPickupArrived)
                 {
-                    TempData["ErrorMessage"] = "Editing is locked. This order has already advanced beyond the pending stage and cannot be modified.";
+                    TempData["ErrorMessage"] = "Editing is locked. This order has already advanced beyond the stage where modification is allowed.";
                     return RedirectToAction(nameof(Shipments));
                 }
 
@@ -226,7 +264,14 @@ namespace SwiftFill.Controllers
                 // Allow Admin to override status if provided
                 if (!string.IsNullOrEmpty(model.Status))
                 {
-                    order.Status = model.Status;
+                    if (model.Status == "Picked" && !model.AvailPacking)
+                    {
+                        order.Status = "Packed in Warehouse";
+                    }
+                    else
+                    {
+                        order.Status = model.Status;
+                    }
                 }
 
                 order.UpdatedAt = DateTime.UtcNow;
@@ -274,8 +319,14 @@ namespace SwiftFill.Controllers
         public async Task<IActionResult> Pack(string search, string status, int page = 1)
         {
             int pageSize = 10;
+            var hub = GetHubFilter();
             // Item 6: Only show orders where the customer availed packing service
             var query = _context.Orders.Where(o => o.AvailPacking).AsQueryable();
+
+            if (hub != "All")
+            {
+                query = query.Where(o => o.OriginHub == hub || o.CurrentLocation == hub);
+            }
 
             if (!string.IsNullOrEmpty(status) && status != "All")
             {
@@ -299,6 +350,7 @@ namespace SwiftFill.Controllers
             ViewBag.Status = status;
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            ViewBag.CurrentHub = hub == "All" ? "Global" : hub;
 
             return View(orders);
         }
@@ -398,8 +450,14 @@ namespace SwiftFill.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateManualOrder(Order model, string paymentMethod, string deliveryType = "DoorToDoor", string originHub = "Davao Hub", bool availPacking = false, decimal packingFee = 0, bool isFragile = false, string? ReceiverLandmark = null)
+        public async Task<IActionResult> CreateManualOrder(Order model, string paymentMethod, string deliveryType = "DoorToDoor", string? originHub = null, bool availPacking = false, decimal packingFee = 0, bool isFragile = false, string? ReceiverLandmark = null)
         {
+            var adminHub = GetHubFilter();
+            if (string.IsNullOrEmpty(originHub) || adminHub != "All")
+            {
+                originHub = adminHub == "All" ? "Davao Hub" : adminHub;
+            }
+
             // Guard: originHub must be a real hub
             if (!SwiftFill.Models.HubRegistry.Names.Contains(originHub))
                 originHub = SwiftFill.Models.HubRegistry.All[0].Name;
@@ -456,7 +514,13 @@ namespace SwiftFill.Controllers
         public IActionResult Payments(string search, string status, int page = 1)
         {
             int pageSize = 10;
+            var hub = GetHubFilter();
             var query = _context.Payments.Include(p => p.Order).Where(p => !p.IsArchived).AsQueryable();
+
+            if (hub != "All")
+            {
+                query = query.Where(p => p.Order != null && (p.Order.OriginHub == hub || p.Order.CurrentLocation == hub));
+            }
 
             if (!string.IsNullOrEmpty(search))
                 query = query.Where(p => p.TrackingId.Contains(search) || (p.Order != null && p.Order.ReceiverName.Contains(search)));
@@ -477,6 +541,7 @@ namespace SwiftFill.Controllers
             ViewBag.Status = status;
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            ViewBag.CurrentHub = hub == "All" ? "Global" : hub;
 
             return View(payments);
         }
@@ -546,6 +611,7 @@ namespace SwiftFill.Controllers
 
         public async Task<IActionResult> Returns(string search, string status, int page = 1)
         {
+            var hub = GetHubFilter();
             // 1. Auto-heal: Link Orders marked "Returned" to ReturnRequests if missing
             var orphanedReturns = await _context.Orders
                 .Where(o => o.Status == "Returned" && !_context.ReturnRequests.Any(r => r.TrackingId == o.TrackingId))
@@ -590,6 +656,11 @@ namespace SwiftFill.Controllers
             int pageSize = 10;
             var query = _context.ReturnRequests.Include(r => r.Order).Where(r => !r.IsArchived).AsQueryable();
 
+            if (hub != "All")
+            {
+                query = query.Where(r => r.Order != null && (r.Order.OriginHub == hub || r.Order.CurrentLocation == hub));
+            }
+
             if (!string.IsNullOrEmpty(search))
                 query = query.Where(r => r.TrackingId.Contains(search) || r.Reason.Contains(search));
 
@@ -606,6 +677,7 @@ namespace SwiftFill.Controllers
             ViewBag.Status = status;
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            ViewBag.CurrentHub = hub == "All" ? "Global" : hub;
 
             return View(returns);
         }
@@ -698,7 +770,13 @@ namespace SwiftFill.Controllers
         public IActionResult RecentActivity(string search, string status, int page = 1)
         {
             int pageSize = 15;
+            var hub = GetHubFilter();
             var query = _context.Orders.AsQueryable();
+
+            if (hub != "All")
+            {
+                query = query.Where(o => o.OriginHub == hub || o.CurrentLocation == hub);
+            }
 
             if (!string.IsNullOrEmpty(search))
                 query = query.Where(o => o.TrackingId.Contains(search) || o.ReceiverName.Contains(search) || o.CurrentLocation.Contains(search));
@@ -716,17 +794,24 @@ namespace SwiftFill.Controllers
             ViewBag.Status = status;
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            ViewBag.CurrentHub = hub == "All" ? "Global" : hub;
 
             return View(orders);
         }
 
         public IActionResult Reports(int? month, int? year)
         {
+            var hub = GetHubFilter();
             var targetMonth = month ?? DateTime.Now.Month;
             var targetYear = year ?? DateTime.Now.Year;
 
-            var filteredOrders = _context.Orders
-                .Where(o => o.CreatedAt.Month == targetMonth && o.CreatedAt.Year == targetYear);
+            var filteredOrders = _context.Orders.AsQueryable();
+            if (hub != "All")
+            {
+                filteredOrders = filteredOrders.Where(o => o.OriginHub == hub || o.CurrentLocation == hub);
+            }
+
+            filteredOrders = filteredOrders.Where(o => o.CreatedAt.Month == targetMonth && o.CreatedAt.Year == targetYear);
 
             var model = new AdminDashboardViewModel
             {
@@ -797,6 +882,7 @@ namespace SwiftFill.Controllers
         public async Task<IActionResult> ItemCategories(string search, string status, int page = 1)
         {
             int pageSize = 10;
+            var hub = GetHubFilter();
             
             // Seed defaults if empty
             if (!_context.ItemCategories.Any())
@@ -855,6 +941,7 @@ namespace SwiftFill.Controllers
             ViewBag.Status = status;
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            ViewBag.CurrentHub = hub == "All" ? "Global" : hub;
             
             return View(categories);
         }

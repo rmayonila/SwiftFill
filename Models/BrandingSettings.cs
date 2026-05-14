@@ -24,5 +24,7 @@ namespace SwiftFill.Models
         // Theme
         public bool IsDarkMode { get; set; } = true;
         public bool UseGlassmorphism { get; set; } = true;
+
+        public ICollection<Warehouse> Warehouses { get; set; } = new List<Warehouse>();
     }
 }

@@ -9,21 +9,20 @@
 
 <div class="animate-fade-up">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold fs-3 mt-2 mb-0 text-white"><i class="bi bi-map-fill text-orange me-2"></i> Hub Transfers</h2>
+        <h2 class="fw-bold fs-3 mt-2 mb-0 text-primary"><i class="bi bi-map-fill text-orange me-2"></i> Hub Transfers</h2>
         <div class="text-secondary small">Hub: <span class="text-orange fw-bold">@currentHub</span></div>
     </div>
 
     <!-- Integrated Filter Bar -->
-    <div class="d-flex justify-content-between align-items-center mb-4 gap-3 bg-dark-soft p-2 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center mb-4 gap-3 bg-theme-soft p-2 rounded-3" style="border: 1px solid var(--border-color);">
         <div class="d-flex align-items-center flex-grow-1 gap-3">
-            <form method="get" class="d-flex align-items-center flex-grow-1 gap-2">
+            <form method="get" class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center flex-grow-1 gap-2">
                 <div class="search-wrapper flex-grow-1" style="max-width: 400px; position: relative;">
-                    <i class="bi bi-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #6c757d;"></i>
+                    <i class="bi bi-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
                     <input type="text" name="search" value="@ViewBag.Search" class="minimal-input w-100" 
-                           style="background: #111; border: 1px solid #222; border-radius: 8px; padding: 10px 15px 10px 40px; color: #fff; outline: none;"
                            placeholder="Search Tracking ID, Receiver...">
                 </div>
-                <select name="status" class="minimal-input" style="background: #111; border: 1px solid #222; border-radius: 8px; padding: 10px; color: #fff; outline: none; min-width: 150px;" onchange="this.form.submit()">
+                <select name="status" class="minimal-input" style="min-width: 150px;" onchange="this.form.submit()">
                     <option value="">All Statuses</option>
                     <option value="Transit" selected='@(Context.Request.Query["status"] == "Transit")'>In Transit</option>
                     <option value="Sorted" selected='@(Context.Request.Query["status"] == "Sorted")'>Sorted</option>
@@ -60,7 +59,7 @@
         <li class="nav-item" role="presentation">
             <button class="nav-link @(activeTab == "inbound" ? "active" : "") rounded-3 px-4 py-2 border-0 fw-bold d-flex align-items-center gap-2" 
                     id="inbound-tab" data-bs-toggle="tab" data-bs-target="#inbound" type="button" role="tab" aria-controls="inbound" 
-                    aria-selected="@(activeTab == "inbound")" style="background: rgba(255,255,255,0.05); color: #fff;"
+                    aria-selected="@(activeTab == "inbound")" style="background: rgba(255,255,255,0.05); color: var(--text-primary);"
                     onclick="history.replaceState(null, '', '?tab=inbound')">
                 <i class="bi bi-arrow-down-left text-success"></i> INBOUND
                 <span class="badge bg-success text-dark ms-1">@inboundItems.Count</span>
@@ -69,7 +68,7 @@
         <li class="nav-item" role="presentation">
             <button class="nav-link @(activeTab == "outbound" ? "active" : "") rounded-3 px-4 py-2 border-0 fw-bold d-flex align-items-center gap-2" 
                     id="outbound-tab" data-bs-toggle="tab" data-bs-target="#outbound" type="button" role="tab" aria-controls="outbound" 
-                    aria-selected="@(activeTab == "outbound")" style="background: rgba(255,255,255,0.05); color: #fff;"
+                    aria-selected="@(activeTab == "outbound")" style="background: rgba(255,255,255,0.05); color: var(--text-primary);"
                     onclick="history.replaceState(null, '', '?tab=outbound')">
                 <i class="bi bi-arrow-up-right text-info"></i> OUTBOUND
                 <span class="badge bg-info text-dark ms-1">@outboundItems.Count</span>
@@ -81,7 +80,7 @@
         @foreach (var tab in tabs)
         {
             <div class="tab-pane fade @(tab.IsActive ? "show active" : "")" id="@tab.Id" role="tabpanel" aria-labelledby="@tab.Id-tab">
-                <div class="glass-card p-0 overflow-hidden" style="background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.05);">
+                <div class="glass-card p-0 overflow-hidden" style="border: 1px solid var(--border-color);">
                     <div class="table-responsive">
                         <table class="table table-dark table-hover mb-0">
                             <thead style="background: rgba(255,140,0,0.03);">
@@ -95,7 +94,7 @@
                             <tbody>
                                 @foreach (var item in tab.Items)
                                 {
-                                    var destHub = HubRegistry.ResolveDestinationHub(item.DestinationRegion);
+                                    var destHub = HubRegistry.ResolveDestinationHub(item.DestinationRegion, item.ReceiverAddress);
                                     var isRTS = item.Status == "Returning to Sender" || item.Status.Contains("back to");
                                     var isInbound = item.Status.Contains($"Transit to {currentHub}") || 
                                                    item.Status.Contains($"Transit back to {currentHub}") ||
@@ -107,7 +106,7 @@
                                     <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
                                         <td class="ps-4 py-3">
                                             <code class="text-orange fw-bold d-block">#@item.TrackingId</code>
-                                            <div class="text-white small">@item.ReceiverName</div>
+                                            <div class="text-primary small">@item.ReceiverName</div>
                                             <div class="text-secondary x-small"><i class="bi bi-geo-alt me-1"></i>@item.ReceiverAddress</div>
                                         </td>
                                         <td class="py-3">
@@ -311,7 +310,7 @@
     .action-icon { font-size: 1.25rem; transition: transform 0.2s; }
     .action-icon:hover { transform: scale(1.2); }
     .square-modal .modal-content {
-        background: #0f0f0f;
+        background: var(--modal-bg);
         border: 1px solid rgba(255,140,0,0.2) !important;
         border-radius: 20px;
         max-width: 320px;
@@ -366,9 +365,9 @@
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
                         <div class="text-secondary x-small text-uppercase ls-1">Transfer Control</div>
-                        <div class="fw-bold text-white fs-5" id="transTrackingId">#—</div>
+                        <div class="fw-bold fs-5" id="transTrackingId" style="color: var(--text-primary);">#—</div>
                     </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
                 <div id="receiveSection" class="mb-2">
@@ -421,9 +420,9 @@
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
                         <div class="text-secondary x-small text-uppercase ls-1">Assign Delivery</div>
-                        <div class="fw-bold text-white fs-5" id="assignTrackingId">#—</div>
+                        <div class="fw-bold fs-5" id="assignTrackingId" style="color: var(--text-primary);">#—</div>
                     </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
                 <form asp-action="AssignRider" method="post" id="assignRiderForm">

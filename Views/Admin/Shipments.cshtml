@@ -92,7 +92,7 @@
                                     <div class="mt-1">
                                         <span class="text-warning fw-bold" style="font-size: 0.7rem;">₱@order.Payment.Amount.ToString("N2")</span>
                                         <span class="text-secondary mx-1">•</span>
-                                        <span class="x-small text-secondary">@order.Payment.Method</span>
+                                        <span class="x-small text-secondary">@(order.Payment.Method?.Split('(')[0].Trim())</span>
                                     </div>
                                 }
                             </td>
@@ -109,7 +109,7 @@
                             <td class="py-3">
                                 @{
                                     var bClass = "border-warning text-warning";
-                                    if (order.Status == "Delivered") bClass = "border-success text-success";
+                                    if (order.Status == "Delivered" || order.Status.ToUpper() == "PICKED UP") bClass = "border-success text-success";
                                     else if (order.Status.Contains("Arrived")) bClass = "border-primary text-primary";
                                     else if (order.Status.Contains("Transit")) bClass = "border-info text-info";
                                     else if (order.Status.Contains("Return")) bClass = "border-danger text-danger";
@@ -123,7 +123,7 @@
                                     <button type="button" class="btn btn-sm btn-link text-info border-0 p-1 action-icon" onclick="viewOrderDetails('@order.TrackingId')" title="View Details">
                                         <i class="bi bi-eye-fill" style="font-size: 1.15rem;"></i>
                                     </button>
-                                    @if (order.Status == "Pending")
+                                    @if (order.Status == "Pending" || (order.DeliveryType == "BranchPickup" && (order.Status.Contains("Arrived") || order.Status == "Ready for Pick Up")))
                                     {
                                         <button type="button" class="btn btn-sm btn-outline-warning border-0 p-1" onclick="editOrder('@order.TrackingId')" title="Edit Order">
                                             <i class="bi bi-pencil-square" style="font-size: 1.15rem;"></i>
@@ -173,7 +173,7 @@
 <!-- View Order Details Modal -->
 <div class="modal fade" id="orderDetailsModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="background: #0a0a0a; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05) !important;">
+        <div class="modal-content border-0 shadow-lg" style="background: var(--modal-bg); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05) !important;">
             <div class="modal-header border-0 pb-0">
                 <h5 class="modal-title text-white fw-bold"><i class="bi bi-eye-fill text-warning me-2"></i> Shipment Waybill</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -257,6 +257,7 @@
                                 <option value="Picked">Picked</option>
                                 <option value="Packed in Warehouse">Packed in Warehouse</option>
                                 <option value="Out for Delivery">Out for Delivery</option>
+                                <option value="Picked Up">Picked Up</option>
                                 <option value="Delivered">Delivered</option>
                                 <option value="Returned">Returned</option>
                                 <option value="Returning to Sender">Returning to Sender</option>
@@ -284,6 +285,7 @@
                                 <div style="width: 250px;">
                                     <label class="text-secondary x-small mb-1">Payment Mode</label>
                                     <select name="PaymentMethod" id="editPaymentMethod" class="minimal-input w-100 text-orange fw-bold">
+                                        <option value="COP (Cash on Pick Up)">COP (Cash on Pick Up)</option>
                                         @foreach (var method in (List<SwiftFill.Models.PaymentMethod>)(ViewBag.PaymentMethods ?? new List<SwiftFill.Models.PaymentMethod>()))
                                         {
                                             <option value="@method.Name">@method.Name</option>
@@ -306,7 +308,7 @@
 <!-- Archive Confirmation Modal -->
 <div class="modal fade" id="archiveModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
-        <div class="modal-content border-0 shadow-lg" style="background: #0a0a0a; border-radius: 16px; border: 1px solid rgba(220,53,69,0.2) !important;">
+        <div class="modal-content border-0 shadow-lg" style="background: var(--modal-bg); border-radius: 16px; border: 1px solid rgba(220,53,69,0.2) !important;">
             <div class="modal-body text-center p-4">
                 <div class="display-4 text-danger mb-3"><i class="bi bi-exclamation-octagon"></i></div>
                 <h5 class="text-white fw-bold mb-2">Archive Shipment?</h5>
@@ -355,8 +357,8 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="text-secondary x-small mb-2 d-block">Origin Hub</label>
-                                <input type="text" class="minimal-input w-100" value="Davao Hub" readonly style="background: rgba(255,255,255,0.03); cursor: not-allowed; border-color: rgba(255,140,0,0.2);">
-                                <input type="hidden" name="originHub" value="Davao Hub">
+                                <input type="text" class="minimal-input w-100" value="@(ViewBag.CurrentHub ?? "Davao Hub")" readonly style="background: rgba(255,255,255,0.03); cursor: not-allowed; border-color: rgba(255,140,0,0.2);">
+                                <input type="hidden" name="originHub" value="@(ViewBag.CurrentHub ?? "Davao Hub")">
                             </div>
                             <div class="col-md-6">
                                 <label class="text-secondary x-small mb-2 d-block">Destination Region</label>
@@ -439,6 +441,7 @@
                             <div class="col-12">
                                 <label class="text-secondary x-small mb-1">Payment Method</label>
                                 <select name="paymentMethod" class="minimal-input w-100 fw-bold text-orange">
+                                    <option value="COP (Cash on Pick Up)">COP (Cash on Pick Up)</option>
                                     @foreach (var method in (List<SwiftFill.Models.PaymentMethod>)(ViewBag.PaymentMethods ?? new List<SwiftFill.Models.PaymentMethod>()))
                                     {
                                         <option value="@method.Name">@method.Name (@(method.Description ?? "No description"))</option>

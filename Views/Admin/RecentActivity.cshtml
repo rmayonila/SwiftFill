@@ -6,8 +6,8 @@
 
 <div class="animate-fade-up">
     <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-theme pb-3">
-        <h1 class="fw-bold fs-3 mt-2 mb-0 text-primary"><i class="bi bi-clock-history text-orange me-2"></i> Recent Activity</h1>
-        <p class="text-secondary mt-2 mb-0 small">Tracking real-time shipment movement across hubs and warehouses.</p>
+        <h1 class="fw-bold fs-3 mt-2 mb-0 text-primary"><i class="bi bi-clock-history text-orange me-2"></i> @(ViewBag.CurrentHub ?? "Global") Activity</h1>
+        <p class="text-secondary mt-2 mb-0 small">Tracking real-time shipment movement for @(ViewBag.CurrentHub ?? "Global Operations").</p>
     </div>
 
     @if (TempData["SuccessMessage"] != null)

@@ -8,8 +8,8 @@
 
 <div class="animate-fade-up">
     <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-theme pb-3">
-        <h1 class="fw-bold fs-3 mt-2 mb-0 text-primary"><i class="bi bi-speedometer2 me-2 text-orange"></i> System Overview</h1>
-        <p class="text-secondary mt-2 mb-0 small">Real-time Operations Monitoring</p>
+        <h1 class="fw-bold fs-3 mt-2 mb-0 text-primary"><i class="bi bi-speedometer2 me-2 text-orange"></i> @Model.CurrentHub Overview</h1>
+        <p class="text-secondary mt-2 mb-0 small">Real-time Operations Monitoring for @Model.CurrentHub</p>
     </div>
 
     <div class="row g-4 mb-5">
@@ -138,7 +138,7 @@
                                 <div class="text-secondary x-small">@shipment.ReceiverName</div>
                             </td>
                             <td class="border-0 py-3">
-                                <span class="badge border bg-transparent px-3 @(shipment.Status == "Delivered" ? "border-success text-success" : (shipment.Status.Contains("Arrived") ? "border-primary text-primary" : (shipment.Status.Contains("Transit") ? "border-info text-info" : "border-warning text-warning")))" style="font-size: 0.65rem;">
+                                <span class="badge border bg-transparent px-3 @(shipment.Status == "Delivered" || shipment.Status.ToUpper() == "PICKED UP" ? "border-success text-success" : (shipment.Status.Contains("Arrived") ? "border-primary text-primary" : (shipment.Status.Contains("Transit") ? "border-info text-info" : "border-warning text-warning")))" style="font-size: 0.65rem;">
                                     @shipment.Status
                                 </span>
                             </td>

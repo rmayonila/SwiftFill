@@ -400,6 +400,10 @@ namespace SwiftFill.Controllers
                 // Priority for Admin role, unless the username explicitly indicates they are staff
                 if (roles.Contains("Admin") && (user.UserName == null || !user.UserName.ToLower().Contains("staff")))
                 {
+                    if (!string.IsNullOrEmpty(user.Hub))
+                    {
+                        HttpContext.Session.SetString("UserHub", user.Hub);
+                    }
                     return RedirectToAction("Dashboard", "Admin");
                 }
 

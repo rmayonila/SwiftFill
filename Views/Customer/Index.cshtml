@@ -5,90 +5,83 @@
 }
 
 <div class="animate-fade-up">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-2">
-        <h2 class="fw-bold text-primary mb-0">Welcome back, @(User.Identity?.Name?.Split('@')[0] ?? "Partner")</h2>
-        <div class="d-md-none small text-secondary">@(DateTime.Now.ToString("MMMM dd, yyyy"))</div>
+    <!-- Dashboard Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold fs-3 mt-2 mb-0 text-primary">
+            <i class="bi bi-grid-fill text-orange me-2"></i> My Dashboard
+        </h2>
+        <div class="text-secondary small">Status: <span class="text-orange fw-bold">Active Account</span></div>
     </div>
 
-    @if (Model != null && Model.Any(o => o.Status == "Return Notified"))
-    {
-        <div class="alert alert-warning border border-warning bg-transparent d-flex align-items-center mb-4">
-            <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-warning"></i>
-            <div>
-                <h6 class="mb-1 fw-bold text-warning">Action Required: Return Notification</h6>
-                <span class="x-small text-secondary">One or more of your shipments has been flagged for return by our fulfillment hub. Please check the details.</span>
-            </div>
-        </div>
-    }
-
-    <div class="row g-3 g-md-4 mb-5">
+    <!-- KPI Cards — Ported from Rider Dashboard -->
+    <div class="row g-3 mb-5">
         <div class="col-6 col-md-4">
             <a href="?status=Active" class="text-decoration-none h-100 d-block hover-scale">
-                <div class="glass-card p-4 h-100 d-flex justify-content-between align-items-center @(ViewBag.CurrentStatus == "Active" ? "active-border-blue" : "")">
+                <div class="glass-card active-border-blue p-4 h-100 d-flex justify-content-between align-items-center @(ViewBag.CurrentStatus == "Active" ? "active-border-blue" : "")">
                     <div>
                         <div class="stat-label text-primary fw-bold">ACTIVE</div>
                         <div class="stat-subtitle mt-1">Pending / Picking</div>
                     </div>
-                    <div class="stat-value text-primary h2 mb-0 fw-bold">@(Model?.Count(o => o.Status != "Delivered" && o.Status != "Returned") ?? 0)</div>
+                    <div class="stat-value text-primary display-6 fw-bold mb-0">@(Model?.Count(o => o.Status != "Delivered" && o.Status != "Returned") ?? 0)</div>
                 </div>
             </a>
         </div>
         <div class="col-6 col-md-4">
             <a href="?status=Delivered" class="text-decoration-none h-100 d-block hover-scale">
-                <div class="glass-card p-4 h-100 d-flex justify-content-between align-items-center @(ViewBag.CurrentStatus == "Delivered" ? "active-border-green" : "")">
+                <div class="glass-card active-border-green p-4 h-100 d-flex justify-content-between align-items-center @(ViewBag.CurrentStatus == "Delivered" ? "active-border-green" : "")">
                     <div>
                         <div class="stat-label text-success fw-bold">DELIVERED</div>
                         <div class="stat-subtitle mt-1">Completed</div>
                     </div>
-                    <div class="stat-value text-primary h2 mb-0 fw-bold">@(Model?.Count(o => o.Status == "Delivered") ?? 0)</div>
+                    <div class="stat-value text-primary display-6 fw-bold mb-0">@(Model?.Count(o => o.Status == "Delivered") ?? 0)</div>
                 </div>
             </a>
         </div>
         <div class="col-12 col-md-4">
             <a href="?status=Returns" class="text-decoration-none h-100 d-block hover-scale">
-                <div class="glass-card p-4 h-100 d-flex justify-content-between align-items-center @(ViewBag.CurrentStatus == "Returns" ? "active-border-orange" : "")">
+                <div class="glass-card active-border-orange p-4 h-100 d-flex justify-content-between align-items-center @(ViewBag.CurrentStatus == "Returns" ? "active-border-orange" : "")">
                     <div>
                         <div class="stat-label text-warning fw-bold">RETURNS</div>
                         <div class="stat-subtitle mt-1">Action Required</div>
                     </div>
-                    <div class="stat-value text-primary h2 mb-0 fw-bold">@(Model?.Count(o => o.Status.Contains("Return")) ?? 0)</div>
+                    <div class="stat-value text-primary display-6 fw-bold mb-0">@(Model?.Count(o => o.Status.Contains("Return")) ?? 0)</div>
                 </div>
             </a>
         </div>
     </div>
 
-    <!-- Integrated Tracking Bar -->
-    <div class="mb-5">
-        <div class="glass-card p-0 overflow-hidden border border-orange border-opacity-10 shadow-orange-sm" style="background: var(--bg-secondary); border-radius: 12px;">
-            <form onsubmit="event.preventDefault(); showTracking(this.trackingId.value);" class="d-flex align-items-center p-1">
-                <div class="d-flex align-items-center px-3 flex-grow-1">
-                    <i class="bi bi-upc-scan text-orange me-3"></i>
-                    <input type="text" name="trackingId" class="minimal-input w-100 text-primary bg-transparent" placeholder="ENTER TRACKING ID TO TRACK..." style="letter-spacing: 2px; border:none !important;" autocomplete="off" required />
+
+
+    <div class="glass-card p-0 overflow-hidden mb-5" style="border: 1px solid var(--border-color); border-radius: 20px;">
+        <!-- Unified Header: Title and Tracking -->
+        <div class="p-4 border-bottom d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4" style="background: rgba(0,0,0,0.03); border-color: var(--border-color) !important;">
+            <div class="d-flex align-items-center">
+                <div class="bg-orange p-2 rounded-3 me-3 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                    <i class="bi bi-clipboard-data-fill text-black fs-5"></i>
                 </div>
-                <button type="submit" class="btn btn-primary px-4 py-2 fw-bold" style="background: #ff8c00; border-radius: 8px;">TRACK</button>
+                <div>
+                    <h6 class="text-primary mb-0 fw-bold text-uppercase ls-1">Shipment Registry</h6>
+                    <span class="text-secondary x-small">Manage and track your active logistics</span>
+                </div>
+            </div>
+
+            <!-- Integrated Search/Tracking in Header (Repositioned) -->
+            <form onsubmit="event.preventDefault(); showTracking(this.trackingId.value);" class="d-flex align-items-center bg-dark-soft rounded-3 px-3 py-2 border border-secondary border-opacity-10" style="min-width: 350px; background: rgba(255,255,255,0.02);">
+                <i class="bi bi-upc-scan text-orange me-3"></i>
+                <input type="text" name="trackingId" class="minimal-input bg-transparent border-0 x-small text-primary w-100 fw-bold ls-1" placeholder="ENTER TRACKING ID TO TRACK..." style="outline: none;" required />
+                <button type="submit" class="btn btn-link text-orange p-0 ms-2"><i class="bi bi-search fs-5"></i></button>
             </form>
         </div>
-    </div>
-
-    <div class="minimal-filter-bar mb-4 d-flex justify-content-between align-items-center">
-        <h6 class="text-primary mb-0 x-small text-uppercase ls-1">Recent Shipment Registry</h6>
-        @if (!string.IsNullOrEmpty(ViewBag.CurrentStatus as string))
-        {
-            <a href="?" class="text-orange text-decoration-none x-small">View All <i class="bi bi-arrow-right ms-1"></i></a>
-        }
-    </div>
-
-    <div class="glass-card p-0 overflow-hidden" style="border: 1px solid var(--border-color);">
         <div class="table-responsive">
             <table class="admin-style-table mb-0">
                 <thead>
                     <tr>
-                        <th class="ps-4">ID</th>
-                        <th>Receiver</th>
-                        <th>Destination</th>
-                        <th>Volume</th>
-                        <th>Status</th>
-                        <th class="text-center pe-4">Actions</th>
+                        <th class="ps-4 py-3">ID</th>
+                        <th class="py-3">Receiver</th>
+                        <th class="py-3">Destination</th>
+                        <th class="py-3">Volume</th>
+                        <th class="py-3">Status</th>
+                        <th class="text-center py-3 pe-4">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -348,74 +341,57 @@
         position: relative;
         overflow: hidden;
     }
-
-    .active-border-orange::before {
-        content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px;
-        background: #ff8c00; border-radius: 16px 16px 0 0; box-shadow: 0 0 15px rgba(255,140,0,0.2);
-    }
-    .active-border-blue::before {
-        content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px;
-        background: #3b82f6; border-radius: 16px 16px 0 0; box-shadow: 0 0 15px rgba(59,130,246,0.2);
-    }
-    .active-border-green::before {
-        content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px;
-        background: #198754; border-radius: 16px 16px 0 0; box-shadow: 0 0 15px rgba(25,135,84,0.2);
-    }
-
-    .action-icon { font-size: 1.3rem; transition: transform 0.2s; }
-    .action-icon:hover { transform: scale(1.25); }
-    .text-danger-important { color: #dc3545 !important; }
-
-    /* Admin Table Style Copy from Rider Dashboard */
-    .admin-style-table {
-        width: 100%;
-        color: var(--text-primary);
-        border-collapse: collapse;
-    }
-    .admin-style-table thead {
-        background: var(--bg-secondary);
-        border-bottom: 2px solid var(--border-color);
-    }
-    [data-theme="light"] .admin-style-table thead {
-        background: rgba(0, 0, 0, 0.02);
-    }
-    .admin-style-table th {
-        padding: 16px 20px;
-        font-size: 0.72rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        color: var(--text-secondary);
-        letter-spacing: 0.5px;
-    }
-    .admin-style-table td {
-        padding: 18px 20px;
-        vertical-align: middle;
-        border-bottom: 1px solid var(--border-color);
-    }
-    .admin-style-table tr:hover {
-        background: var(--card-bg-hover);
-    }
-
-    .icon-glow-sm {
-        width: 40px; height: 40px;
-        background: rgba(255,140,0,0.1);
-        border-radius: 10px;
-        display: flex; align-items: center; justify-content: center;
-        border: 1px solid rgba(255,140,0,0.2);
-    }
-
-    /* Full Timeline for Tracking Modal */
-    .timeline-v2-full {
-        position: relative;
-        padding-left: 0;
-    }
     .t-event-full {
         position: relative;
-        padding-bottom: 20px;
+        padding-bottom: 35px;
+        border-left: 2px solid rgba(255,140,0,0.1);
+        padding-left: 25px;
+        margin-left: 10px;
+        margin-bottom: 10px;
     }
-    .t-event-full .t-title { font-weight: 700; font-size: 0.9rem; color: var(--text-primary); margin-bottom: 2px; }
-    .t-event-full .t-desc { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px; }
-    .t-event-full .t-date { font-size: 0.75rem; color: var(--text-secondary); font-family: monospace; opacity: 0.6; }
+    .t-event-full::before {
+        content: '';
+        position: absolute;
+        left: -7px;
+        top: 5px;
+        width: 12px;
+        height: 12px;
+        background: #ff8c00;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255,140,0,0.5);
+    }
+    .t-event-full:last-child {
+        padding-bottom: 0;
+        border-left: 2px solid transparent;
+    }
+
+    .active-border-orange::before, .active-border-green::before, .active-border-blue::before {
+        content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; border-radius: 16px 16px 0 0;
+    }
+    .active-border-orange::before { background: #ff8c00; box-shadow: 0 0 15px rgba(255,140,0,0.2); }
+    .active-border-green::before { background: #198754; box-shadow: 0 0 15px rgba(25,135,84,0.2); }
+    .active-border-blue::before { background: #3b82f6; box-shadow: 0 0 15px rgba(59,130,246,0.2); }
+
+    .btn-orange {
+        background: #ff8c00 !important; color: #000 !important; border: none !important; transition: all 0.2s ease;
+    }
+    .btn-orange:hover {
+        background: #ff9d26 !important; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);
+    }
+
+    .display-6 { font-size: 2rem; font-weight: 800; font-family: 'Sora', sans-serif; }
+    
+    .action-icon { font-size: 1.1rem; transition: transform 0.2s; }
+    .action-icon:hover { transform: scale(1.2); }
+
+    /* Admin Table Style Ported */
+    .admin-style-table { width: 100%; color: var(--text-primary); border-collapse: collapse; }
+    .admin-style-table thead { background: rgba(255,255,255,0.02); border-bottom: 2px solid var(--border-color); }
+    .admin-style-table th { padding: 16px 20px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.5px; }
+    .admin-style-table td { padding: 18px 20px; vertical-align: middle; border-bottom: 1px solid var(--border-color); }
+    .admin-style-table tr:hover { background: rgba(255,140,0,0.02); }
+
+    .bg-dark-soft { background: rgba(255,255,255,0.03); }
 </style>
 
 @section Scripts {
@@ -447,11 +423,11 @@
                         data.timeline.forEach(ev => {
                             const html = `
                                 <div class="t-event-full">
-                                    <div class="t-title ${ev.isActive ? 'text-orange' : ''}">
+                                    <div class="t-title ${ev.isActive ? 'text-orange' : ''} mb-1">
                                         <i class="bi ${ev.icon} me-1"></i> ${ev.title}
                                     </div>
-                                    <div class="t-desc">${ev.description}</div>
-                                    <div class="t-date">${ev.date}</div>
+                                    <div class="t-desc text-secondary mb-2" style="font-size: 0.85rem; line-height: 1.5;">${ev.description}</div>
+                                    <div class="t-date text-muted x-small fw-bold opacity-75">${ev.date}</div>
                                 </div>
                             `;
                             timelineContainer.insertAdjacentHTML('beforeend', html);

@@ -9,5 +9,4 @@ obj/
 
 # Ignore log and temporary files
 *.log
-errors.txt
 *.sql

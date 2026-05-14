@@ -33,15 +33,40 @@ namespace SwiftFill.Models
         /// <summary>
         /// Matches a destination region/island group to the correct final destination hub.
         /// </summary>
-        public static string ResolveDestinationHub(string destinationRegion)
+        public static string ResolveDestinationHub(string destinationRegion, string fullAddress = "")
         {
-            // Direct region/name matches
+            // 1. Try matching against the full address first (most specific)
+            if (!string.IsNullOrEmpty(fullAddress))
+            {
+                var matchedHub = All.FirstOrDefault(h => 
+                    fullAddress.Contains(h.Name.Replace(" Hub", ""), StringComparison.OrdinalIgnoreCase) ||
+                    fullAddress.Contains(h.Region, StringComparison.OrdinalIgnoreCase));
+                
+                if (matchedHub != null) return matchedHub.Name;
+
+                // City-specific keywords
+                if (fullAddress.Contains("Davao", StringComparison.OrdinalIgnoreCase)) return "Davao Hub";
+                if (fullAddress.Contains("Manila", StringComparison.OrdinalIgnoreCase) || 
+                    fullAddress.Contains("NCR", StringComparison.OrdinalIgnoreCase) ||
+                    fullAddress.Contains("Makati", StringComparison.OrdinalIgnoreCase) ||
+                    fullAddress.Contains("Quezon City", StringComparison.OrdinalIgnoreCase)) return "Manila Hub";
+                if (fullAddress.Contains("Cebu", StringComparison.OrdinalIgnoreCase)) return "Cebu Hub";
+                if (fullAddress.Contains("Iloilo", StringComparison.OrdinalIgnoreCase)) return "Iloilo Hub";
+                if (fullAddress.Contains("Bacolod", StringComparison.OrdinalIgnoreCase)) return "Bacolod Hub";
+                if (fullAddress.Contains("Zamboanga", StringComparison.OrdinalIgnoreCase)) return "Zamboanga Hub";
+                if (fullAddress.Contains("General Santos", StringComparison.OrdinalIgnoreCase) || 
+                    fullAddress.Contains("Gensan", StringComparison.OrdinalIgnoreCase)) return "General Santos Hub";
+                if (fullAddress.Contains("Cagayan de Oro", StringComparison.OrdinalIgnoreCase) || 
+                    fullAddress.Contains("CDO", StringComparison.OrdinalIgnoreCase)) return "Cagayan de Oro Hub";
+            }
+
+            // 2. Direct region/name matches from the region field
             var hub = All.FirstOrDefault(h =>
                 h.Region.Equals(destinationRegion, StringComparison.OrdinalIgnoreCase) ||
                 h.Name.Contains(destinationRegion, StringComparison.OrdinalIgnoreCase));
             if (hub != null) return hub.Name;
 
-            // Island-group fallback
+            // 3. Island-group fallback
             return destinationRegion switch
             {
                 "NCR"      => "Manila Hub",

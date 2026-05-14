@@ -63,6 +63,12 @@ namespace SwiftFill.Data
                 .HasForeignKey(o => o.AssignedRiderId);
 
             // Warehouse Relationships
+            builder.Entity<Warehouse>()
+                .HasOne(w => w.BrandingSettings)
+                .WithMany(b => b.Warehouses)
+                .HasForeignKey(w => w.BrandingSettingsId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             builder.Entity<ManualRider>()
                 .HasOne(m => m.Warehouse)
                 .WithMany(w => w.ManualRiders)
@@ -73,6 +79,12 @@ namespace SwiftFill.Data
                 .HasOne(o => o.CurrentWarehouse)
                 .WithMany(w => w.Orders)
                 .HasForeignKey(o => o.CurrentWarehouseId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<Order>()
+                .HasOne(o => o.CategoryNavigation)
+                .WithMany(i => i.Orders)
+                .HasForeignKey(o => o.ItemCategoryId)
                 .OnDelete(DeleteBehavior.SetNull);
 
             builder.Entity<Order>()
@@ -129,11 +141,11 @@ namespace SwiftFill.Data
 
             // Seed Roles
             builder.Entity<IdentityRole>().HasData(
-                new IdentityRole { Id = "1", Name = "SuperAdmin", NormalizedName = "SUPERADMIN" },
-                new IdentityRole { Id = "2", Name = "Admin", NormalizedName = "ADMIN" },
-                new IdentityRole { Id = "3", Name = "WarehouseStaff", NormalizedName = "WAREHOUSESTAFF" },
-                new IdentityRole { Id = "4", Name = "DeliveryRider", NormalizedName = "DELIVERYRIDER" },
-                new IdentityRole { Id = "5", Name = "Customer", NormalizedName = "CUSTOMER" }
+                new IdentityRole { Id = "1", Name = "SuperAdmin", NormalizedName = "SUPERADMIN", ConcurrencyStamp = "1" },
+                new IdentityRole { Id = "2", Name = "Admin", NormalizedName = "ADMIN", ConcurrencyStamp = "2" },
+                new IdentityRole { Id = "3", Name = "WarehouseStaff", NormalizedName = "WAREHOUSESTAFF", ConcurrencyStamp = "3" },
+                new IdentityRole { Id = "4", Name = "DeliveryRider", NormalizedName = "DELIVERYRIDER", ConcurrencyStamp = "4" },
+                new IdentityRole { Id = "5", Name = "Customer", NormalizedName = "CUSTOMER", ConcurrencyStamp = "5" }
             );
 
         }

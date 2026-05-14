@@ -50,11 +50,25 @@
   --sidebar-gradient: linear-gradient(180deg, #ffffff, #f8fafc);
 }
 
-/* Theme Overrides for Bootstrap Utilities */
+/* Theme Overrides for Bootstrap Utilities in Light Mode */
+[data-theme="light"] .text-white, 
 [data-theme="light"] .text-white-50 {
-    color: var(--text-secondary) !important;
-    opacity: 0.8 !important;
+    color: var(--text-primary) !important;
 }
+
+[data-theme="light"] .text-white-50 {
+    opacity: 0.7 !important;
+}
+
+[data-theme="light"] .stat-value {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .stat-subtitle {
+    color: var(--text-secondary) !important;
+    opacity: 0.8;
+}
+
 [data-theme="light"] .bg-dark {
     background-color: var(--bg-secondary) !important;
 }
@@ -123,10 +137,38 @@
     background: rgba(0, 0, 0, 0.02) !important;
 }
 
+[data-theme="light"] code {
+    background: rgba(255, 140, 0, 0.1);
+    color: #e67e00 !important;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+[data-theme="light"] .bg-black.bg-opacity-50 {
+    background-color: rgba(0, 0, 0, 0.03) !important;
+}
+
+[data-theme="light"] .modal-header, 
+[data-theme="light"] .modal-footer {
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="light"] .form-control,
+[data-theme="light"] .form-select {
+    background-color: var(--input-bg) !important;
+    border-color: var(--input-border) !important;
+    color: var(--text-primary) !important;
+}
+
 /* Global Theme Utilities */
 .stat-value { color: var(--text-primary) !important; }
 .text-primary { color: var(--text-primary) !important; }
 .text-secondary { color: var(--text-secondary) !important; }
+.text-white { color: white; } /* Default behavior, overridden for light mode */
+
+[data-theme="light"] .text-white { color: var(--text-primary) !important; }
+[data-theme="light"] .text-white-50 { color: var(--text-secondary) !important; }
+[data-theme="light"] .hover-white:hover { color: var(--brand-primary) !important; }
 
 .table {
     --bs-table-bg: transparent;

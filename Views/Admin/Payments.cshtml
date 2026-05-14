@@ -92,12 +92,10 @@
                                     @if (!payment.IsPaid && payment.Method == "COD")
                                     {
                                         <div class="d-flex gap-1">
-                                            <form asp-action="ConfirmPayment" method="post" class="m-0">
-                                                <input type="hidden" name="paymentId" value="@payment.PaymentId" />
-                                                <button type="submit" class="btn btn-sm btn-outline-orange x-small fw-bold text-uppercase">
-                                                    Settle
-                                                </button>
-                                            </form>
+                                            <button type="button" class="btn btn-sm btn-outline-orange x-small fw-bold text-uppercase" 
+                                                    onclick="confirmSettlePayment('@payment.TrackingId', @payment.PaymentId, '@payment.Amount.ToString("N2")')">
+                                                Settle
+                                            </button>
                                             @if (payment.Order?.Status == "Returning to Sender" || payment.Order?.Status == "Returned" || payment.Order?.Status.Contains("back to") == true)
                                             {
                                                 <form asp-action="MarkAsReturned" method="post" class="m-0">
@@ -162,14 +160,34 @@
     }
 </div>
 
+<!-- Settle Confirmation Modal -->
+<div class="modal fade" id="settlePaymentModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+        <div class="modal-content border-0 shadow-lg" style="background: var(--modal-bg); border-radius: 16px; border: 1px solid rgba(255,140,0,0.2) !important;">
+            <div class="modal-body text-center p-4">
+                <div class="display-4 text-orange mb-3"><i class="bi bi-cash-stack"></i></div>
+                <h5 class="text-primary fw-bold mb-2">Settle Payment?</h5>
+                <p class="text-secondary small mb-4">Are you sure you want to settle the payment for <strong id="settleTrackingId" class="text-primary"></strong> amounting to <strong class="text-orange">₱<span id="settleAmount"></span></strong>?</p>
+                <form asp-action="ConfirmPayment" method="post">
+                    <input type="hidden" name="paymentId" id="settlePaymentIdInput" />
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-dark flex-fill" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-orange flex-fill fw-bold text-dark" style="background: #ff8c00;">Confirm Settlement</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Archive Confirmation Modal -->
 <div class="modal fade" id="archivePaymentModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
-        <div class="modal-content border-0 shadow-lg" style="background: #0a0a0a; border-radius: 16px; border: 1px solid rgba(220,53,69,0.2) !important;">
+        <div class="modal-content border-0 shadow-lg" style="background: var(--modal-bg); border-radius: 16px; border: 1px solid rgba(220,53,69,0.2) !important;">
             <div class="modal-body text-center p-4">
                 <div class="display-4 text-danger mb-3"><i class="bi bi-exclamation-octagon"></i></div>
-                <h5 class="text-white fw-bold mb-2">Archive Payment?</h5>
-                <p class="text-secondary small mb-4">Are you sure you want to archive payment for <strong id="archiveTrackingId" class="text-white"></strong>? This will remove it from active management.</p>
+                <h5 class="text-primary fw-bold mb-2">Archive Payment?</h5>
+                <p class="text-secondary small mb-4">Are you sure you want to archive payment for <strong id="archiveTrackingId" class="text-primary"></strong>? This will remove it from active management.</p>
                 <form asp-action="ArchivePayment" method="post" id="archivePaymentForm">
                     <input type="hidden" name="paymentId" id="archivePaymentIdInput" />
                     <div class="d-flex gap-2">
@@ -187,6 +205,14 @@
         document.getElementById('archiveTrackingId').innerText = trackingId;
         document.getElementById('archivePaymentIdInput').value = paymentId;
         const modal = new bootstrap.Modal(document.getElementById('archivePaymentModal'));
+        modal.show();
+    }
+
+    function confirmSettlePayment(trackingId, paymentId, amount) {
+        document.getElementById('settleTrackingId').innerText = trackingId;
+        document.getElementById('settleAmount').innerText = amount;
+        document.getElementById('settlePaymentIdInput').value = paymentId;
+        const modal = new bootstrap.Modal(document.getElementById('settlePaymentModal'));
         modal.show();
     }
 </script>
