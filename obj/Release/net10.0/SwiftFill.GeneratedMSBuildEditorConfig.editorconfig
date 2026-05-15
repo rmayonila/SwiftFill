@@ -214,6 +214,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VwZXJBZG1pblxJbnZlbnRvcnkuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/PERSONAL/SwiftFill/Views/SuperAdmin/Roles.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VwZXJBZG1pblxSb2xlcy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/PERSONAL/SwiftFill/Views/SuperAdmin/SecurityLogs.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VwZXJBZG1pblxTZWN1cml0eUxvZ3MuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 

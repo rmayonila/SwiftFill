@@ -300,9 +300,6 @@
                                 <a href="tel:@order.ReceiverPhone" class="btn btn-sm btn-theme-adaptive p-2 rounded-3 shadow-sm" title="Call Receiver (@order.ReceiverPhone)">
                                     <i class="bi bi-telephone-fill text-success"></i>
                                 </a>
-                                <a href="https://wa.me/@(order.ReceiverPhone.StartsWith("0") ? "63" + order.ReceiverPhone.Substring(1) : order.ReceiverPhone)" target="_blank" class="btn btn-sm btn-theme-adaptive p-2 rounded-3 shadow-sm" title="Message Receiver">
-                                    <i class="bi bi-whatsapp text-success"></i>
-                                </a>
                             </div>
                         </td>
                         <td>
@@ -404,9 +401,6 @@
                         <div class="d-flex gap-2">
                             <a href="tel:@order.ReceiverPhone" class="btn btn-theme-adaptive rounded-3 shadow-sm" title="Call">
                                 <i class="bi bi-telephone-fill text-success"></i>
-                            </a>
-                            <a href="https://wa.me/@(order.ReceiverPhone.StartsWith("0") ? "63" + order.ReceiverPhone.Substring(1) : order.ReceiverPhone)" target="_blank" class="btn btn-theme-adaptive rounded-3 shadow-sm" title="Message">
-                                <i class="bi bi-whatsapp text-success"></i>
                             </a>
                             <button class="btn btn-theme-adaptive rounded-3 shadow-sm" onclick="showMapModal('@order.ReceiverAddress', '@order.ReceiverName')">
                                 <i class="bi bi-cursor-fill text-orange"></i>

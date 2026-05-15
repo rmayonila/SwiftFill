@@ -280,15 +280,22 @@
                         <i class="bi bi-gear-fill"></i> Account Settings
                     </a>
                 </li>
+                <li class="nav-item mt-2 d-lg-none">
+                    <a href="javascript:void(0)" class="nav-link text-danger border-0" data-bs-toggle="modal" data-bs-target="#logoutConfirmationModal" style="background: transparent;">
+                        <i class="bi bi-box-arrow-right"></i> Log Out
+                    </a>
+                </li>
             </ul>
         </div>
 
-        <div class="sidebar-logout">
+        <div class="sidebar-logout d-none d-lg-block">
             <button type="button" class="btn w-100 fw-bold" data-bs-toggle="modal" data-bs-target="#logoutConfirmationModal"
                 style="border:1px solid rgba(220,53,69,0.4);color:rgba(220,53,69,0.8);background:rgba(220,53,69,0.05);border-radius:8px;font-size:0.85rem;padding:10px;">
                 <i class="bi bi-box-arrow-right"></i> Logout
             </button>
         </div>
+
+
     </div>
 
     <!-- Main Content -->
@@ -376,9 +383,7 @@
                     <i class="bi bi-gear-fill me-3 text-orange"></i> Account Settings
                 </a>
             </div>
-            <button type="button" class="btn btn-danger w-100 py-3 fw-bold rounded-3" data-bs-toggle="modal" data-bs-target="#logoutConfirmationModal">
-                <i class="bi bi-box-arrow-right me-2"></i> Log Out
-            </button>
+
         </div>
     </div>
 

@@ -333,4 +333,4 @@ C:\Users\PERSONAL\SwiftFill\obj\Release\net10.0\compressed\dpcn2el5ax-{0}-jfsiqq
 C:\Users\PERSONAL\SwiftFill\bin\Release\net10.0\BouncyCastle.Cryptography.dll
 C:\Users\PERSONAL\SwiftFill\bin\Release\net10.0\MailKit.dll
 C:\Users\PERSONAL\SwiftFill\bin\Release\net10.0\MimeKit.dll
-C:\Users\PERSONAL\SwiftFill\obj\Release\net10.0\compressed\5r5q39yl56-{0}-zhku2kv71o-zhku2kv71o.gz
+C:\Users\PERSONAL\SwiftFill\obj\Release\net10.0\compressed\5r5q39yl56-{0}-wixoxy034y-wixoxy034y.gz
