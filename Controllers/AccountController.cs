@@ -321,6 +321,11 @@ namespace SwiftFill.Controllers
             var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
             if (result.Succeeded)
             {
+                if (user.RequiresPasswordChange)
+                {
+                    user.RequiresPasswordChange = false;
+                    await _userManager.UpdateAsync(user);
+                }
                 TempData.Remove("ResetEmail");
                 TempData.Remove("ResetCode");
                 TempData.Remove("VerificationVerified");
@@ -367,12 +372,32 @@ namespace SwiftFill.Controllers
                 if (user == null) user = await _userManager.FindByNameAsync(loginName);
                 if (user == null) return Unauthorized();
 
-                // Reset failed logins on success
+                // Check if they need to change their password
+                if (user.RequiresPasswordChange)
+                {
+                    await _signInManager.SignOutAsync();
+                    TempData["VerificationVerified"] = "true";
+                    TempData["ErrorMessage"] = "For security reasons, your account requires a password reset before you can sign in.";
+                    return RedirectToAction("ResetPassword", new { email = user.Email });
+                }
+
+                // Store the PREVIOUS login time in session so dashboards can display it.
+                // This is intentional: users see when they LAST logged in, not the current session.
+                // If someone else logged in without their knowledge, the timestamp will reveal it.
+                if (user.LastLoginAt.HasValue)
+                {
+                    HttpContext.Session.SetString("PreviousLoginAt",
+                        user.LastLoginAt.Value.ToString("o")); // ISO 8601 round-trip format
+                }
+
+                // Now record the current login time
+                user.LastLoginAt = DateTime.UtcNow;
                 if (user.TotalFailedLogins > 0)
                 {
                     user.TotalFailedLogins = 0;
-                    await _userManager.UpdateAsync(user);
                 }
+                await _userManager.UpdateAsync(user);
+
 
                 var roles = await _userManager.GetRolesAsync(user);
                 var roleName = roles.FirstOrDefault() ?? "User";
@@ -427,12 +452,6 @@ namespace SwiftFill.Controllers
                 return RedirectToAction("Index", "Customer");
             }
 
-            if (result.IsLockedOut)
-            {
-                TempData["ErrorMessage"] = "You have failed to login 5 times. Your account is temporarily locked for 5 minutes. Please pause and try again later.";
-                return RedirectToAction("Login");
-            }
-
             // Handle incrementing total failed logins
             if (user != null)
             {
@@ -440,11 +459,18 @@ namespace SwiftFill.Controllers
                 if (user.TotalFailedLogins >= 10)
                 {
                     user.IsSuspended = true;
+                    await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MaxValue);
                     await _userManager.UpdateAsync(user);
                     TempData["ErrorMessage"] = "Your account has been suspended due to 10 failed login attempts. Please contact the Super Admin to unsuspend your account.";
                     return RedirectToAction("Login");
                 }
                 await _userManager.UpdateAsync(user);
+            }
+
+            if (result.IsLockedOut)
+            {
+                TempData["ErrorMessage"] = "You have failed to login 5 times. Your account is temporarily locked for 5 minutes. Please pause and try again later.";
+                return RedirectToAction("Login");
             }
 
             var ipAddressErr = HttpContext.Connection.RemoteIpAddress?.ToString();

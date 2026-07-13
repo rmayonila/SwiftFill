@@ -27,5 +27,10 @@ namespace SwiftFill.Models
 
         public bool IsSuspended { get; set; } = false;
         public int TotalFailedLogins { get; set; } = 0;
+
+        /// <summary>Timestamp of the user's most recent successful login (UTC).</summary>
+        public DateTime? LastLoginAt { get; set; }
+
+        public bool RequiresPasswordChange { get; set; } = false;
     }
 }

@@ -301,16 +301,22 @@ namespace SwiftFill.Controllers
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null) return NotFound();
 
-            bool isCurrentlyLocked = await _userManager.IsLockedOutAsync(user);
+            bool isCurrentlyLocked = await _userManager.IsLockedOutAsync(user) || user.IsSuspended;
             
             if (isCurrentlyLocked)
             {
                 await _userManager.SetLockoutEndDateAsync(user, null);
-                TempData["SuccessMessage"] = $"User {user.Email} has been reactivated.";
+                user.IsSuspended = false;
+                user.TotalFailedLogins = 0;
+                user.RequiresPasswordChange = true;
+                await _userManager.UpdateAsync(user);
+                TempData["SuccessMessage"] = $"User {user.Email} has been reactivated. They will be forced to change their password on their next login.";
             }
             else
             {
                 await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MaxValue);
+                user.IsSuspended = true;
+                await _userManager.UpdateAsync(user);
                 TempData["SuccessMessage"] = $"User {user.Email} has been suspended.";
             }
 

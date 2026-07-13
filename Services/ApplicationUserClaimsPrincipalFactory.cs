@@ -5,11 +5,6 @@ using System.Security.Claims;
 
 namespace SwiftFill.Services
 {
-    /// <summary>
-    /// Custom ClaimsPrincipalFactory that automatically includes Role Claims (Permissions) 
-    /// in the User's Principal. This ensures that permissions defined in the "Roles & Permissions" 
-    /// page are automatically inherited by all users in those roles.
-    /// </summary>
     public class ApplicationUserClaimsPrincipalFactory : UserClaimsPrincipalFactory<ApplicationUser, IdentityRole>
     {
         private readonly RoleManager<IdentityRole> _roleManager;

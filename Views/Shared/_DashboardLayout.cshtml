@@ -41,6 +41,26 @@
         [data-theme="light"] .theme-toggle-btn {
             background: rgba(0, 0, 0, 0.05);
         }
+
+        /* Last signed-in banner */
+        .last-login-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: rgba(255,255,255,0.55);
+            background: rgba(255,140,0,0.07);
+            border: 1px solid rgba(255,140,0,0.18);
+            border-radius: 20px;
+            padding: 4px 12px;
+            white-space: nowrap;
+            margin-right: 12px;
+            letter-spacing: 0.02em;
+            transition: background 0.2s;
+        }
+        .last-login-badge i { color: #ff8c00; font-size: 0.78rem; }
+        .last-login-badge:hover { background: rgba(255,140,0,0.12); }
     </style>
 </head>
 <body>
@@ -58,9 +78,24 @@
                     <ul class="navbar-nav align-items-center">
                         @if (User.Identity?.IsAuthenticated == true)
                         {
-                            <li class="nav-item me-4 text-secondary" style="font-size:0.9rem;">
-                                <i class="bi bi-clock"></i> Local Time: @DateTime.Now.ToString("h:mm tt")
-                            </li>
+                            var prevLoginRaw = Context.Session.GetString("PreviousLoginAt");
+                            string lastLoginText = null;
+                            if (!string.IsNullOrEmpty(prevLoginRaw) &&
+                                DateTime.TryParse(prevLoginRaw, null,
+                                    System.Globalization.DateTimeStyles.RoundtripKind, out var prevUtc))
+                            {
+                                lastLoginText = prevUtc.ToLocalTime().ToString("MMM d, yyyy 'at' h:mm tt");
+                            }
+
+                            if (lastLoginText != null)
+                            {
+                                <li class="nav-item d-none d-md-block">
+                                    <span class="last-login-badge" title="Your previous sign-in — if this looks unfamiliar, change your password immediately">
+                                        <i class="bi bi-clock-history"></i>
+                                        Last signed in: @lastLoginText
+                                    </span>
+                                </li>
+                            }
                             <li class="nav-item me-3">
                                 <a asp-controller="Account" asp-action="Settings" class="nav-link fw-bold text-white d-flex align-items-center text-decoration-none">
                                     <div class="rounded-circle d-flex justify-content-center align-items-center me-2 fw-bold" style="width: 28px; height: 28px; background: rgba(255,140,0,0.2); color: #ff8c00; font-size: 0.8rem;">

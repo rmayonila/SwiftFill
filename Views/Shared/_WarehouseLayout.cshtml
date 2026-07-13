@@ -211,6 +211,26 @@
         [data-theme="light"] .theme-toggle-btn {
             background: rgba(0, 0, 0, 0.05);
         }
+
+        /* Last signed-in banner */
+        .last-login-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            background: rgba(255,140,0,0.07);
+            border: 1px solid rgba(255,140,0,0.18);
+            border-radius: 20px;
+            padding: 4px 12px;
+            white-space: nowrap;
+            margin-right: 14px;
+            letter-spacing: 0.02em;
+            transition: background 0.2s;
+        }
+        .last-login-badge i { color: #ff8c00; font-size: 0.78rem; }
+        .last-login-badge:hover { background: rgba(255,140,0,0.12); }
     </style>
 </head>
 <body>
@@ -301,6 +321,23 @@
             <div class="d-md-none d-flex align-items-center">
                 <h5 class="m-0 fw-bold text-orange">Warehouse Panel</h5>
             </div>
+            @{
+                var prevLoginRaw = Context.Session.GetString("PreviousLoginAt");
+                string lastLoginText = null;
+                if (!string.IsNullOrEmpty(prevLoginRaw) &&
+                    DateTime.TryParse(prevLoginRaw, null,
+                        System.Globalization.DateTimeStyles.RoundtripKind, out var prevUtc))
+                {
+                    lastLoginText = prevUtc.ToLocalTime().ToString("MMM d, yyyy 'at' h:mm tt");
+                }
+            }
+            @if (lastLoginText != null)
+            {
+                <span class="last-login-badge d-none d-sm-inline-flex" title="Your previous sign-in — if this looks unfamiliar, change your password immediately">
+                    <i class="bi bi-clock-history"></i>
+                    Last signed in: @lastLoginText
+                </span>
+            }
             <button id="themeToggle" class="theme-toggle-btn" title="Toggle Theme">
                 <i class="bi bi-moon-stars-fill dark-icon"></i>
                 <i class="bi bi-sun-fill light-icon d-none"></i>
